@@ -5,465 +5,253 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Sınıf Yarışmaları</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root{
-    --team1: #2E6FDB;
-    --team1-dark: #1F4EA0;
-    --team2: #E3492E;
-    --team2-dark: #B4331D;
-    --sky-top: #BFE3FF;
-    --sky-bottom: #EAF6FF;
-    --sand: #FFF6E4;
-    --flag: #FFC93C;
-    --ink: #1D2B3A;
-    --ok: #3AB273;
-    --bad: #E3492E;
-    --side-bg-1: #201A38;
-    --side-bg-2: #2E2560;
-    --side-text: #EDEAFB;
-    --side-muted: #9C93C4;
+    --team1: #3D74F4;
+    --team1-dark: #2452C4;
+    --team2: #FB5B4B;
+    --team2-dark: #C93A2D;
+    --ink: #16202B;
+    --ok: #22B573;
+    --bad: #FB5B4B;
+
+    --sidebar-bg: #FFFFFF;
+    --sidebar-border: #ECEEF3;
+    --violet: #6C63F5;
+    --violet-dark: #5147D6;
+    --violet-soft: #EEEBFF;
+    --amber: #F5A524;
+    --amber-dark: #C97F0E;
+    --amber-soft: #FFF3DC;
+    --teal-soft: #E4F8F1;
+    --blue-soft: #E8F0FF;
+
+    --surface: #F6F7FB;
+    --card: #FFFFFF;
+    --muted: #6B7A8D;
+    --text-strong: #16202B;
   }
   *{box-sizing:border-box;}
   html,body{
     margin:0; padding:0; height:100%;
-    font-family:'Nunito', sans-serif;
+    font-family:'Manrope', sans-serif;
     color:var(--ink);
   }
+  h1,h2,h3,.font-display{ font-family:'Space Grotesk', sans-serif; }
 
   /* ---------- app shell ---------- */
-  .app-shell{
-    display:flex;
-    min-height:100vh;
-  }
+  .app-shell{ display:flex; min-height:100vh; }
 
   .sidebar{
-    width:250px;
+    width:270px;
     flex-shrink:0;
-    background: linear-gradient(180deg, var(--side-bg-1) 0%, var(--side-bg-2) 100%);
-    color: var(--side-text);
+    background: var(--sidebar-bg);
+    border-right: 1px solid var(--sidebar-border);
+    color: var(--text-strong);
     padding: 22px 14px;
     display:flex;
     flex-direction:column;
     gap:4px;
   }
-  .brand{
-    padding: 0 8px 18px;
-    margin-bottom: 10px;
-    border-bottom: 1px solid rgba(255,255,255,0.12);
+  .brand{ display:flex; align-items:center; gap:10px; padding: 0 8px 18px; margin-bottom: 10px; border-bottom: 1px solid var(--sidebar-border); }
+  .brand-badge{
+    width:38px; height:38px; border-radius:12px; flex-shrink:0;
+    background: linear-gradient(135deg, var(--violet), #8F87FF);
+    display:flex; align-items:center; justify-content:center; font-size:1.2rem;
   }
-  .brand-title{
-    font-family:'Baloo 2';
-    font-weight:800;
-    font-size:1.25rem;
-    line-height:1.2;
-    margin:0 0 8px;
-  }
-  .brand-bar{
-    width:42px; height:5px; border-radius:3px;
-    background: var(--flag);
-  }
-  .nav-section-label{
-    font-family:'Nunito';
-    font-weight:800;
-    font-size:0.72rem;
-    color: var(--side-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    margin: 14px 10px 6px;
-  }
+  .brand-title{ font-family:'Space Grotesk'; font-weight:700; font-size:1.08rem; line-height:1.25; margin:0; color: var(--text-strong); }
+  .nav-section-label{ font-family:'Manrope'; font-weight:800; font-size:0.7rem; color:#A6AFBD; text-transform:uppercase; letter-spacing:0.07em; margin: 16px 10px 6px; }
   .nav-item{
-    display:flex; align-items:center; gap:10px;
-    width:100%;
-    background:transparent;
-    border:none;
-    border-left: 4px solid transparent;
-    color: var(--side-text);
-    font-family:'Nunito';
-    font-weight:700;
-    font-size:0.95rem;
-    text-align:left;
-    padding: 10px 10px;
-    border-radius: 0 10px 10px 0;
-    cursor:pointer;
+    display:flex; align-items:center; gap:12px; width:100%;
+    background:transparent; border:none;
+    color: var(--text-strong); font-family:'Manrope'; font-weight:700; font-size:0.92rem;
+    text-align:left; padding:9px 10px; border-radius:12px; cursor:pointer;
   }
-  .nav-item .nav-icon{ font-size:1.15rem; }
-  .nav-item small{ display:block; font-weight:600; color: var(--side-muted); font-size:0.72rem; }
-  .nav-item:hover:not(.disabled){ background: rgba(255,255,255,0.07); }
-  .nav-item.active{
-    background: rgba(255,201,77,0.14);
-    border-left-color: var(--flag);
-    color:#fff;
+  .nav-item .nav-icon{
+    width:32px; height:32px; border-radius:9px; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center; font-size:1.05rem;
+    background: #F1F3F7;
   }
-  .nav-item.disabled{
-    color: var(--side-muted);
-    cursor:default;
-    opacity:0.7;
-  }
+  .nav-item[data-view="home"] .nav-icon{ background: var(--blue-soft); }
+  .nav-item[data-view="tugofwar"] .nav-icon{ background: var(--teal-soft); }
+  .nav-item[data-view="millionaire"] .nav-icon{ background: var(--amber-soft); }
+  .nav-item[data-view="picture"] .nav-icon{ background: var(--violet-soft); }
+  .nav-item small{ display:block; font-weight:600; color:#9AA5B4; font-size:0.7rem; }
+  .nav-item:hover:not(.disabled){ background: #F5F6FA; }
+  .nav-item.active{ background: var(--violet-soft); color: var(--violet-dark); }
+  .nav-item.active small{ color: var(--violet); }
+  .nav-item.disabled{ color:#C3CAD4; cursor:default; }
+  .nav-item.disabled .nav-icon{ background:#F5F6FA; }
 
-  .content{
-    flex:1;
-    min-width:0;
-    height:100vh;
-    overflow-y:auto;
-  }
+  .content{ flex:1; min-width:0; height:100vh; overflow-y:auto; background: var(--surface); }
   .view{ display:none; min-height:100%; }
   .view.active{ display:block; }
 
-  /* ---------- home view ---------- */
-  #view-home{ background: var(--sand); }
-  .home-hero{
-    background: linear-gradient(135deg, var(--side-bg-1), var(--side-bg-2));
-    color:#fff;
-    padding: 46px 40px 54px;
+  /* ---------- home ---------- */
+  #view-home{
+    background: var(--surface);
+    display:flex; align-items:center; justify-content:center; text-align:center;
+    min-height:100vh;
+    padding: 40px;
   }
-  .home-hero h1{
-    font-family:'Baloo 2';
-    font-weight:800;
-    font-size: clamp(1.8rem, 3.4vw, 2.6rem);
-    margin: 0 0 10px;
+  .home-card{
+    background: var(--card); border-radius:20px; padding: 44px 40px;
+    box-shadow: 0 8px 0 rgba(20,30,45,0.05); max-width:480px;
   }
-  .home-hero p{
-    color: var(--side-muted);
-    font-weight:700;
-    font-size: 1rem;
-    max-width: 520px;
-    margin:0;
-  }
-  .home-grid{
-    padding: 30px 40px 50px;
-    display:grid;
-    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
-    gap:18px;
-    max-width: 1100px;
-  }
-  .game-card{
-    text-align:left;
-    border-radius:16px;
-    padding:20px 18px;
-    background:#fff;
-    cursor:pointer;
-    box-shadow: 0 5px 0 rgba(0,0,0,0.08);
-    border: 2px solid transparent;
-    font-family:'Nunito';
-  }
-  .game-card:hover{ border-color: var(--flag); }
-  .game-card-icon{ font-size:2rem; margin-bottom:8px; }
-  .game-card h3{
-    font-family:'Baloo 2'; font-weight:700; font-size:1.05rem;
-    margin: 0 0 6px; color: var(--ink);
-  }
-  .game-card p{
-    margin:0 0 12px; color:#5A6B7B; font-weight:600; font-size:0.88rem; line-height:1.4;
-  }
-  .play-tag{
-    display:inline-block;
-    font-family:'Baloo 2'; font-weight:700; font-size:0.85rem;
-    background: var(--ok); color:#fff;
-    padding:6px 14px; border-radius:10px;
-  }
-  .game-card.placeholder-card{
-    cursor:default;
-    background: transparent;
-    border: 2px dashed #D9D2C4;
-    box-shadow:none;
-  }
-  .game-card.placeholder-card:hover{ border-color:#D9D2C4; }
-  .game-card.placeholder-card h3{ color:#9B9384; }
-  .game-card.placeholder-card p{ color:#B0A996; }
-  .soon-tag{
-    display:inline-block;
-    font-family:'Baloo 2'; font-weight:700; font-size:0.8rem;
-    background:#EFEAE0; color:#9B9384;
-    padding:6px 14px; border-radius:10px;
-  }
+  .home-card .brand-badge{ width:52px; height:52px; border-radius:16px; font-size:1.6rem; margin: 0 auto 18px; }
+  #view-home h1{ font-size: clamp(1.6rem, 3.2vw, 2.1rem); font-weight:700; margin:0 0 10px; color: var(--text-strong); }
+  #view-home p{ color: var(--muted); font-weight:600; font-size:1rem; margin:0; }
 
-  /* ---------- tug of war view ---------- */
-  #view-tugofwar{
-    background: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-bottom) 55%, var(--sand) 55%, var(--sand) 100%);
-  }
-  .game-wrap{
-    display:flex; flex-direction:column; align-items:center;
-    padding: 18px 20px 30px;
-  }
-  .game-topbar{
-    width:100%; max-width:1100px;
-    display:flex; align-items:center; justify-content:space-between;
-    margin-bottom:4px;
-  }
-  .home-link{
-    display:inline-flex; align-items:center; gap:6px;
-    font-family:'Baloo 2'; font-weight:700; font-size:0.9rem;
-    color:#4A5A6A; text-decoration:none; cursor:pointer;
-    background:none; border:none;
-  }
-  h1.game-title{
-    font-family:'Baloo 2', sans-serif;
-    font-weight:800;
-    font-size: clamp(1.5rem, 3.6vw, 2.3rem);
-    margin: 4px 0 2px;
-    letter-spacing:0.5px;
-    text-align:center;
-  }
-  .subtitle{
-    font-weight:700;
-    color:#4A5A6A;
-    margin-bottom:16px;
-    text-align:center;
-    font-size: clamp(0.9rem, 2vw, 1.05rem);
-  }
+  /* ---------- shared game components ---------- */
+  .game-wrap{ display:flex; flex-direction:column; align-items:center; padding: 22px 20px 34px; }
+  .game-topbar{ width:100%; max-width:1100px; display:flex; align-items:center; justify-content:space-between; margin-bottom:4px; }
+  .home-link{ display:inline-flex; align-items:center; gap:6px; font-family:'Space Grotesk'; font-weight:600; font-size:0.9rem; color:var(--muted); background:none; border:none; cursor:pointer; }
+  h1.game-title{ font-weight:700; font-size: clamp(1.5rem, 3.6vw, 2.2rem); margin: 4px 0 2px; text-align:center; }
+  .subtitle{ font-weight:600; color:var(--muted); margin-bottom:18px; text-align:center; font-size: clamp(0.9rem, 2vw, 1.02rem); }
 
   .setup-bar{
-    width:100%; max-width:1100px;
-    background:#fff;
-    border-radius:16px;
-    padding:16px 18px;
-    margin-bottom:14px;
-    display:flex; flex-wrap:wrap; align-items:center; gap:14px;
-    box-shadow: 0 6px 0 rgba(0,0,0,0.08);
+    width:100%; max-width:1100px; background:var(--card); border-radius:16px; padding:16px 18px;
+    margin-bottom:14px; display:flex; flex-wrap:wrap; align-items:center; gap:14px;
+    box-shadow: 0 6px 0 rgba(20,30,45,0.06);
   }
-  .setup-bar .lbl{
-    font-family:'Baloo 2'; font-weight:700; font-size:0.95rem; color:#4A5A6A;
+  .setup-bar .lbl{ font-family:'Space Grotesk'; font-weight:600; font-size:0.95rem; color:var(--muted); }
+  .setup-bar input[type=number], .setup-bar input[type=text]{
+    font-size:1.05rem; font-weight:700; text-align:center; padding:8px 10px; border-radius:10px;
+    border:2px solid #E1E7EF; font-family:'Space Grotesk'; color:var(--ink);
   }
-  .setup-bar input[type=number]{
-    width:90px; font-size:1.1rem; font-weight:800; text-align:center;
-    padding:8px 6px; border-radius:10px; border:2px solid #D9E2EA;
-    font-family:'Baloo 2';
-  }
-  .preset{
-    border:2px solid #D9E2EA; background:#fff; border-radius:10px;
-    padding:8px 12px; font-family:'Baloo 2'; font-weight:700; cursor:pointer;
-    color:#4A5A6A;
-  }
-  .preset.active{ border-color: var(--team1); color:var(--team1-dark); background:#EAF2FF; }
+  .setup-bar input[type=number]{ width:90px; }
+  .setup-bar input[type=text]{ width:190px; text-align:left; }
+  .preset{ border:2px solid #E1E7EF; background:#fff; border-radius:10px; padding:8px 12px; font-family:'Space Grotesk'; font-weight:600; cursor:pointer; color:var(--muted); }
+  .preset.active{ border-color: var(--violet); color: var(--violet-dark); background:#F0ECFF; }
   .start-btn{
-    margin-left:auto;
-    background: var(--ok); color:#fff; border:none; border-radius:12px;
-    padding:12px 22px; font-family:'Baloo 2'; font-weight:800; font-size:1.05rem;
-    cursor:pointer; box-shadow: 0 4px 0 rgba(0,0,0,0.15);
+    margin-left:auto; background: var(--violet); color:#fff; border:none; border-radius:12px;
+    padding:12px 22px; font-family:'Space Grotesk'; font-weight:700; font-size:1.02rem;
+    cursor:pointer; box-shadow: 0 4px 0 var(--violet-dark);
   }
   .start-btn:active{ transform: translateY(2px); box-shadow:none; }
 
-  .scoreboard{
-    width:100%;
-    max-width:1100px;
-    display:flex;
-    align-items:stretch;
-    gap:10px;
-    margin-bottom:14px;
-  }
+  .scoreboard{ width:100%; max-width:1100px; display:flex; align-items:stretch; gap:10px; margin-bottom:14px; }
   .score-chip{
-    flex:1;
-    border-radius:16px;
-    padding:10px 16px;
-    font-family:'Baloo 2', sans-serif;
-    font-weight:700;
-    display:flex; align-items:center; justify-content:space-between;
-    color:#fff;
-    box-shadow: 0 4px 0 rgba(0,0,0,0.12);
-    transition: transform 0.25s ease;
+    flex:1; border-radius:16px; padding:10px 16px; font-family:'Space Grotesk'; font-weight:700;
+    display:flex; align-items:center; justify-content:space-between; color:#fff;
+    box-shadow: 0 4px 0 rgba(20,30,45,0.12); transition: transform 0.25s ease;
   }
   .score-chip.t1{ background: var(--team1); }
   .score-chip.t2{ background: var(--team2); }
   .score-chip.leading{ transform: scale(1.04); }
   .score-chip .num{ font-size:1.6rem; }
   .timer-chip{
-    min-width:110px;
-    border-radius:16px;
-    background:#fff;
-    display:flex; flex-direction:column; align-items:center; justify-content:center;
-    font-family:'Baloo 2', sans-serif;
-    font-weight:800;
-    font-size:1.6rem;
-    box-shadow: 0 4px 0 rgba(0,0,0,0.08);
-    color:var(--ink);
-    position:relative;
-    overflow:hidden;
-    padding:4px 10px;
+    min-width:110px; border-radius:16px; background:var(--card); display:flex; flex-direction:column;
+    align-items:center; justify-content:center; font-family:'Space Grotesk'; font-weight:700; font-size:1.5rem;
+    box-shadow: 0 4px 0 rgba(20,30,45,0.06); color:var(--ink); position:relative; overflow:hidden; padding:4px 10px;
   }
   .timer-chip.warn{ color: var(--bad); }
-  .timer-chip .lbl{ font-family:'Nunito'; font-size:0.62rem; font-weight:800; color:#7C8B9B; }
-  .timer-bar-track{
-    position:absolute; left:0; right:0; bottom:0; height:5px; background:#EEF1F4;
-  }
-  .timer-bar-fill{
-    height:100%; background: var(--ok); width:100%; transition: width 1s linear, background 0.4s ease;
-  }
+  .timer-chip .lbl{ font-family:'Manrope'; font-size:0.62rem; font-weight:800; color:var(--muted); }
+  .timer-bar-track{ position:absolute; left:0; right:0; bottom:0; height:5px; background:#EEF1F4; }
+  .timer-bar-fill{ height:100%; background: var(--ok); width:100%; transition: width 1s linear, background 0.4s ease; }
 
-  .field{
-    width:100%; max-width:1100px;
-    background:#fff;
-    border-radius:20px;
-    box-shadow: 0 8px 0 rgba(0,0,0,0.08);
-    padding: 18px 16px 22px;
-    position:relative;
-    overflow:hidden;
-  }
+  .field{ width:100%; max-width:1100px; background:var(--card); border-radius:20px; box-shadow: 0 8px 0 rgba(20,30,45,0.06); padding: 18px 16px 22px; position:relative; overflow:hidden; }
 
-  .track-area{
-    display:flex; flex-direction:column; align-items:center;
-    margin-bottom: 10px;
+  .panels{ display:flex; gap:14px; align-items:stretch; }
+  .panel{ flex:1; border-radius:16px; padding:14px; min-width:0; }
+  .panel.t1{ background:#EAF0FF; border:2px solid var(--team1); }
+  .panel.t2{ background:#FFEDEA; border:2px solid var(--team2); }
+  .panel-head{ font-family:'Space Grotesk'; font-weight:700; font-size:1rem; margin-bottom:8px; display:flex; align-items:center; justify-content:space-between; gap:6px; }
+  .panel.t1 .panel-head{ color:var(--team1-dark); }
+  .panel.t2 .panel-head{ color:var(--team2-dark); }
+  .streak{ font-family:'Manrope'; font-size:0.75rem; font-weight:800; opacity:0.7; }
+  .question{ font-weight:800; font-size: clamp(0.95rem, 2.3vw, 1.15rem); line-height:1.35; min-height:3.2em; margin-bottom:12px; }
+  .options{ display:grid; grid-template-columns: 1fr 1fr; gap:8px; }
+  .opt{
+    border:none; border-radius:12px; padding:12px 8px; font-family:'Manrope'; font-weight:700;
+    font-size: clamp(0.8rem, 2vw, 0.95rem); background:#fff; color:var(--ink); cursor:pointer;
+    box-shadow: 0 3px 0 rgba(20,30,45,0.08); text-align:left; display:flex; gap:8px; align-items:flex-start;
+    transition: transform 0.1s ease;
   }
-  .lead-lbl{
-    font-family:'Baloo 2';
-    font-weight:800;
-    font-size:0.95rem;
-    color:#4A5A6A;
-    margin-bottom:6px;
-    min-height:1.3em;
-  }
-  .track{
-    position:relative;
-    width:100%;
-    max-width:640px;
-    height:70px;
-  }
-  .track .rail{
-    position:absolute; top:50%; left:0; right:0; height:8px;
-    transform:translateY(-50%);
-    background: repeating-linear-gradient(90deg, #D8C9A3 0 14px, #C9B688 14px 20px);
-    border-radius:4px;
-  }
-  .track .midline{
-    position:absolute; top:0; bottom:0; left:50%;
-    width:2px; background:#B9C6D2; transform:translateX(-1px);
-  }
-  .track .goal{
-    position:absolute; top:6px; bottom:6px; width:6px; border-radius:3px;
-  }
+  .opt .letter{ flex:0 0 auto; width:22px; height:22px; border-radius:50%; background:#EEF1F4; color:#5A6B7B; display:flex; align-items:center; justify-content:center; font-size:0.75rem; font-weight:800; }
+  .opt:active{ transform: scale(0.97); }
+  .opt:disabled{ cursor:default; opacity:0.6; }
+  .panel.t1 .opt:not(:disabled):hover{ background:#DCE6FF; }
+  .panel.t2 .opt:not(:disabled):hover{ background:#FFDFD8; }
+  .opt.correct{ background: var(--ok); color:#fff; opacity:1; }
+  .opt.correct .letter{ background:rgba(255,255,255,0.3); color:#fff; }
+  .opt.wrong{ background: var(--bad); color:#fff; opacity:1; }
+  .opt.wrong .letter{ background:rgba(255,255,255,0.3); color:#fff; }
+  .waiting{ font-weight:700; color:var(--muted); font-size:0.85rem; margin-top:6px; min-height:1.2em; }
+  .placeholder{ font-weight:700; color:#8C9BAA; font-size:0.95rem; text-align:center; padding: 30px 10px; }
+
+  .overlay{ position:fixed; inset:0; background:rgba(14,21,32,0.6); display:none; align-items:center; justify-content:center; z-index:50; padding:20px; }
+  .overlay.show{ display:flex; }
+  .win-card{ background:var(--card); border-radius:20px; padding:30px 26px; text-align:center; max-width:380px; box-shadow: 0 10px 0 rgba(20,30,45,0.15); }
+  .win-card .trophy{ font-size:3.4rem; margin-bottom:6px; }
+  .win-card h2{ font-weight:700; margin:0 0 6px; font-size:1.5rem; }
+  .win-card p{ color:var(--muted); font-weight:600; margin:0 0 18px; }
+  .win-card button{ font-family:'Space Grotesk'; font-weight:700; font-size:1rem; border:none; border-radius:14px; padding:12px 26px; background:var(--amber); color:#4A2E00; cursor:pointer; box-shadow: 0 4px 0 var(--amber-dark); }
+
+  /* ---------- tug of war track ---------- */
+  .track-area{ display:flex; flex-direction:column; align-items:center; margin-bottom: 10px; }
+  .lead-lbl{ font-family:'Space Grotesk'; font-weight:700; font-size:0.95rem; color:var(--muted); margin-bottom:6px; min-height:1.3em; }
+  .track{ position:relative; width:100%; max-width:640px; height:70px; }
+  .track .rail{ position:absolute; top:50%; left:0; right:0; height:8px; transform:translateY(-50%); background: repeating-linear-gradient(90deg, #D9DEE8 0 14px, #C7CFDC 14px 20px); border-radius:4px; }
+  .track .midline{ position:absolute; top:0; bottom:0; left:50%; width:2px; background:#B9C6D2; transform:translateX(-1px); }
+  .track .goal{ position:absolute; top:6px; bottom:6px; width:6px; border-radius:3px; }
   .track .goal.left{ left:8px; background:var(--team1); opacity:0.55; }
   .track .goal.right{ right:8px; background:var(--team2); opacity:0.55; }
-  .marker{
-    position:absolute; top:50%; left:50%; font-size:2.1rem;
-    transform: translate(-50%,-58%);
-    transition: left 0.5s cubic-bezier(.34,1.56,.64,1);
-    filter: drop-shadow(0 3px 2px rgba(0,0,0,0.25));
-  }
-  .runners{
-    position:absolute; top:50%; font-size:1.7rem;
-    transform: translateY(-50%);
-    letter-spacing:-4px;
-    transition: transform 0.4s ease;
-  }
+  .marker{ position:absolute; top:50%; left:50%; font-size:2.1rem; transform: translate(-50%,-58%); transition: left 0.5s cubic-bezier(.34,1.56,.64,1); filter: drop-shadow(0 3px 2px rgba(0,0,0,0.25)); }
+  .runners{ position:absolute; top:50%; font-size:1.7rem; transform: translateY(-50%); letter-spacing:-4px; transition: transform 0.4s ease; }
   .runners.left{ left:0; transform-origin:left center; }
   .runners.right{ right:0; transform: translateY(-50%) scaleX(-1); transform-origin:right center; }
   .runners.left.leading{ transform: translateY(-50%) scale(1.15); }
   .runners.right.leading{ transform: translateY(-50%) scaleX(-1) scale(1.15); }
 
-  .panels{
-    display:flex; gap:14px; align-items:stretch;
+  /* ---------- millionaire ---------- */
+  .mill-layout{ display:flex; gap:16px; align-items:flex-start; flex-wrap:wrap; }
+  .ladder{ width:230px; background:var(--card); border-radius:16px; padding:10px; box-shadow: 0 8px 0 rgba(20,30,45,0.06); display:flex; flex-direction:column-reverse; gap:3px; }
+  .ladder-item{ display:flex; justify-content:space-between; align-items:center; padding:8px 10px; border-radius:8px; font-family:'Space Grotesk'; font-weight:700; font-size:0.82rem; color:var(--muted); }
+  .ladder-item .lv{ opacity:0.6; font-size:0.75rem; }
+  .ladder-item.current{ background: linear-gradient(90deg, var(--amber), #FFD98A); color:#4A2E00; }
+  .ladder-item.done{ color:#9AA6B5; }
+  .ladder-item.safe{ border-left:4px solid var(--violet); }
+  .mill-main{ flex:1; min-width:280px; background:var(--card); border-radius:16px; padding:20px; box-shadow: 0 8px 0 rgba(20,30,45,0.06); }
+  .mill-topline{ display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+  .mill-amount{ font-family:'Space Grotesk'; font-weight:700; font-size:1.3rem; color: var(--amber-dark); }
+  .mill-name{ font-weight:700; color:var(--muted); font-size:0.9rem; }
+  .mill-options{ display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:14px; }
+  .joker-row{ display:flex; gap:10px; margin-top:18px; flex-wrap:wrap; }
+  .joker-btn{
+    flex:1; min-width:130px; border:2px solid #E1E7EF; background:#fff; border-radius:12px; padding:10px 10px;
+    font-family:'Space Grotesk'; font-weight:700; font-size:0.85rem; color:var(--ink); cursor:pointer;
   }
-  .panel{
-    flex:1;
-    border-radius:16px;
-    padding:14px;
-    min-width:0;
-    transition: box-shadow 0.3s ease;
-  }
-  .panel.t1{ background:#EAF2FF; border:2px solid var(--team1); }
-  .panel.t2{ background:#FFEEEA; border:2px solid var(--team2); }
-  .panel-head{
-    font-family:'Baloo 2';
-    font-weight:800;
-    font-size:1rem;
-    margin-bottom:8px;
-    display:flex; align-items:center; justify-content:space-between; gap:6px;
-  }
-  .panel.t1 .panel-head{ color:var(--team1-dark); }
-  .panel.t2 .panel-head{ color:var(--team2-dark); }
-  .streak{ font-family:'Nunito'; font-size:0.75rem; font-weight:800; opacity:0.7; }
-  .question{
-    font-weight:800;
-    font-size: clamp(0.95rem, 2.3vw, 1.15rem);
-    line-height:1.35;
-    min-height:3.2em;
-    margin-bottom:12px;
-  }
-  .options{
-    display:grid;
-    grid-template-columns: 1fr 1fr;
-    gap:8px;
-  }
-  .opt{
-    border:none;
-    border-radius:12px;
-    padding:12px 8px;
-    font-family:'Nunito';
-    font-weight:800;
-    font-size: clamp(0.8rem, 2vw, 0.95rem);
-    background:#fff;
-    color:var(--ink);
-    cursor:pointer;
-    box-shadow: 0 3px 0 rgba(0,0,0,0.1);
-    text-align:left;
-    display:flex; gap:8px; align-items:flex-start;
-    transition: transform 0.1s ease;
-  }
-  .opt .letter{
-    flex:0 0 auto;
-    width:22px; height:22px; border-radius:50%;
-    background:#EEF1F4; color:#5A6B7B;
-    display:flex; align-items:center; justify-content:center;
-    font-size:0.75rem; font-weight:800;
-  }
-  .opt:active{ transform: scale(0.97); }
-  .opt:disabled{ cursor:default; opacity:0.6; }
-  .panel.t1 .opt:not(:disabled):hover{ background:#DCE9FF; }
-  .panel.t2 .opt:not(:disabled):hover{ background:#FFE0D8; }
-  .opt.correct{ background: var(--ok); color:#fff; opacity:1; }
-  .opt.correct .letter{ background:rgba(255,255,255,0.3); color:#fff; }
-  .opt.wrong{ background: var(--bad); color:#fff; opacity:1; }
-  .opt.wrong .letter{ background:rgba(255,255,255,0.3); color:#fff; }
+  .joker-btn:disabled{ opacity:0.4; cursor:default; text-decoration:line-through; }
+  .walkaway-btn{ background: var(--violet); color:#fff; border:none; border-radius:12px; padding:10px 16px; font-family:'Space Grotesk'; font-weight:700; cursor:pointer; }
+  .audience-chart{ display:flex; gap:8px; align-items:flex-end; height:90px; margin-top:12px; }
+  .audience-bar-wrap{ flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; }
+  .audience-bar{ width:100%; background: var(--violet); border-radius:6px 6px 0 0; }
+  .audience-pct{ font-family:'Space Grotesk'; font-weight:700; font-size:0.75rem; color:var(--muted); }
 
-  .waiting{
-    font-weight:700; color:#7C8B9B; font-size:0.85rem; margin-top:6px; min-height:1.2em;
-  }
-  .placeholder{
-    font-weight:700; color:#8C9BAA; font-size:0.95rem; text-align:center;
-    padding: 30px 10px;
-  }
-
-  .overlay{
-    position:fixed; inset:0; background:rgba(20,30,40,0.55);
-    display:none; align-items:center; justify-content:center; z-index:50;
-    padding:20px;
-  }
-  .overlay.show{ display:flex; }
-  .win-card{
-    background:#fff; border-radius:20px; padding:30px 26px; text-align:center;
-    max-width:360px; box-shadow: 0 10px 0 rgba(0,0,0,0.15);
-  }
-  .win-card .trophy{ font-size:3.4rem; margin-bottom:6px; }
-  .win-card h2{
-    font-family:'Baloo 2'; font-weight:800; margin:0 0 6px;
-    font-size:1.5rem;
-  }
-  .win-card p{ color:#5A6B7B; font-weight:700; margin:0 0 18px; }
-  .win-card button{
-    font-family:'Baloo 2'; font-weight:700; font-size:1rem;
-    border:none; border-radius:14px; padding:12px 26px;
-    background:var(--flag); color:#5A3E00; cursor:pointer;
-    box-shadow: 0 4px 0 rgba(0,0,0,0.15);
-  }
+  /* ---------- picture race ---------- */
+  .pic-emoji{ font-size:3.2rem; text-align:center; margin-bottom:6px; }
+  .race-track{ position:relative; height:40px; background:#EEF1F4; border-radius:20px; overflow:hidden; margin-bottom:14px; }
+  .race-fill{ height:100%; border-radius:20px; width:0%; transition: width 0.5s ease; }
+  .race-fill.t1{ background: linear-gradient(90deg, #C9DBFF, var(--team1)); }
+  .race-fill.t2{ background: linear-gradient(90deg, #FFD9D2, var(--team2)); }
+  .race-rocket{ position:absolute; top:50%; transform:translate(-50%,-50%); font-size:1.5rem; left:0%; transition:left 0.5s ease; }
 
   @media (max-width: 820px){
     .app-shell{ flex-direction:column; }
-    .sidebar{
-      width:100%; flex-direction:row; align-items:center; overflow-x:auto;
-      padding: 12px 14px;
-    }
-    .brand{ border-bottom:none; border-right:1px solid rgba(255,255,255,0.12); padding: 0 14px 0 0; margin: 0 10px 0 0; }
+    .sidebar{ width:100%; flex-direction:row; align-items:center; overflow-x:auto; padding: 12px 14px; }
+    .brand{ border-bottom:none; border-right:1px solid var(--sidebar-border); padding: 0 14px 0 0; margin: 0 10px 0 0; }
     .nav-section-label{ display:none; }
     .nav-item{ white-space:nowrap; border-left:none; border-bottom:4px solid transparent; border-radius:10px 10px 0 0; }
-    .nav-item.active{ border-left-color:transparent; border-bottom-color: var(--flag); }
+    .nav-item.active{ border-left-color:transparent; border-bottom-color: var(--violet); }
     .nav-item small{ display:none; }
     .content{ height:auto; }
   }
   @media (max-width: 620px){
     .panels{ flex-direction:column; }
-    .options{ grid-template-columns: 1fr 1fr; }
+    .options, .mill-options{ grid-template-columns: 1fr 1fr; }
     .start-btn{ margin-left:0; width:100%; }
-    .home-hero, .home-grid{ padding-left:20px; padding-right:20px; }
   }
 </style>
 </head>
@@ -472,102 +260,138 @@
 
   <aside class="sidebar">
     <div class="brand">
-      <div class="brand-title">🎬 Sınıf Yarışmaları</div>
-      <div class="brand-bar"></div>
+      <div class="brand-badge">🎬</div>
+      <div class="brand-title">Sınıf Yarışmaları</div>
     </div>
-    <button class="nav-item active" data-view="home">
-      <span class="nav-icon">🏠</span><span>Ana Sayfa</span>
-    </button>
+    <button class="nav-item active" data-view="home"><span class="nav-icon">🏠</span><span>Ana Sayfa</span></button>
     <div class="nav-section-label">Yarışmalar</div>
-    <button class="nav-item" data-view="tugofwar">
-      <span class="nav-icon">🪢</span><span>Halat Çekme<small>Din Kültürü</small></span>
-    </button>
-    <div class="nav-item disabled">
-      <span class="nav-icon">➕</span><span>Yakında</span>
-    </div>
+    <button class="nav-item" data-view="tugofwar"><span class="nav-icon">🪢</span><span>Halat Çekme<small>Din Kültürü</small></span></button>
+    <button class="nav-item" data-view="millionaire"><span class="nav-icon">💰</span><span>Milyoner<small>Din Kültürü</small></span></button>
+    <button class="nav-item" data-view="picture"><span class="nav-icon">🖼️</span><span>Resimli Soru<small>Din Kültürü</small></span></button>
+    <div class="nav-item disabled"><span class="nav-icon">➕</span><span>Yakında</span></div>
   </aside>
 
   <main class="content">
 
+    <!-- HOME -->
     <section id="view-home" class="view active">
-      <div class="home-hero">
+      <div class="home-card">
+        <div class="brand-badge">🎬</div>
         <h1>Sınıf Yarışmaları</h1>
-        <p>Soldaki menüden bir yarışma seçin ve akıllı tahtada iki takımı yarıştırın.</p>
-      </div>
-      <div class="home-grid">
-        <button class="game-card" data-view="tugofwar">
-          <div class="game-card-icon">🪢</div>
-          <h3>Halat Çekme: Din Kültürü</h3>
-          <p>İki takım Din Kültürü sorularına doğru cevap vererek halatı kendi tarafına çeker.</p>
-          <span class="play-tag">Oyna</span>
-        </button>
-        <div class="game-card placeholder-card">
-          <div class="game-card-icon">🧩</div>
-          <h3>Yeni Yarışma</h3>
-          <p>Yakında bu alana yeni bir yarışma eklenecek.</p>
-          <span class="soon-tag">Yakında</span>
-        </div>
-        <div class="game-card placeholder-card">
-          <div class="game-card-icon">🎯</div>
-          <h3>Yeni Yarışma</h3>
-          <p>Yakında bu alana yeni bir yarışma eklenecek.</p>
-          <span class="soon-tag">Yakında</span>
-        </div>
+        <p>Soldaki menüden bir yarışma seçerek başlayın.</p>
       </div>
     </section>
 
+    <!-- TUG OF WAR -->
     <section id="view-tugofwar" class="view">
       <div class="game-wrap">
-        <div class="game-topbar">
-          <button class="home-link" data-view="home">🏠 Ana Sayfa</button>
-          <span></span>
-        </div>
+        <div class="game-topbar"><button class="home-link" data-view="home">🏠 Ana Sayfa</button><span></span></div>
         <h1 class="game-title">🪢 Halat Çekme: Din Kültürü</h1>
         <div class="subtitle">Doğru cevap veren takım halatı kendi tarafına çeker!</div>
 
-        <div class="setup-bar" id="setupBar">
+        <div class="setup-bar" id="tugSetupBar">
           <span class="lbl">⏱️ Oyun Süresi:</span>
-          <input type="number" id="durationInput" min="15" max="600" step="5" value="90">
+          <input type="number" id="tugDurationInput" min="15" max="600" step="5" value="90">
           <span class="lbl">saniye</span>
           <button class="preset" data-val="60">60 sn</button>
           <button class="preset active" data-val="90">90 sn</button>
           <button class="preset" data-val="120">2 dk</button>
           <button class="preset" data-val="180">3 dk</button>
-          <button class="start-btn" id="startBtn">▶ Oyunu Başlat</button>
+          <button class="start-btn" id="tugStartBtn">▶ Oyunu Başlat</button>
         </div>
 
         <div class="scoreboard">
-          <div class="score-chip t1" id="chip1"><span>Mavi Takım</span><span class="num" id="score1">0</span></div>
-          <div class="timer-chip" id="timerChip">
-            <span id="timer">90</span><span class="lbl">SANİYE KALDI</span>
-            <div class="timer-bar-track"><div class="timer-bar-fill" id="timerBar"></div></div>
-          </div>
-          <div class="score-chip t2" id="chip2"><span>Kırmızı Takım</span><span class="num" id="score2">0</span></div>
+          <div class="score-chip t1" id="tugChip1"><span>Mavi Takım</span><span class="num" id="tugScore1">0</span></div>
+          <div class="timer-chip" id="tugTimerChip"><span id="tugTimer">90</span><span class="lbl">SANİYE KALDI</span><div class="timer-bar-track"><div class="timer-bar-fill" id="tugTimerBar"></div></div></div>
+          <div class="score-chip t2" id="tugChip2"><span>Kırmızı Takım</span><span class="num" id="tugScore2">0</span></div>
         </div>
 
         <div class="field">
           <div class="track-area">
-            <div class="lead-lbl" id="leadLbl">Başlamak için yukarıdan süreyi ayarlayın</div>
+            <div class="lead-lbl" id="tugLeadLbl">Başlamak için yukarıdan süreyi ayarlayın</div>
             <div class="track">
-              <div class="rail"></div>
-              <div class="midline"></div>
-              <div class="goal left"></div>
-              <div class="goal right"></div>
-              <div class="runners left" id="runnersLeft">🧑‍🤝‍🧑</div>
-              <div class="marker" id="marker" style="left:50%;">🚩</div>
-              <div class="runners right" id="runnersRight">🧑‍🤝‍🧑</div>
+              <div class="rail"></div><div class="midline"></div>
+              <div class="goal left"></div><div class="goal right"></div>
+              <div class="runners left" id="tugRunnersLeft">🧑‍🤝‍🧑</div>
+              <div class="marker" id="tugMarker" style="left:50%;">🚩</div>
+              <div class="runners right" id="tugRunnersRight">🧑‍🤝‍🧑</div>
             </div>
           </div>
-
           <div class="panels">
-            <div class="panel t1" id="panel1">
-              <div class="panel-head"><span>🔵 Mavi Takım</span><span class="streak" id="streak1"></span></div>
-              <div id="body1"><div class="placeholder">Oyunu başlatınca soru burada görünecek.</div></div>
+            <div class="panel t1"><div class="panel-head"><span>🔵 Mavi Takım</span><span class="streak" id="tugStreak1"></span></div><div id="tugBody1"><div class="placeholder">Oyunu başlatınca soru burada görünecek.</div></div></div>
+            <div class="panel t2"><div class="panel-head"><span>🔴 Kırmızı Takım</span><span class="streak" id="tugStreak2"></span></div><div id="tugBody2"><div class="placeholder">Oyunu başlatınca soru burada görünecek.</div></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MILLIONAIRE -->
+    <section id="view-millionaire" class="view">
+      <div class="game-wrap">
+        <div class="game-topbar"><button class="home-link" data-view="home">🏠 Ana Sayfa</button><span></span></div>
+        <h1 class="game-title">💰 Milyoner Yarışması</h1>
+        <div class="subtitle">Basamak basamak yüksel, jokerleri akıllıca kullan!</div>
+
+        <div class="setup-bar" id="millSetupBar">
+          <span class="lbl">🎙️ Yarışmacı / Takım Adı:</span>
+          <input type="text" id="millNameInput" placeholder="ör. Mavi Sıra" value="Yarışmacı">
+          <button class="start-btn" id="millStartBtn">▶ Yarışmayı Başlat</button>
+        </div>
+
+        <div class="field" id="millField" style="display:none;">
+          <div class="mill-layout">
+            <div class="ladder" id="millLadder"></div>
+            <div class="mill-main">
+              <div class="mill-topline">
+                <span class="mill-name" id="millPlayerName">Yarışmacı</span>
+                <span class="mill-amount" id="millCurrentAmount">1.000₺</span>
+              </div>
+              <div class="question" id="millQuestion">Yükleniyor…</div>
+              <div class="mill-options" id="millOptions"></div>
+              <div class="waiting" id="millWaiting">&nbsp;</div>
+              <div class="audience-chart" id="millAudienceChart" style="display:none;"></div>
+              <div class="joker-row">
+                <button class="joker-btn" id="millJoker5050">50:50</button>
+                <button class="joker-btn" id="millJokerAudience">🎓 Sınıfa Sor</button>
+                <button class="joker-btn" id="millJokerPass">🔁 Pas Geç</button>
+                <button class="walkaway-btn" id="millWalkaway">💼 Parayı Al ve Çekil</button>
+              </div>
             </div>
-            <div class="panel t2" id="panel2">
-              <div class="panel-head"><span>🔴 Kırmızı Takım</span><span class="streak" id="streak2"></span></div>
-              <div id="body2"><div class="placeholder">Oyunu başlatınca soru burada görünecek.</div></div>
-            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PICTURE RACE -->
+    <section id="view-picture" class="view">
+      <div class="game-wrap">
+        <div class="game-topbar"><button class="home-link" data-view="home">🏠 Ana Sayfa</button><span></span></div>
+        <h1 class="game-title">🖼️ Resimli Soru Yarışması</h1>
+        <div class="subtitle">Görseli doğru yorumlayan takım roketini ilerletir!</div>
+
+        <div class="setup-bar" id="picSetupBar">
+          <span class="lbl">⏱️ Oyun Süresi:</span>
+          <input type="number" id="picDurationInput" min="15" max="600" step="5" value="90">
+          <span class="lbl">saniye</span>
+          <button class="preset" data-val="60">60 sn</button>
+          <button class="preset active" data-val="90">90 sn</button>
+          <button class="preset" data-val="120">2 dk</button>
+          <button class="preset" data-val="180">3 dk</button>
+          <button class="start-btn" id="picStartBtn">▶ Oyunu Başlat</button>
+        </div>
+
+        <div class="scoreboard">
+          <div class="score-chip t1" id="picChip1"><span>Mavi Takım</span><span class="num" id="picScore1">0</span></div>
+          <div class="timer-chip" id="picTimerChip"><span id="picTimer">90</span><span class="lbl">SANİYE KALDI</span><div class="timer-bar-track"><div class="timer-bar-fill" id="picTimerBar"></div></div></div>
+          <div class="score-chip t2" id="picChip2"><span>Kırmızı Takım</span><span class="num" id="picScore2">0</span></div>
+        </div>
+
+        <div class="field">
+          <div class="race-track"><div class="race-fill t1" id="picRaceFill1"></div><div class="race-rocket" id="picRocket1">🚀</div></div>
+          <div class="race-track"><div class="race-fill t2" id="picRaceFill2"></div><div class="race-rocket" id="picRocket2">🚀</div></div>
+          <div class="panels">
+            <div class="panel t1"><div class="panel-head"><span>🔵 Mavi Takım</span><span class="streak" id="picStreak1"></span></div><div id="picBody1"><div class="placeholder">Oyunu başlatınca görsel burada görünecek.</div></div></div>
+            <div class="panel t2"><div class="panel-head"><span>🔴 Kırmızı Takım</span><span class="streak" id="picStreak2"></span></div><div id="picBody2"><div class="placeholder">Oyunu başlatınca görsel burada görünecek.</div></div></div>
           </div>
         </div>
       </div>
@@ -576,17 +400,12 @@
   </main>
 </div>
 
-<div class="overlay" id="overlay">
-  <div class="win-card">
-    <div class="trophy" id="trophy">🏆</div>
-    <h2 id="winTitle">Takım Kazandı!</h2>
-    <p id="winText">Halatı kendi tarafına çekmeyi başardı.</p>
-    <button onclick="resetGame()">Yeniden Oyna</button>
-  </div>
-</div>
+<div class="overlay" id="overlayTug"><div class="win-card"><div class="trophy" id="tugTrophy">🏆</div><h2 id="tugWinTitle">Takım Kazandı!</h2><p id="tugWinText">Halatı kendi tarafına çekmeyi başardı.</p><button onclick="resetTug()">Yeniden Oyna</button></div></div>
+<div class="overlay" id="overlayMill"><div class="win-card"><div class="trophy" id="millTrophy">🏆</div><h2 id="millEndTitle">Yarışma Bitti!</h2><p id="millEndText">Kazanılan tutar burada görünecek.</p><button onclick="resetMillionaire()">Yeniden Oyna</button></div></div>
+<div class="overlay" id="overlayPic"><div class="win-card"><div class="trophy" id="picTrophy">🏆</div><h2 id="picWinTitle">Takım Kazandı!</h2><p id="picWinText">Roketini hedefe önce ulaştırdı.</p><button onclick="resetPic()">Yeniden Oyna</button></div></div>
 
 <script>
-/* ---------------- navigasyon ---------------- */
+/* ================= NAVIGASYON ================= */
 function showView(view){
   document.querySelectorAll(".view").forEach(v=> v.classList.toggle("active", v.id === "view-"+view));
   document.querySelectorAll(".nav-item[data-view]").forEach(b=> b.classList.toggle("active", b.dataset.view === view));
@@ -595,8 +414,14 @@ document.querySelectorAll("[data-view]").forEach(el=>{
   el.addEventListener("click", ()=> showView(el.dataset.view));
 });
 
-/* ---------------- Halat Çekme: Din Kültürü ---------------- */
-const QUESTIONS = [
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){ const j = Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+  return a;
+}
+
+/* ================= 1) HALAT ÇEKME ================= */
+const TUG_QUESTIONS = [
   {q:"İslam dininin kutsal kitabının adı nedir?", o:["Tevrat","Kur'an-ı Kerim","İncil","Zebur"], c:1},
   {q:"Müslümanların ibadet ettiği kutsal mekanın adı nedir?", o:["Kilise","Havra","Cami","Ateşgede"], c:2},
   {q:"İslam'ın beş şartından biri olan, aç ve susuz kalarak yapılan ibadete ne denir?", o:["Namaz","Oruç","Zekat","Hac"], c:1},
@@ -622,229 +447,362 @@ const QUESTIONS = [
   {q:"Peygamberlere inanmak, İslam'ın hangi temel esaslarından biridir?", o:["İbadet esasları","İman esasları","Ahlak esasları","Muamelat"], c:1},
   {q:"Yetimleri, yoksulları ve muhtaçları gözetmek İslam'da hangi değerle ilgilidir?", o:["Merhamet","Kibir","Bencillik","Cimrilik"], c:0}
 ];
-
-const WIN_DISTANCE = 5;
-const ANSWER_PAUSE = 650;
-
-let state = "setup";
-let pos = 0;
-let score1 = 0, score2 = 0;
-let streak1 = 0, streak2 = 0;
-let totalTime = 90;
-let timeLeft = 90;
-let gameTimerId = null;
-let pool1 = [], pool2 = [];
-let current1 = null, current2 = null;
-let locked1 = false, locked2 = false;
-
-function shuffle(arr){
-  const a = arr.slice();
-  for(let i=a.length-1;i>0;i--){
-    const j = Math.floor(Math.random()*(i+1));
-    [a[i],a[j]]=[a[j],a[i]];
+const TUG_WIN_DISTANCE = 5, TUG_ANSWER_PAUSE = 650;
+let tugState="setup", tugPos=0, tugScore1=0, tugScore2=0, tugStreak1=0, tugStreak2=0;
+let tugTotalTime=90, tugTimeLeft=90, tugTimerId=null, tugPool1=[], tugPool2=[], tugCurrent1=null, tugCurrent2=null, tugLocked1=false, tugLocked2=false;
+function tugRefill(pool){ if(pool.length===0) pool.push(...shuffle(TUG_QUESTIONS)); return pool.pop(); }
+document.querySelectorAll("#tugSetupBar .preset").forEach(btn=>{
+  btn.addEventListener("click", ()=>{ document.querySelectorAll("#tugSetupBar .preset").forEach(b=>b.classList.remove("active")); btn.classList.add("active"); document.getElementById("tugDurationInput").value = btn.dataset.val; });
+});
+document.getElementById("tugDurationInput").addEventListener("input", ()=>{ document.querySelectorAll("#tugSetupBar .preset").forEach(b=>b.classList.remove("active")); });
+document.getElementById("tugStartBtn").addEventListener("click", startTug);
+function startTug(){
+  let v = parseInt(document.getElementById("tugDurationInput").value, 10);
+  if(isNaN(v)||v<15) v=15; if(v>600) v=600;
+  tugTotalTime=v; tugTimeLeft=v; tugState="playing";
+  tugScore1=0; tugScore2=0; tugStreak1=0; tugStreak2=0; tugPos=0;
+  tugPool1=shuffle(TUG_QUESTIONS); tugPool2=shuffle(TUG_QUESTIONS);
+  document.getElementById("tugSetupBar").style.display="none";
+  document.getElementById("tugScore1").textContent=0; document.getElementById("tugScore2").textContent=0;
+  document.getElementById("tugStreak1").textContent=""; document.getElementById("tugStreak2").textContent="";
+  updateTugTrack();
+  document.getElementById("tugTimer").textContent=tugTimeLeft;
+  document.getElementById("tugTimerBar").style.width="100%"; document.getElementById("tugTimerBar").style.background="#22B573";
+  document.getElementById("tugTimerChip").classList.remove("warn");
+  tugLoadNext(1); tugLoadNext(2);
+  clearInterval(tugTimerId); tugTimerId=setInterval(tugTick,1000);
+}
+function tugTick(){
+  if(tugState!=="playing") return;
+  tugTimeLeft--; document.getElementById("tugTimer").textContent=Math.max(tugTimeLeft,0);
+  const pct=Math.max(0,(tugTimeLeft/tugTotalTime)*100);
+  document.getElementById("tugTimerBar").style.width=pct+"%";
+  if(pct<25){ document.getElementById("tugTimerBar").style.background="#FB5B4B"; document.getElementById("tugTimerChip").classList.add("warn"); }
+  if(tugTimeLeft<=0) tugEndByTimeout();
+}
+function tugLoadNext(team){ const q=tugRefill(team===1?tugPool1:tugPool2); if(team===1) tugCurrent1=q; else tugCurrent2=q; tugRenderQuestion(team,q); }
+function tugRenderQuestion(team,q){
+  const body=document.getElementById("tugBody"+team); const letters=["A","B","C","D"];
+  body.innerHTML = `<div class="question">${q.q}</div><div class="options" id="tugOpts${team}"></div><div class="waiting" id="tugWait${team}">&nbsp;</div>`;
+  const optsEl=document.getElementById("tugOpts"+team);
+  q.o.forEach((text,idx)=>{ const btn=document.createElement("button"); btn.className="opt"; btn.innerHTML=`<span class="letter">${letters[idx]}</span><span>${text}</span>`; btn.onclick=()=>tugHandleAnswer(team,idx); optsEl.appendChild(btn); });
+  if(team===1) tugLocked1=false; else tugLocked2=false;
+}
+function tugHandleAnswer(team, idx){
+  if(tugState!=="playing") return;
+  if(team===1 && tugLocked1) return; if(team===2 && tugLocked2) return;
+  if(team===1) tugLocked1=true; else tugLocked2=true;
+  const q = team===1?tugCurrent1:tugCurrent2; const isCorrect = idx===q.c;
+  const optsEl=document.getElementById("tugOpts"+team);
+  optsEl.querySelectorAll(".opt").forEach((b,i)=>{ b.disabled=true; if(i===q.c) b.classList.add("correct"); else if(i===idx) b.classList.add("wrong"); });
+  document.getElementById("tugWait"+team).textContent = isCorrect ? "Doğru! Halat çekiliyor…" : "Yanlış, sıradaki soru geliyor…";
+  if(isCorrect){
+    if(team===1){ tugScore1++; tugStreak1++; tugStreak2=0; tugPos-=1; } else { tugScore2++; tugStreak2++; tugStreak1=0; tugPos+=1; }
+    document.getElementById("tugScore1").textContent=tugScore1; document.getElementById("tugScore2").textContent=tugScore2;
+    document.getElementById("tugStreak1").textContent= tugStreak1>=2 ? "🔥x"+tugStreak1 : "";
+    document.getElementById("tugStreak2").textContent= tugStreak2>=2 ? "🔥x"+tugStreak2 : "";
+    updateTugTrack();
+  } else {
+    if(team===1) tugStreak1=0; else tugStreak2=0;
+    document.getElementById("tugStreak1").textContent= tugStreak1>=2 ? "🔥x"+tugStreak1 : "";
+    document.getElementById("tugStreak2").textContent= tugStreak2>=2 ? "🔥x"+tugStreak2 : "";
   }
-  return a;
+  if(tugCheckCrossing()) return;
+  setTimeout(()=>{ if(tugState==="playing") tugLoadNext(team); }, TUG_ANSWER_PAUSE);
 }
-function refill(pool){
-  if(pool.length===0) pool.push(...shuffle(QUESTIONS));
-  return pool.pop();
+function updateTugTrack(){
+  const clamped=Math.max(-TUG_WIN_DISTANCE,Math.min(TUG_WIN_DISTANCE,tugPos));
+  const pct=50+(clamped/TUG_WIN_DISTANCE)*38;
+  document.getElementById("tugMarker").style.left=pct+"%";
+  document.getElementById("tugRunnersLeft").classList.toggle("leading", tugPos<-0.01);
+  document.getElementById("tugRunnersRight").classList.toggle("leading", tugPos>0.01);
+  document.getElementById("tugChip1").classList.toggle("leading", tugPos<-0.01);
+  document.getElementById("tugChip2").classList.toggle("leading", tugPos>0.01);
+  const lead=document.getElementById("tugLeadLbl");
+  if(tugPos<-0.01) lead.textContent="🔵 Mavi Takım önde! ("+Math.abs(clamped).toFixed(0)+"/"+TUG_WIN_DISTANCE+")";
+  else if(tugPos>0.01) lead.textContent="🔴 Kırmızı Takım önde! ("+Math.abs(clamped).toFixed(0)+"/"+TUG_WIN_DISTANCE+")";
+  else lead.textContent="Halat tam ortada — eşit durumdalar";
 }
+function tugCheckCrossing(){ if(tugPos<=-TUG_WIN_DISTANCE){ tugEndGame(1,"crossed"); return true; } if(tugPos>=TUG_WIN_DISTANCE){ tugEndGame(2,"crossed"); return true; } return false; }
+function tugEndByTimeout(){ clearInterval(tugTimerId); if(tugState!=="playing") return; if(tugPos<0) tugEndGame(1,"timeout"); else if(tugPos>0) tugEndGame(2,"timeout"); else tugEndGame(0,"timeout"); }
+function tugEndGame(winner, reason){
+  tugState="ended"; clearInterval(tugTimerId);
+  ["tugOpts1","tugOpts2"].forEach(id=>{ const el=document.getElementById(id); if(el) el.querySelectorAll(".opt").forEach(b=>b.disabled=true); });
+  const title=document.getElementById("tugWinTitle"), text=document.getElementById("tugWinText"), trophy=document.getElementById("tugTrophy");
+  if(winner===0){ trophy.textContent="🤝"; title.textContent="Berabere!"; text.textContent="Süre bitti ve halat tam ortada kaldı."; }
+  else{ const name=winner===1?"Mavi Takım":"Kırmızı Takım"; trophy.textContent="🏆"; title.textContent=name+" Kazandı! 🎉"; text.textContent= reason==="crossed" ? "Halatı çizginin sonuna kadar çekmeyi başardı." : "Süre doldu ve çizgiye en yakın rakip takım kaybetti."; }
+  document.getElementById("overlayTug").classList.add("show");
+}
+function resetTug(){
+  document.getElementById("overlayTug").classList.remove("show");
+  document.getElementById("tugSetupBar").style.display="flex";
+  document.getElementById("tugDurationInput").value=tugTotalTime;
+  tugState="setup"; tugPos=0; updateTugTrack();
+  document.getElementById("tugLeadLbl").textContent="Başlamak için yukarıdan süreyi ayarlayın";
+  document.getElementById("tugBody1").innerHTML='<div class="placeholder">Oyunu başlatınca soru burada görünecek.</div>';
+  document.getElementById("tugBody2").innerHTML='<div class="placeholder">Oyunu başlatınca soru burada görünecek.</div>';
+  document.getElementById("tugTimer").textContent=tugTotalTime;
+  document.getElementById("tugTimerBar").style.width="100%"; document.getElementById("tugTimerBar").style.background="#22B573";
+  document.getElementById("tugTimerChip").classList.remove("warn");
+}
+updateTugTrack();
 
-document.querySelectorAll(".preset").forEach(btn=>{
-  btn.addEventListener("click", ()=>{
-    document.querySelectorAll(".preset").forEach(b=>b.classList.remove("active"));
-    btn.classList.add("active");
-    document.getElementById("durationInput").value = btn.dataset.val;
+/* ================= 2) MİLYONER ================= */
+const MILL_LADDER = ["1.000₺","2.000₺","3.000₺","5.000₺","7.500₺","15.000₺","30.000₺","60.000₺","125.000₺","250.000₺","500.000₺","1.000.000₺"];
+const MILL_SAFE = [4,9];
+const MILL_QUESTIONS = [
+  {q:"İslam'da günde kaç vakit namaz kılınır?", o:["3","4","5","6"], c:2},
+  {q:"Ramazan ayında tutulan ibadete ne denir?", o:["Namaz","Oruç","Zekat","Hac"], c:1},
+  {q:"Müslümanların ibadet ettiği yere ne denir?", o:["Havra","Kilise","Cami","Ateşgede"], c:2},
+  {q:"Kur'an-ı Kerim'in ilk suresi hangisidir?", o:["Bakara","Fatiha","İhlas","Nas"], c:1},
+  {q:"Hac ibadeti hangi şehre yapılır?", o:["Medine","Kudüs","Mekke","Bağdat"], c:2},
+  {q:"Ezanı okuyan kişiye ne ad verilir?", o:["İmam","Müezzin","Hafız","Vaiz"], c:1},
+  {q:"Kur'an-ı Kerim kaç sureden oluşur?", o:["99","104","114","124"], c:2},
+  {q:"Peygamberimizin miraca çıktığı gece hangi kandille anılır?", o:["Regaib Kandili","Berat Kandili","Miraç Kandili","Kadir Gecesi"], c:2},
+  {q:"Zekat, malın yaklaşık hangi oranı üzerinden verilir?", o:["%2,5","%5","%10","%20"], c:0},
+  {q:"Kur'an-ı Kerim'in en uzun suresi hangisidir?", o:["Yasin","Bakara","Nisa","Kehf"], c:1},
+  {q:"Dört büyük melekten vahiy getirmekle görevli olan hangisidir?", o:["Azrail","Mikail","İsrafil","Cebrail"], c:3},
+  {q:"Kur'an-ı Kerim'in tamamının indirilme süreci yaklaşık kaç yıl sürmüştür?", o:["13","18","23","33"], c:2}
+];
+let millState="setup", millLevel=0, millCurrentQ=null, millUsed5050=false, millUsedAudience=false, millUsedPass=false, millWalkAllowed=false;
+document.getElementById("millStartBtn").addEventListener("click", startMillionaire);
+document.getElementById("millJoker5050").addEventListener("click", millUse5050);
+document.getElementById("millJokerAudience").addEventListener("click", millUseAudience);
+document.getElementById("millJokerPass").addEventListener("click", millUsePass);
+document.getElementById("millWalkaway").addEventListener("click", millWalkAway);
+function startMillionaire(){
+  millState="playing"; millLevel=0; millUsed5050=false; millUsedAudience=false; millUsedPass=false;
+  document.getElementById("millPlayerName").textContent = document.getElementById("millNameInput").value.trim() || "Yarışmacı";
+  document.getElementById("millSetupBar").style.display="none";
+  document.getElementById("millField").style.display="block";
+  document.getElementById("millJoker5050").disabled=false;
+  document.getElementById("millJokerAudience").disabled=false;
+  document.getElementById("millJokerPass").disabled=false;
+  document.getElementById("millAudienceChart").style.display="none";
+  millLoadLevel();
+}
+function millLoadLevel(){
+  millCurrentQ = MILL_QUESTIONS[millLevel];
+  document.getElementById("millCurrentAmount").textContent = MILL_LADDER[millLevel];
+  document.getElementById("millWaiting").textContent="";
+  document.getElementById("millAudienceChart").style.display="none";
+  millWalkAllowed = millLevel>0;
+  document.getElementById("millWalkaway").disabled = !millWalkAllowed;
+  millRenderLadder();
+  millRenderQuestion();
+}
+function millRenderLadder(){
+  const el=document.getElementById("millLadder"); el.innerHTML="";
+  MILL_LADDER.forEach((amount,i)=>{
+    const div=document.createElement("div");
+    div.className="ladder-item" + (i===millLevel?" current":"") + (i<millLevel?" done":"") + (MILL_SAFE.includes(i)?" safe":"");
+    div.innerHTML = `<span class="lv">${i+1}</span><span>${amount}</span>`;
+    el.appendChild(div);
   });
-});
-document.getElementById("durationInput").addEventListener("input", ()=>{
-  document.querySelectorAll(".preset").forEach(b=>b.classList.remove("active"));
-});
-document.getElementById("startBtn").addEventListener("click", startGame);
-
-function startGame(){
-  let v = parseInt(document.getElementById("durationInput").value, 10);
-  if(isNaN(v) || v < 15) v = 15;
-  if(v > 600) v = 600;
-  totalTime = v;
-  timeLeft = v;
-  state = "playing";
-  score1=0; score2=0; streak1=0; streak2=0; pos=0;
-  pool1 = shuffle(QUESTIONS); pool2 = shuffle(QUESTIONS);
-  document.getElementById("setupBar").style.display = "none";
-  document.getElementById("score1").textContent = 0;
-  document.getElementById("score2").textContent = 0;
-  document.getElementById("streak1").textContent = "";
-  document.getElementById("streak2").textContent = "";
-  updateTrack();
-  document.getElementById("timer").textContent = timeLeft;
-  document.getElementById("timerBar").style.width = "100%";
-  document.getElementById("timerBar").style.background = "#3AB273";
-  document.getElementById("timerChip").classList.remove("warn");
-
-  loadNext(1);
-  loadNext(2);
-
-  clearInterval(gameTimerId);
-  gameTimerId = setInterval(tickGame, 1000);
 }
-
-function tickGame(){
-  if(state !== "playing") return;
-  timeLeft--;
-  document.getElementById("timer").textContent = Math.max(timeLeft,0);
-  const pct = Math.max(0, (timeLeft/totalTime)*100);
-  document.getElementById("timerBar").style.width = pct + "%";
-  if(pct < 25){
-    document.getElementById("timerBar").style.background = "#E3492E";
-    document.getElementById("timerChip").classList.add("warn");
-  }
-  if(timeLeft <= 0){
-    endByTimeout();
-  }
-}
-
-function loadNext(team){
-  const q = refill(team===1?pool1:pool2);
-  if(team===1) current1 = q; else current2 = q;
-  renderQuestion(team, q);
-}
-
-function renderQuestion(team, q){
-  const body = document.getElementById("body"+team);
-  const letters = ["A","B","C","D"];
-  body.innerHTML = `
-    <div class="question">${q.q}</div>
-    <div class="options" id="opts${team}"></div>
-    <div class="waiting" id="wait${team}">&nbsp;</div>
-  `;
-  const optsEl = document.getElementById("opts"+team);
-  q.o.forEach((text, idx)=>{
-    const btn = document.createElement("button");
-    btn.className = "opt";
-    btn.innerHTML = `<span class="letter">${letters[idx]}</span><span>${text}</span>`;
-    btn.onclick = ()=> handleAnswer(team, idx);
+function millRenderQuestion(){
+  const optsEl=document.getElementById("millOptions"); optsEl.innerHTML="";
+  document.getElementById("millQuestion").textContent = millCurrentQ.q;
+  const letters=["A","B","C","D"];
+  millCurrentQ.o.forEach((text,idx)=>{
+    const btn=document.createElement("button"); btn.className="opt"; btn.dataset.idx=idx;
+    btn.innerHTML=`<span class="letter">${letters[idx]}</span><span>${text}</span>`;
+    btn.onclick=()=>millAnswer(idx);
     optsEl.appendChild(btn);
   });
-  if(team===1) locked1=false; else locked2=false;
 }
-
-function handleAnswer(team, idx){
-  if(state !== "playing") return;
-  if(team===1 && locked1) return;
-  if(team===2 && locked2) return;
-  if(team===1) locked1=true; else locked2=true;
-
-  const q = team===1 ? current1 : current2;
-  const isCorrect = idx===q.c;
-  const optsEl = document.getElementById("opts"+team);
-  optsEl.querySelectorAll(".opt").forEach((b,i)=>{
-    b.disabled = true;
-    if(i===q.c) b.classList.add("correct");
-    else if(i===idx) b.classList.add("wrong");
-  });
-  document.getElementById("wait"+team).textContent = isCorrect ? "Doğru! Halat çekiliyor…" : "Yanlış, sıradaki soru geliyor…";
-
-  if(isCorrect){
-    if(team===1){ score1++; streak1++; streak2=0; pos -= 1; }
-    else{ score2++; streak2++; streak1=0; pos += 1; }
-    document.getElementById("score1").textContent = score1;
-    document.getElementById("score2").textContent = score2;
-    document.getElementById("streak1").textContent = streak1>=2 ? "🔥x"+streak1 : "";
-    document.getElementById("streak2").textContent = streak2>=2 ? "🔥x"+streak2 : "";
-    updateTrack();
-  } else {
-    if(team===1) streak1=0; else streak2=0;
-    document.getElementById("streak1").textContent = streak1>=2 ? "🔥x"+streak1 : "";
-    document.getElementById("streak2").textContent = streak2>=2 ? "🔥x"+streak2 : "";
-  }
-
-  if(checkCrossing()) return;
-
+function millAnswer(idx){
+  if(millState!=="playing") return;
+  millState="locked";
+  const optsEl=document.getElementById("millOptions");
+  optsEl.querySelectorAll(".opt").forEach((b,i)=>{ b.disabled=true; if(i===millCurrentQ.c) b.classList.add("correct"); else if(i===idx && idx!==millCurrentQ.c) b.classList.add("wrong"); });
+  const isCorrect = idx===millCurrentQ.c;
   setTimeout(()=>{
-    if(state==="playing") loadNext(team);
-  }, ANSWER_PAUSE);
+    if(isCorrect){
+      if(millLevel === MILL_LADDER.length-1){ millEnd(true, MILL_LADDER[millLevel]); return; }
+      millLevel++; millState="playing"; millLoadLevel();
+    } else {
+      let banked="0₺";
+      for(let i=MILL_SAFE.length-1;i>=0;i--){ if(millLevel > MILL_SAFE[i]){ banked=MILL_LADDER[MILL_SAFE[i]]; break; } }
+      millEnd(false, banked);
+    }
+  }, 900);
 }
-
-function updateTrack(){
-  const clamped = Math.max(-WIN_DISTANCE, Math.min(WIN_DISTANCE, pos));
-  const pct = 50 + (clamped / WIN_DISTANCE) * 38;
-  document.getElementById("marker").style.left = pct + "%";
-
-  const leftRunners = document.getElementById("runnersLeft");
-  const rightRunners = document.getElementById("runnersRight");
-  const chip1 = document.getElementById("chip1");
-  const chip2 = document.getElementById("chip2");
-  leftRunners.classList.toggle("leading", pos < -0.01);
-  rightRunners.classList.toggle("leading", pos > 0.01);
-  chip1.classList.toggle("leading", pos < -0.01);
-  chip2.classList.toggle("leading", pos > 0.01);
-
-  const lead = document.getElementById("leadLbl");
-  if(pos < -0.01) lead.textContent = "🔵 Mavi Takım önde! (" + Math.abs(clamped).toFixed(0) + "/" + WIN_DISTANCE + ")";
-  else if(pos > 0.01) lead.textContent = "🔴 Kırmızı Takım önde! (" + Math.abs(clamped).toFixed(0) + "/" + WIN_DISTANCE + ")";
-  else lead.textContent = "Halat tam ortada — eşit durumdalar";
-}
-
-function checkCrossing(){
-  if(pos <= -WIN_DISTANCE){ endGame(1, "crossed"); return true; }
-  if(pos >= WIN_DISTANCE){ endGame(2, "crossed"); return true; }
-  return false;
-}
-
-function endByTimeout(){
-  clearInterval(gameTimerId);
-  if(state !== "playing") return;
-  if(pos < 0) endGame(1, "timeout");
-  else if(pos > 0) endGame(2, "timeout");
-  else endGame(0, "timeout");
-}
-
-function endGame(winner, reason){
-  state = "ended";
-  clearInterval(gameTimerId);
-  ["opts1","opts2"].forEach(id=>{
-    const el = document.getElementById(id);
-    if(el) el.querySelectorAll(".opt").forEach(b=> b.disabled = true);
+function millUse5050(){
+  if(millUsed5050 || millState!=="playing") return; millUsed5050=true;
+  document.getElementById("millJoker5050").disabled=true;
+  const wrongIdxs = [0,1,2,3].filter(i=>i!==millCurrentQ.c);
+  const toHide = shuffle(wrongIdxs).slice(0,2);
+  document.querySelectorAll("#millOptions .opt").forEach(btn=>{
+    if(toHide.includes(parseInt(btn.dataset.idx))){ btn.disabled=true; btn.style.visibility="hidden"; }
   });
+}
+function millUseAudience(){
+  if(millUsedAudience || millState!=="playing") return; millUsedAudience=true;
+  document.getElementById("millJokerAudience").disabled=true;
+  const correct = millCurrentQ.c;
+  let pcts=[0,0,0,0]; let remaining=100;
+  const correctPct = 45 + Math.floor(Math.random()*30);
+  pcts[correct]=correctPct; remaining-=correctPct;
+  const others=[0,1,2,3].filter(i=>i!==correct);
+  others.forEach((idx,i)=>{
+    if(i===others.length-1){ pcts[idx]=remaining; }
+    else{ const p=Math.floor(Math.random()*(remaining/ (others.length-i))); pcts[idx]=p; remaining-=p; }
+  });
+  const chart=document.getElementById("millAudienceChart"); chart.innerHTML=""; chart.style.display="flex";
+  const letters=["A","B","C","D"];
+  pcts.forEach((p,i)=>{
+    const wrap=document.createElement("div"); wrap.className="audience-bar-wrap";
+    wrap.innerHTML = `<span class="audience-pct">%${p}</span><div class="audience-bar" style="height:${Math.max(p,3)}%"></div><span class="audience-pct">${letters[i]}</span>`;
+    chart.appendChild(wrap);
+  });
+}
+function millUsePass(){
+  if(millUsedPass || millState!=="playing") return; millUsedPass=true;
+  document.getElementById("millJokerPass").disabled=true;
+  const others = MILL_QUESTIONS.filter(q=>q!==millCurrentQ);
+  millCurrentQ = others[Math.floor(Math.random()*others.length)];
+  document.getElementById("millAudienceChart").style.display="none";
+  millRenderQuestion();
+}
+function millWalkAway(){
+  if(!millWalkAllowed || millState!=="playing") return;
+  let banked="0₺";
+  for(let i=MILL_SAFE.length-1;i>=0;i--){ if(millLevel-1 >= MILL_SAFE[i]){ banked=MILL_LADDER[MILL_SAFE[i]]; break; } }
+  if(banked==="0₺") banked = MILL_LADDER[millLevel-1];
+  millEnd(null, banked);
+}
+function millEnd(won, amount){
+  millState="ended";
+  const title=document.getElementById("millEndTitle"), text=document.getElementById("millEndText"), trophy=document.getElementById("millTrophy");
+  const name=document.getElementById("millPlayerName").textContent;
+  if(won===true){ trophy.textContent="🏆"; title.textContent="Milyoner Oldu! 🎉"; text.textContent=name+" tüm basamakları tamamlayıp "+amount+" kazandı!"; }
+  else if(won===false){ trophy.textContent="😅"; title.textContent="Yarışma Bitti"; text.textContent=name+" yanlış cevap verdi ve "+amount+" ile yarışmayı tamamladı."; }
+  else { trophy.textContent="💼"; title.textContent="Parayı Aldı!"; text.textContent=name+" "+amount+" ile çekilmeyi tercih etti."; }
+  document.getElementById("overlayMill").classList.add("show");
+}
+function resetMillionaire(){
+  document.getElementById("overlayMill").classList.remove("show");
+  document.getElementById("millField").style.display="none";
+  document.getElementById("millSetupBar").style.display="flex";
+  millState="setup";
+}
 
-  const overlay = document.getElementById("overlay");
-  const title = document.getElementById("winTitle");
-  const text = document.getElementById("winText");
-  const trophy = document.getElementById("trophy");
-
-  if(winner === 0){
-    trophy.textContent = "🤝";
-    title.textContent = "Berabere!";
-    text.textContent = "Süre bitti ve halat tam ortada kaldı.";
+/* ================= 3) RESİMLİ SORU ================= */
+const PIC_QUESTIONS = [
+  {emoji:"🕌", q:"Görseldeki yapı nedir?", o:["Kilise","Havra","Cami","Ateşgede"], c:2},
+  {emoji:"🕋", q:"Görseldeki kutsal yapı hangisidir?", o:["Kabe","Mescid-i Aksa","Süleymaniye Camii","Ayasofya"], c:0},
+  {emoji:"📿", q:"Görseldeki nesne ibadet sırasında ne için kullanılır?", o:["Zikir çekmek için tespih","Yemek yemek için çatal","Yazı yazmak için kalem","Namaz kılmak için seccade"], c:0},
+  {emoji:"📖", q:"Görseldeki kitap İslam'ın hangi kutsal kitabıdır?", o:["Tevrat","İncil","Kur'an-ı Kerim","Zebur"], c:2},
+  {emoji:"☪️", q:"Bu sembol hangi dinle özdeşleşmiştir?", o:["İslam","Hristiyanlık","Musevilik","Budizm"], c:0},
+  {emoji:"🤲", q:"Görseldeki hareket hangi ibadetle ilgilidir?", o:["Dua etmek","Kitap okumak","Yemek pişirmek","Spor yapmak"], c:0},
+  {emoji:"🏮", q:"Görseldeki obje hangi gecelerle ilişkilendirilir?", o:["Kandil geceleri","Yılbaşı","Doğum günü","Mevlit"], c:0},
+  {emoji:"🐑", q:"Görseldeki hayvan hangi ibadetle ilişkilidir?", o:["Kurban","Oruç","Hac","Zekat"], c:0},
+  {emoji:"🕰️", q:"Görsel hangi ibadetin vakitleriyle ilgilidir?", o:["Namaz vakitleri","Tatil günleri","Okul saatleri","Bayram tarihleri"], c:0},
+  {emoji:"🕌", q:"Camilerde ezanın okunduğu yüksek kısma ne denir?", o:["Kubbe","Minare","Şadırvan","Avlu"], c:1},
+  {emoji:"🎁", q:"Görsel hangi bayram geleneğini çağrıştırır?", o:["Bayramlaşma ve hediye verme","Oruç tutmak","Kurban kesmek","Hacca gitmek"], c:0},
+  {emoji:"🕊️", q:"Bu sembol İslam ahlakında hangi değeri temsil eder?", o:["Barış","Kibir","Bencillik","Yalan"], c:0},
+  {emoji:"🤝", q:"Görsel hangi ahlaki değeri temsil eder?", o:["Yardımlaşma ve dayanışma","Kibir","Cimrilik","Bencillik"], c:0}
+];
+const PIC_WIN_SCORE=8, PIC_ANSWER_PAUSE=650;
+let picState="setup", picScore1=0, picScore2=0, picStreak1=0, picStreak2=0;
+let picTotalTime=90, picTimeLeft=90, picTimerId=null, picPool1=[], picPool2=[], picCurrent1=null, picCurrent2=null, picLocked1=false, picLocked2=false;
+function picRefill(pool){ if(pool.length===0) pool.push(...shuffle(PIC_QUESTIONS)); return pool.pop(); }
+document.querySelectorAll("#picSetupBar .preset").forEach(btn=>{
+  btn.addEventListener("click", ()=>{ document.querySelectorAll("#picSetupBar .preset").forEach(b=>b.classList.remove("active")); btn.classList.add("active"); document.getElementById("picDurationInput").value = btn.dataset.val; });
+});
+document.getElementById("picDurationInput").addEventListener("input", ()=>{ document.querySelectorAll("#picSetupBar .preset").forEach(b=>b.classList.remove("active")); });
+document.getElementById("picStartBtn").addEventListener("click", startPic);
+function startPic(){
+  let v = parseInt(document.getElementById("picDurationInput").value, 10);
+  if(isNaN(v)||v<15) v=15; if(v>600) v=600;
+  picTotalTime=v; picTimeLeft=v; picState="playing";
+  picScore1=0; picScore2=0; picStreak1=0; picStreak2=0;
+  picPool1=shuffle(PIC_QUESTIONS); picPool2=shuffle(PIC_QUESTIONS);
+  document.getElementById("picSetupBar").style.display="none";
+  document.getElementById("picScore1").textContent=0; document.getElementById("picScore2").textContent=0;
+  document.getElementById("picStreak1").textContent=""; document.getElementById("picStreak2").textContent="";
+  updatePicRace();
+  document.getElementById("picTimer").textContent=picTimeLeft;
+  document.getElementById("picTimerBar").style.width="100%"; document.getElementById("picTimerBar").style.background="#22B573";
+  document.getElementById("picTimerChip").classList.remove("warn");
+  picLoadNext(1); picLoadNext(2);
+  clearInterval(picTimerId); picTimerId=setInterval(picTick,1000);
+}
+function picTick(){
+  if(picState!=="playing") return;
+  picTimeLeft--; document.getElementById("picTimer").textContent=Math.max(picTimeLeft,0);
+  const pct=Math.max(0,(picTimeLeft/picTotalTime)*100);
+  document.getElementById("picTimerBar").style.width=pct+"%";
+  if(pct<25){ document.getElementById("picTimerBar").style.background="#FB5B4B"; document.getElementById("picTimerChip").classList.add("warn"); }
+  if(picTimeLeft<=0) picEndByTimeout();
+}
+function picLoadNext(team){ const q=picRefill(team===1?picPool1:picPool2); if(team===1) picCurrent1=q; else picCurrent2=q; picRenderQuestion(team,q); }
+function picRenderQuestion(team,q){
+  const body=document.getElementById("picBody"+team); const letters=["A","B","C","D"];
+  body.innerHTML = `<div class="pic-emoji">${q.emoji}</div><div class="question">${q.q}</div><div class="options" id="picOpts${team}"></div><div class="waiting" id="picWait${team}">&nbsp;</div>`;
+  const optsEl=document.getElementById("picOpts"+team);
+  q.o.forEach((text,idx)=>{ const btn=document.createElement("button"); btn.className="opt"; btn.innerHTML=`<span class="letter">${letters[idx]}</span><span>${text}</span>`; btn.onclick=()=>picHandleAnswer(team,idx); optsEl.appendChild(btn); });
+  if(team===1) picLocked1=false; else picLocked2=false;
+}
+function picHandleAnswer(team, idx){
+  if(picState!=="playing") return;
+  if(team===1 && picLocked1) return; if(team===2 && picLocked2) return;
+  if(team===1) picLocked1=true; else picLocked2=true;
+  const q = team===1?picCurrent1:picCurrent2; const isCorrect = idx===q.c;
+  const optsEl=document.getElementById("picOpts"+team);
+  optsEl.querySelectorAll(".opt").forEach((b,i)=>{ b.disabled=true; if(i===q.c) b.classList.add("correct"); else if(i===idx) b.classList.add("wrong"); });
+  document.getElementById("picWait"+team).textContent = isCorrect ? "Doğru! Roket ilerliyor…" : "Yanlış, sıradaki görsel geliyor…";
+  if(isCorrect){
+    if(team===1){ picScore1++; picStreak1++; picStreak2=0; } else { picScore2++; picStreak2++; picStreak1=0; }
+    document.getElementById("picScore1").textContent=picScore1; document.getElementById("picScore2").textContent=picScore2;
+    document.getElementById("picStreak1").textContent= picStreak1>=2 ? "🔥x"+picStreak1 : "";
+    document.getElementById("picStreak2").textContent= picStreak2>=2 ? "🔥x"+picStreak2 : "";
+    updatePicRace();
   } else {
-    const name = winner===1 ? "Mavi Takım" : "Kırmızı Takım";
-    trophy.textContent = "🏆";
-    title.textContent = name + " Kazandı! 🎉";
-    text.textContent = reason==="crossed"
-      ? "Halatı çizginin sonuna kadar çekmeyi başardı."
-      : "Süre doldu ve çizgiye en yakın rakip takım kaybetti.";
+    if(team===1) picStreak1=0; else picStreak2=0;
+    document.getElementById("picStreak1").textContent= picStreak1>=2 ? "🔥x"+picStreak1 : "";
+    document.getElementById("picStreak2").textContent= picStreak2>=2 ? "🔥x"+picStreak2 : "";
   }
-  overlay.classList.add("show");
+  if(picCheckWin()) return;
+  setTimeout(()=>{ if(picState==="playing") picLoadNext(team); }, PIC_ANSWER_PAUSE);
 }
-
-function resetGame(){
-  document.getElementById("overlay").classList.remove("show");
-  document.getElementById("setupBar").style.display = "flex";
-  document.getElementById("durationInput").value = totalTime;
-  state = "setup";
-  pos = 0;
-  updateTrack();
-  document.getElementById("leadLbl").textContent = "Başlamak için yukarıdan süreyi ayarlayın";
-  document.getElementById("body1").innerHTML = '<div class="placeholder">Oyunu başlatınca soru burada görünecek.</div>';
-  document.getElementById("body2").innerHTML = '<div class="placeholder">Oyunu başlatınca soru burada görünecek.</div>';
-  document.getElementById("timer").textContent = totalTime;
-  document.getElementById("timerBar").style.width = "100%";
-  document.getElementById("timerBar").style.background = "#3AB273";
-  document.getElementById("timerChip").classList.remove("warn");
+function updatePicRace(){
+  const pct1 = Math.min(100,(picScore1/PIC_WIN_SCORE)*100);
+  const pct2 = Math.min(100,(picScore2/PIC_WIN_SCORE)*100);
+  document.getElementById("picRaceFill1").style.width = pct1+"%";
+  document.getElementById("picRaceFill2").style.width = pct2+"%";
+  document.getElementById("picRocket1").style.left = pct1+"%";
+  document.getElementById("picRocket2").style.left = pct2+"%";
+  document.getElementById("picChip1").classList.toggle("leading", picScore1>picScore2);
+  document.getElementById("picChip2").classList.toggle("leading", picScore2>picScore1);
 }
-
-updateTrack();
+function picCheckWin(){ if(picScore1>=PIC_WIN_SCORE){ picEndGame(1,"reached"); return true; } if(picScore2>=PIC_WIN_SCORE){ picEndGame(2,"reached"); return true; } return false; }
+function picEndByTimeout(){
+  clearInterval(picTimerId); if(picState!=="playing") return;
+  if(picScore1>picScore2) picEndGame(1,"timeout"); else if(picScore2>picScore1) picEndGame(2,"timeout"); else picEndGame(0,"timeout");
+}
+function picEndGame(winner, reason){
+  picState="ended"; clearInterval(picTimerId);
+  ["picOpts1","picOpts2"].forEach(id=>{ const el=document.getElementById(id); if(el) el.querySelectorAll(".opt").forEach(b=>b.disabled=true); });
+  const title=document.getElementById("picWinTitle"), text=document.getElementById("picWinText"), trophy=document.getElementById("picTrophy");
+  if(winner===0){ trophy.textContent="🤝"; title.textContent="Berabere!"; text.textContent="Süre bitti ve iki roket de aynı sırada kaldı."; }
+  else{ const name=winner===1?"Mavi Takım":"Kırmızı Takım"; trophy.textContent="🏆"; title.textContent=name+" Kazandı! 🎉"; text.textContent= reason==="reached" ? "Roketini hedefe ilk ulaştıran takım oldu." : "Süre doldu, önde olan takım kazandı."; }
+  document.getElementById("overlayPic").classList.add("show");
+}
+function resetPic(){
+  document.getElementById("overlayPic").classList.remove("show");
+  document.getElementById("picSetupBar").style.display="flex";
+  document.getElementById("picDurationInput").value=picTotalTime;
+  picState="setup";
+  document.getElementById("picBody1").innerHTML='<div class="placeholder">Oyunu başlatınca görsel burada görünecek.</div>';
+  document.getElementById("picBody2").innerHTML='<div class="placeholder">Oyunu başlatınca görsel burada görünecek.</div>';
+  document.getElementById("picTimer").textContent=picTotalTime;
+  document.getElementById("picTimerBar").style.width="100%"; document.getElementById("picTimerBar").style.background="#22B573";
+  document.getElementById("picTimerChip").classList.remove("warn");
+  document.getElementById("picRaceFill1").style.width="0%"; document.getElementById("picRaceFill2").style.width="0%";
+  document.getElementById("picRocket1").style.left="0%"; document.getElementById("picRocket2").style.left="0%";
+}
 </script>
 </body>
 </html>
