@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sınıf Yarışmaları</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --team1: #2E6FDB;
+    --team1-dark: #1F4EA0;
+    --team2: #E3492E;
+    --team2-dark: #B4331D;
+    --sky-top: #BFE3FF;
+    --sky-bottom: #EAF6FF;
+    --sand: #FFF6E4;
+    --flag: #FFC93C;
+    --ink: #1D2B3A;
+    --ok: #3AB273;
+    --bad: #E3492E;
+    --side-bg-1: #201A38;
+    --side-bg-2: #2E2560;
+    --side-text: #EDEAFB;
+    --side-muted: #9C93C4;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    font-family:'Nunito', sans-serif;
+    color:var(--ink);
+  }
+
+  /* ---------- app shell ---------- */
+  .app-shell{
+    display:flex;
+    min-height:100vh;
+  }
+
+  .sidebar{
+    width:250px;
+    flex-shrink:0;
+    background: linear-gradient(180deg, var(--side-bg-1) 0%, var(--side-bg-2) 100%);
+    color: var(--side-text);
+    padding: 22px 14px;
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+  }
+  .brand{
+    padding: 0 8px 18px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.12);
+  }
+  .brand-title{
+    font-family:'Baloo 2';
+    font-weight:800;
+    font-size:1.25rem;
+    line-height:1.2;
+    margin:0 0 8px;
+  }
+  .brand-bar{
+    width:42px; height:5px; border-radius:3px;
+    background: var(--flag);
+  }
+  .nav-section-label{
+    font-family:'Nunito';
+    font-weight:800;
+    font-size:0.72rem;
+    color: var(--side-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin: 14px 10px 6px;
+  }
+  .nav-item{
+    display:flex; align-items:center; gap:10px;
+    width:100%;
+    background:transparent;
+    border:none;
+    border-left: 4px solid transparent;
+    color: var(--side-text);
+    font-family:'Nunito';
+    font-weight:700;
+    font-size:0.95rem;
+    text-align:left;
+    padding: 10px 10px;
+    border-radius: 0 10px 10px 0;
+    cursor:pointer;
+  }
+  .nav-item .nav-icon{ font-size:1.15rem; }
+  .nav-item small{ display:block; font-weight:600; color: var(--side-muted); font-size:0.72rem; }
+  .nav-item:hover:not(.disabled){ background: rgba(255,255,255,0.07); }
+  .nav-item.active{
+    background: rgba(255,201,77,0.14);
+    border-left-color: var(--flag);
+    color:#fff;
+  }
+  .nav-item.disabled{
+    color: var(--side-muted);
+    cursor:default;
+    opacity:0.7;
+  }
+
+  .content{
+    flex:1;
+    min-width:0;
+    height:100vh;
+    overflow-y:auto;
+  }
+  .view{ display:none; min-height:100%; }
+  .view.active{ display:block; }
+
+  /* ---------- home view ---------- */
+  #view-home{ background: var(--sand); }
+  .home-hero{
+    background: linear-gradient(135deg, var(--side-bg-1), var(--side-bg-2));
+    color:#fff;
+    padding: 46px 40px 54px;
+  }
+  .home-hero h1{
+    font-family:'Baloo 2';
+    font-weight:800;
+    font-size: clamp(1.8rem, 3.4vw, 2.6rem);
+    margin: 0 0 10px;
+  }
+  .home-hero p{
+    color: var(--side-muted);
+    font-weight:700;
+    font-size: 1rem;
+    max-width: 520px;
+    margin:0;
+  }
+  .home-grid{
+    padding: 30px 40px 50px;
+    display:grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap:18px;
+    max-width: 1100px;
+  }
+  .game-card{
+    text-align:left;
+    border-radius:16px;
+    padding:20px 18px;
+    background:#fff;
+    cursor:pointer;
+    box-shadow: 0 5px 0 rgba(0,0,0,0.08);
+    border: 2px solid transparent;
+    font-family:'Nunito';
+  }
+  .game-card:hover{ border-color: var(--flag); }
+  .game-card-icon{ font-size:2rem; margin-bottom:8px; }
+  .game-card h3{
+    font-family:'Baloo 2'; font-weight:700; font-size:1.05rem;
+    margin: 0 0 6px; color: var(--ink);
+  }
+  .game-card p{
+    margin:0 0 12px; color:#5A6B7B; font-weight:600; font-size:0.88rem; line-height:1.4;
+  }
+  .play-tag{
+    display:inline-block;
+    font-family:'Baloo 2'; font-weight:700; font-size:0.85rem;
+    background: var(--ok); color:#fff;
+    padding:6px 14px; border-radius:10px;
+  }
+  .game-card.placeholder-card{
+    cursor:default;
+    background: transparent;
+    border: 2px dashed #D9D2C4;
+    box-shadow:none;
+  }
+  .game-card.placeholder-card:hover{ border-color:#D9D2C4; }
+  .game-card.placeholder-card h3{ color:#9B9384; }
+  .game-card.placeholder-card p{ color:#B0A996; }
+  .soon-tag{
+    display:inline-block;
+    font-family:'Baloo 2'; font-weight:700; font-size:0.8rem;
+    background:#EFEAE0; color:#9B9384;
+    padding:6px 14px; border-radius:10px;
+  }
+
+  /* ---------- tug of war view ---------- */
+  #view-tugofwar{
+    background: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-bottom) 55%, var(--sand) 55%, var(--sand) 100%);
+  }
+  .game-wrap{
+    display:flex; flex-direction:column; align-items:center;
+    padding: 18px 20px 30px;
+  }
+  .game-topbar{
+    width:100%; max-width:1100px;
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:4px;
+  }
+  .home-link{
+    display:inline-flex; align-items:center; gap:6px;
+    font-family:'Baloo 2'; font-weight:700; font-size:0.9rem;
+    color:#4A5A6A; text-decoration:none; cursor:pointer;
+    background:none; border:none;
+  }
+  h1.game-title{
+    font-family:'Baloo 2', sans-serif;
+    font-weight:800;
+    font-size: clamp(1.5rem, 3.6vw, 2.3rem);
+    margin: 4px 0 2px;
+    letter-spacing:0.5px;
+    text-align:center;
+  }
+  .subtitle{
+    font-weight:700;
+    color:#4A5A6A;
+    margin-bottom:16px;
+    text-align:center;
+    font-size: clamp(0.9rem, 2vw, 1.05rem);
+  }
+
+  .setup-bar{
+    width:100%; max-width:1100px;
+    background:#fff;
+    border-radius:16px;
+    padding:16px 18px;
+    margin-bottom:14px;
+    display:flex; flex-wrap:wrap; align-items:center; gap:14px;
+    box-shadow: 0 6px 0 rgba(0,0,0,0.08);
+  }
+  .setup-bar .lbl{
+    font-family:'Baloo 2'; font-weight:700; font-size:0.95rem; color:#4A5A6A;
+  }
+  .setup-bar input[type=number]{
+    width:90px; font-size:1.1rem; font-weight:800; text-align:center;
+    padding:8px 6px; border-radius:10px; border:2px solid #D9E2EA;
+    font-family:'Baloo 2';
+  }
+  .preset{
+    border:2px solid #D9E2EA; background:#fff; border-radius:10px;
+    padding:8px 12px; font-family:'Baloo 2'; font-weight:700; cursor:pointer;
+    color:#4A5A6A;
+  }
+  .preset.active{ border-color: var(--team1); color:var(--team1-dark); background:#EAF2FF; }
+  .start-btn{
+    margin-left:auto;
+    background: var(--ok); color:#fff; border:none; border-radius:12px;
+    padding:12px 22px; font-family:'Baloo 2'; font-weight:800; font-size:1.05rem;
+    cursor:pointer; box-shadow: 0 4px 0 rgba(0,0,0,0.15);
+  }
+  .start-btn:active{ transform: translateY(2px); box-shadow:none; }
+
+  .scoreboard{
+    width:100%;
+    max-width:1100px;
+    display:flex;
+    align-items:stretch;
+    gap:10px;
+    margin-bottom:14px;
+  }
+  .score-chip{
+    flex:1;
+    border-radius:16px;
+    padding:10px 16px;
+    font-family:'Baloo 2', sans-serif;
+    font-weight:700;
+    display:flex; align-items:center; justify-content:space-between;
+    color:#fff;
+    box-shadow: 0 4px 0 rgba(0,0,0,0.12);
+    transition: transform 0.25s ease;
+  }
+  .score-chip.t1{ background: var(--team1); }
+  .score-chip.t2{ background: var(--team2); }
+  .score-chip.leading{ transform: scale(1.04); }
+  .score-chip .num{ font-size:1.6rem; }
+  .timer-chip{
+    min-width:110px;
+    border-radius:16px;
+    background:#fff;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    font-family:'Baloo 2', sans-serif;
+    font-weight:800;
+    font-size:1.6rem;
+    box-shadow: 0 4px 0 rgba(0,0,0,0.08);
+    color:var(--ink);
+    position:relative;
+    overflow:hidden;
+    padding:4px 10px;
+  }
+  .timer-chip.warn{ color: var(--bad); }
+  .timer-chip .lbl{ font-family:'Nunito'; font-size:0.62rem; font-weight:800; color:#7C8B9B; }
+  .timer-bar-track{
+    position:absolute; left:0; right:0; bottom:0; height:5px; background:#EEF1F4;
+  }
+  .timer-bar-fill{
+    height:100%; background: var(--ok); width:100%; transition: width 1s linear, background 0.4s ease;
+  }
+
+  .field{
+    width:100%; max-width:1100px;
+    background:#fff;
+    border-radius:20px;
+    box-shadow: 0 8px 0 rgba(0,0,0,0.08);
+    padding: 18px 16px 22px;
+    position:relative;
+    overflow:hidden;
+  }
+
+  .track-area{
+    display:flex; flex-direction:column; align-items:center;
+    margin-bottom: 10px;
+  }
+  .lead-lbl{
+    font-family:'Baloo 2';
+    font-weight:800;
+    font-size:0.95rem;
+    color:#4A5A6A;
+    margin-bottom:6px;
+    min-height:1.3em;
+  }
+  .track{
+    position:relative;
+    width:100%;
+    max-width:640px;
+    height:70px;
+  }
+  .track .rail{
+    position:absolute; top:50%; left:0; right:0; height:8px;
+    transform:translateY(-50%);
+    background: repeating-linear-gradient(90deg, #D8C9A3 0 14px, #C9B688 14px 20px);
+    border-radius:4px;
+  }
+  .track .midline{
+    position:absolute; top:0; bottom:0; left:50%;
+    width:2px; background:#B9C6D2; transform:translateX(-1px);
+  }
+  .track .goal{
+    position:absolute; top:6px; bottom:6px; width:6px; border-radius:3px;
+  }
+  .track .goal.left{ left:8px; background:var(--team1); opacity:0.55; }
+  .track .goal.right{ right:8px; background:var(--team2); opacity:0.55; }
+  .marker{
+    position:absolute; top:50%; left:50%; font-size:2.1rem;
+    transform: translate(-50%,-58%);
+    transition: left 0.5s cubic-bezier(.34,1.56,.64,1);
+    filter: drop-shadow(0 3px 2px rgba(0,0,0,0.25));
+  }
+  .runners{
+    position:absolute; top:50%; font-size:1.7rem;
+    transform: translateY(-50%);
+    letter-spacing:-4px;
+    transition: transform 0.4s ease;
+  }
+  .runners.left{ left:0; transform-origin:left center; }
+  .runners.right{ right:0; transform: translateY(-50%) scaleX(-1); transform-origin:right center; }
+  .runners.left.leading{ transform: translateY(-50%) scale(1.15); }
+  .runners.right.leading{ transform: translateY(-50%) scaleX(-1) scale(1.15); }
+
+  .panels{
+    display:flex; gap:14px; align-items:stretch;
+  }
+  .panel{
+    flex:1;
+    border-radius:16px;
+    padding:14px;
+    min-width:0;
+    transition: box-shadow 0.3s ease;
+  }
+  .panel.t1{ background:#EAF2FF; border:2px solid var(--team1); }
+  .panel.t2{ background:#FFEEEA; border:2px solid var(--team2); }
+  .panel-head{
+    font-family:'Baloo 2';
+    font-weight:800;
+    font-size:1rem;
+    margin-bottom:8px;
+    display:flex; align-items:center; justify-content:space-between; gap:6px;
+  }
+  .panel.t1 .panel-head{ color:var(--team1-dark); }
+  .panel.t2 .panel-head{ color:var(--team2-dark); }
+  .streak{ font-family:'Nunito'; font-size:0.75rem; font-weight:800; opacity:0.7; }
+  .question{
+    font-weight:800;
+    font-size: clamp(0.95rem, 2.3vw, 1.15rem);
+    line-height:1.35;
+    min-height:3.2em;
+    margin-bottom:12px;
+  }
+  .options{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap:8px;
+  }
+  .opt{
+    border:none;
+    border-radius:12px;
+    padding:12px 8px;
+    font-family:'Nunito';
+    font-weight:800;
+    font-size: clamp(0.8rem, 2vw, 0.95rem);
+    background:#fff;
+    color:var(--ink);
+    cursor:pointer;
+    box-shadow: 0 3px 0 rgba(0,0,0,0.1);
+    text-align:left;
+    display:flex; gap:8px; align-items:flex-start;
+    transition: transform 0.1s ease;
+  }
+  .opt .letter{
+    flex:0 0 auto;
+    width:22px; height:22px; border-radius:50%;
+    background:#EEF1F4; color:#5A6B7B;
+    display:flex; align-items:center; justify-content:center;
+    font-size:0.75rem; font-weight:800;
+  }
+  .opt:active{ transform: scale(0.97); }
+  .opt:disabled{ cursor:default; opacity:0.6; }
+  .panel.t1 .opt:not(:disabled):hover{ background:#DCE9FF; }
+  .panel.t2 .opt:not(:disabled):hover{ background:#FFE0D8; }
+  .opt.correct{ background: var(--ok); color:#fff; opacity:1; }
+  .opt.correct .letter{ background:rgba(255,255,255,0.3); color:#fff; }
+  .opt.wrong{ background: var(--bad); color:#fff; opacity:1; }
+  .opt.wrong .letter{ background:rgba(255,255,255,0.3); color:#fff; }
+
+  .waiting{
+    font-weight:700; color:#7C8B9B; font-size:0.85rem; margin-top:6px; min-height:1.2em;
+  }
+  .placeholder{
+    font-weight:700; color:#8C9BAA; font-size:0.95rem; text-align:center;
+    padding: 30px 10px;
+  }
+
+  .overlay{
+    position:fixed; inset:0; background:rgba(20,30,40,0.55);
+    display:none; align-items:center; justify-content:center; z-index:50;
+    padding:20px;
+  }
+  .overlay.show{ display:flex; }
+  .win-card{
+    background:#fff; border-radius:20px; padding:30px 26px; text-align:center;
+    max-width:360px; box-shadow: 0 10px 0 rgba(0,0,0,0.15);
+  }
+  .win-card .trophy{ font-size:3.4rem; margin-bottom:6px; }
+  .win-card h2{
+    font-family:'Baloo 2'; font-weight:800; margin:0 0 6px;
+    font-size:1.5rem;
+  }
+  .win-card p{ color:#5A6B7B; font-weight:700; margin:0 0 18px; }
+  .win-card button{
+    font-family:'Baloo 2'; font-weight:700; font-size:1rem;
+    border:none; border-radius:14px; padding:12px 26px;
+    background:var(--flag); color:#5A3E00; cursor:pointer;
+    box-shadow: 0 4px 0 rgba(0,0,0,0.15);
+  }
+
+  @media (max-width: 820px){
+    .app-shell{ flex-direction:column; }
+    .sidebar{
+      width:100%; flex-direction:row; align-items:center; overflow-x:auto;
+      padding: 12px 14px;
+    }
+    .brand{ border-bottom:none; border-right:1px solid rgba(255,255,255,0.12); padding: 0 14px 0 0; margin: 0 10px 0 0; }
+    .nav-section-label{ display:none; }
+    .nav-item{ white-space:nowrap; border-left:none; border-bottom:4px solid transparent; border-radius:10px 10px 0 0; }
+    .nav-item.active{ border-left-color:transparent; border-bottom-color: var(--flag); }
+    .nav-item small{ display:none; }
+    .content{ height:auto; }
+  }
+  @media (max-width: 620px){
+    .panels{ flex-direction:column; }
+    .options{ grid-template-columns: 1fr 1fr; }
+    .start-btn{ margin-left:0; width:100%; }
+    .home-hero, .home-grid{ padding-left:20px; padding-right:20px; }
+  }
+</style>
+</head>
+<body>
+<div class="app-shell">
+
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-title">🎬 Sınıf Yarışmaları</div>
+      <div class="brand-bar"></div>
+    </div>
+    <button class="nav-item active" data-view="home">
+      <span class="nav-icon">🏠</span><span>Ana Sayfa</span>
+    </button>
+    <div class="nav-section-label">Yarışmalar</div>
+    <button class="nav-item" data-view="tugofwar">
+      <span class="nav-icon">🪢</span><span>Halat Çekme<small>Din Kültürü</small></span>
+    </button>
+    <div class="nav-item disabled">
+      <span class="nav-icon">➕</span><span>Yakında</span>
+    </div>
+  </aside>
+
+  <main class="content">
+
+    <section id="view-home" class="view active">
+      <div class="home-hero">
+        <h1>Sınıf Yarışmaları</h1>
+        <p>Soldaki menüden bir yarışma seçin ve akıllı tahtada iki takımı yarıştırın.</p>
+      </div>
+      <div class="home-grid">
+        <button class="game-card" data-view="tugofwar">
+          <div class="game-card-icon">🪢</div>
+          <h3>Halat Çekme: Din Kültürü</h3>
+          <p>İki takım Din Kültürü sorularına doğru cevap vererek halatı kendi tarafına çeker.</p>
+          <span class="play-tag">Oyna</span>
+        </button>
+        <div class="game-card placeholder-card">
+          <div class="game-card-icon">🧩</div>
+          <h3>Yeni Yarışma</h3>
+          <p>Yakında bu alana yeni bir yarışma eklenecek.</p>
+          <span class="soon-tag">Yakında</span>
+        </div>
+        <div class="game-card placeholder-card">
+          <div class="game-card-icon">🎯</div>
+          <h3>Yeni Yarışma</h3>
+          <p>Yakında bu alana yeni bir yarışma eklenecek.</p>
+          <span class="soon-tag">Yakında</span>
+        </div>
+      </div>
+    </section>
+
+    <section id="view-tugofwar" class="view">
+      <div class="game-wrap">
+        <div class="game-topbar">
+          <button class="home-link" data-view="home">🏠 Ana Sayfa</button>
+          <span></span>
+        </div>
+        <h1 class="game-title">🪢 Halat Çekme: Din Kültürü</h1>
+        <div class="subtitle">Doğru cevap veren takım halatı kendi tarafına çeker!</div>
+
+        <div class="setup-bar" id="setupBar">
+          <span class="lbl">⏱️ Oyun Süresi:</span>
+          <input type="number" id="durationInput" min="15" max="600" step="5" value="90">
+          <span class="lbl">saniye</span>
+          <button class="preset" data-val="60">60 sn</button>
+          <button class="preset active" data-val="90">90 sn</button>
+          <button class="preset" data-val="120">2 dk</button>
+          <button class="preset" data-val="180">3 dk</button>
+          <button class="start-btn" id="startBtn">▶ Oyunu Başlat</button>
+        </div>
+
+        <div class="scoreboard">
+          <div class="score-chip t1" id="chip1"><span>Mavi Takım</span><span class="num" id="score1">0</span></div>
+          <div class="timer-chip" id="timerChip">
+            <span id="timer">90</span><span class="lbl">SANİYE KALDI</span>
+            <div class="timer-bar-track"><div class="timer-bar-fill" id="timerBar"></div></div>
+          </div>
+          <div class="score-chip t2" id="chip2"><span>Kırmızı Takım</span><span class="num" id="score2">0</span></div>
+        </div>
+
+        <div class="field">
+          <div class="track-area">
+            <div class="lead-lbl" id="leadLbl">Başlamak için yukarıdan süreyi ayarlayın</div>
+            <div class="track">
+              <div class="rail"></div>
+              <div class="midline"></div>
+              <div class="goal left"></div>
+              <div class="goal right"></div>
+              <div class="runners left" id="runnersLeft">🧑‍🤝‍🧑</div>
+              <div class="marker" id="marker" style="left:50%;">🚩</div>
+              <div class="runners right" id="runnersRight">🧑‍🤝‍🧑</div>
+            </div>
+          </div>
+
+          <div class="panels">
+            <div class="panel t1" id="panel1">
+              <div class="panel-head"><span>🔵 Mavi Takım</span><span class="streak" id="streak1"></span></div>
+              <div id="body1"><div class="placeholder">Oyunu başlatınca soru burada görünecek.</div></div>
+            </div>
+            <div class="panel t2" id="panel2">
+              <div class="panel-head"><span>🔴 Kırmızı Takım</span><span class="streak" id="streak2"></span></div>
+              <div id="body2"><div class="placeholder">Oyunu başlatınca soru burada görünecek.</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="win-card">
+    <div class="trophy" id="trophy">🏆</div>
+    <h2 id="winTitle">Takım Kazandı!</h2>
+    <p id="winText">Halatı kendi tarafına çekmeyi başardı.</p>
+    <button onclick="resetGame()">Yeniden Oyna</button>
+  </div>
+</div>
+
+<script>
+/* ---------------- navigasyon ---------------- */
+function showView(view){
+  document.querySelectorAll(".view").forEach(v=> v.classList.toggle("active", v.id === "view-"+view));
+  document.querySelectorAll(".nav-item[data-view]").forEach(b=> b.classList.toggle("active", b.dataset.view === view));
+}
+document.querySelectorAll("[data-view]").forEach(el=>{
+  el.addEventListener("click", ()=> showView(el.dataset.view));
+});
+
+/* ---------------- Halat Çekme: Din Kültürü ---------------- */
+const QUESTIONS = [
+  {q:"İslam dininin kutsal kitabının adı nedir?", o:["Tevrat","Kur'an-ı Kerim","İncil","Zebur"], c:1},
+  {q:"Müslümanların ibadet ettiği kutsal mekanın adı nedir?", o:["Kilise","Havra","Cami","Ateşgede"], c:2},
+  {q:"İslam'ın beş şartından biri olan, aç ve susuz kalarak yapılan ibadete ne denir?", o:["Namaz","Oruç","Zekat","Hac"], c:1},
+  {q:"Müslümanların bir yılda bir ay boyunca oruç tuttuğu aya ne ad verilir?", o:["Muharrem","Şaban","Ramazan","Recep"], c:2},
+  {q:"Peygamberimiz Hz. Muhammed'in doğduğu şehir hangisidir?", o:["Medine","Kudüs","Mekke","Şam"], c:2},
+  {q:"Günde kaç vakit namaz kılınır?", o:["3","4","5","6"], c:2},
+  {q:"Kur'an-ı Kerim'in ilk suresinin adı nedir?", o:["İhlas","Fatiha","Nas","Kevser"], c:1},
+  {q:"Zengin Müslümanların yoksullara belirli bir oranda verdiği mala ne denir?", o:["Sadaka","Fitre","Zekat","Kurban"], c:2},
+  {q:"Müslümanların imkanı olduğunda ömründe bir kez yapmakla yükümlü olduğu ibadet hangisidir?", o:["Hac","Umre","İtikaf","Kandil"], c:0},
+  {q:"Aşağıdakilerden hangisi dört büyük kutsal kitaptan biri değildir?", o:["Kur'an","Tevrat","İncil","Kelile ve Dimne"], c:3},
+  {q:"Ezan okunan yüksek yapıya ne ad verilir?", o:["Kubbe","Minare","Şadırvan","Mihrap"], c:1},
+  {q:"Camide imamın namaz kıldırdığı bölüme ne denir?", o:["Minber","Mihrap","Kürsü","Avlu"], c:1},
+  {q:"Hz. Muhammed'in soyundan geldiği peygamber kimdir?", o:["Hz. Musa","Hz. İbrahim","Hz. İsa","Hz. Nuh"], c:1},
+  {q:"Kur'an-ı Kerim'in Peygamberimize ilk indirilmeye başladığı geceye ne ad verilir?", o:["Miraç Kandili","Kadir Gecesi","Berat Kandili","Regaib Kandili"], c:1},
+  {q:"İslam dininde doğruluk, dürüstlük ve güvenilirlik anlamına gelen kavram hangisidir?", o:["Sabır","Emanet","Sıdk","Cömertlik"], c:2},
+  {q:"Başkalarına ait bir şeyi koruyup zamanı geldiğinde sahibine geri vermeye ne denir?", o:["Emanet","Şükür","Tevekkül","İhlas"], c:0},
+  {q:"Ramazan ayının sonunda kutlanan bayrama ne ad verilir?", o:["Kurban Bayramı","Ramazan Bayramı","Mevlit Kandili","Aşure Günü"], c:1},
+  {q:"Hz. İbrahim'in oğlunu kurban etmeye niyetlenmesi hangi bayramla anılır?", o:["Ramazan Bayramı","Kurban Bayramı","Regaib Kandili","Miraç Kandili"], c:1},
+  {q:"Bir Müslümanın diğerine karşı büyüklenmeden, alçakgönüllü davranmasına ne denir?", o:["Tevazu","Kibir","Cimrilik","Riya"], c:0},
+  {q:"Aşağıdakilerden hangisi güzel ahlaki davranışlardan biri değildir?", o:["Yardımseverlik","Yalan söylemek","Saygı","Paylaşmak"], c:1},
+  {q:"Müslümanların birbirlerine verdiği selamın anlamı nedir?", o:["Hoşça kal","Esenlik ve barış dileği","Görüşürüz","Merhaba"], c:1},
+  {q:"Kur'an-ı Kerim hangi dilde indirilmiştir?", o:["Türkçe","Farsça","Arapça","İbranice"], c:2},
+  {q:"Peygamberlere inanmak, İslam'ın hangi temel esaslarından biridir?", o:["İbadet esasları","İman esasları","Ahlak esasları","Muamelat"], c:1},
+  {q:"Yetimleri, yoksulları ve muhtaçları gözetmek İslam'da hangi değerle ilgilidir?", o:["Merhamet","Kibir","Bencillik","Cimrilik"], c:0}
+];
+
+const WIN_DISTANCE = 5;
+const ANSWER_PAUSE = 650;
+
+let state = "setup";
+let pos = 0;
+let score1 = 0, score2 = 0;
+let streak1 = 0, streak2 = 0;
+let totalTime = 90;
+let timeLeft = 90;
+let gameTimerId = null;
+let pool1 = [], pool2 = [];
+let current1 = null, current2 = null;
+let locked1 = false, locked2 = false;
+
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+function refill(pool){
+  if(pool.length===0) pool.push(...shuffle(QUESTIONS));
+  return pool.pop();
+}
+
+document.querySelectorAll(".preset").forEach(btn=>{
+  btn.addEventListener("click", ()=>{
+    document.querySelectorAll(".preset").forEach(b=>b.classList.remove("active"));
+    btn.classList.add("active");
+    document.getElementById("durationInput").value = btn.dataset.val;
+  });
+});
+document.getElementById("durationInput").addEventListener("input", ()=>{
+  document.querySelectorAll(".preset").forEach(b=>b.classList.remove("active"));
+});
+document.getElementById("startBtn").addEventListener("click", startGame);
+
+function startGame(){
+  let v = parseInt(document.getElementById("durationInput").value, 10);
+  if(isNaN(v) || v < 15) v = 15;
+  if(v > 600) v = 600;
+  totalTime = v;
+  timeLeft = v;
+  state = "playing";
+  score1=0; score2=0; streak1=0; streak2=0; pos=0;
+  pool1 = shuffle(QUESTIONS); pool2 = shuffle(QUESTIONS);
+  document.getElementById("setupBar").style.display = "none";
+  document.getElementById("score1").textContent = 0;
+  document.getElementById("score2").textContent = 0;
+  document.getElementById("streak1").textContent = "";
+  document.getElementById("streak2").textContent = "";
+  updateTrack();
+  document.getElementById("timer").textContent = timeLeft;
+  document.getElementById("timerBar").style.width = "100%";
+  document.getElementById("timerBar").style.background = "#3AB273";
+  document.getElementById("timerChip").classList.remove("warn");
+
+  loadNext(1);
+  loadNext(2);
+
+  clearInterval(gameTimerId);
+  gameTimerId = setInterval(tickGame, 1000);
+}
+
+function tickGame(){
+  if(state !== "playing") return;
+  timeLeft--;
+  document.getElementById("timer").textContent = Math.max(timeLeft,0);
+  const pct = Math.max(0, (timeLeft/totalTime)*100);
+  document.getElementById("timerBar").style.width = pct + "%";
+  if(pct < 25){
+    document.getElementById("timerBar").style.background = "#E3492E";
+    document.getElementById("timerChip").classList.add("warn");
+  }
+  if(timeLeft <= 0){
+    endByTimeout();
+  }
+}
+
+function loadNext(team){
+  const q = refill(team===1?pool1:pool2);
+  if(team===1) current1 = q; else current2 = q;
+  renderQuestion(team, q);
+}
+
+function renderQuestion(team, q){
+  const body = document.getElementById("body"+team);
+  const letters = ["A","B","C","D"];
+  body.innerHTML = `
+    <div class="question">${q.q}</div>
+    <div class="options" id="opts${team}"></div>
+    <div class="waiting" id="wait${team}">&nbsp;</div>
+  `;
+  const optsEl = document.getElementById("opts"+team);
+  q.o.forEach((text, idx)=>{
+    const btn = document.createElement("button");
+    btn.className = "opt";
+    btn.innerHTML = `<span class="letter">${letters[idx]}</span><span>${text}</span>`;
+    btn.onclick = ()=> handleAnswer(team, idx);
+    optsEl.appendChild(btn);
+  });
+  if(team===1) locked1=false; else locked2=false;
+}
+
+function handleAnswer(team, idx){
+  if(state !== "playing") return;
+  if(team===1 && locked1) return;
+  if(team===2 && locked2) return;
+  if(team===1) locked1=true; else locked2=true;
+
+  const q = team===1 ? current1 : current2;
+  const isCorrect = idx===q.c;
+  const optsEl = document.getElementById("opts"+team);
+  optsEl.querySelectorAll(".opt").forEach((b,i)=>{
+    b.disabled = true;
+    if(i===q.c) b.classList.add("correct");
+    else if(i===idx) b.classList.add("wrong");
+  });
+  document.getElementById("wait"+team).textContent = isCorrect ? "Doğru! Halat çekiliyor…" : "Yanlış, sıradaki soru geliyor…";
+
+  if(isCorrect){
+    if(team===1){ score1++; streak1++; streak2=0; pos -= 1; }
+    else{ score2++; streak2++; streak1=0; pos += 1; }
+    document.getElementById("score1").textContent = score1;
+    document.getElementById("score2").textContent = score2;
+    document.getElementById("streak1").textContent = streak1>=2 ? "🔥x"+streak1 : "";
+    document.getElementById("streak2").textContent = streak2>=2 ? "🔥x"+streak2 : "";
+    updateTrack();
+  } else {
+    if(team===1) streak1=0; else streak2=0;
+    document.getElementById("streak1").textContent = streak1>=2 ? "🔥x"+streak1 : "";
+    document.getElementById("streak2").textContent = streak2>=2 ? "🔥x"+streak2 : "";
+  }
+
+  if(checkCrossing()) return;
+
+  setTimeout(()=>{
+    if(state==="playing") loadNext(team);
+  }, ANSWER_PAUSE);
+}
+
+function updateTrack(){
+  const clamped = Math.max(-WIN_DISTANCE, Math.min(WIN_DISTANCE, pos));
+  const pct = 50 + (clamped / WIN_DISTANCE) * 38;
+  document.getElementById("marker").style.left = pct + "%";
+
+  const leftRunners = document.getElementById("runnersLeft");
+  const rightRunners = document.getElementById("runnersRight");
+  const chip1 = document.getElementById("chip1");
+  const chip2 = document.getElementById("chip2");
+  leftRunners.classList.toggle("leading", pos < -0.01);
+  rightRunners.classList.toggle("leading", pos > 0.01);
+  chip1.classList.toggle("leading", pos < -0.01);
+  chip2.classList.toggle("leading", pos > 0.01);
+
+  const lead = document.getElementById("leadLbl");
+  if(pos < -0.01) lead.textContent = "🔵 Mavi Takım önde! (" + Math.abs(clamped).toFixed(0) + "/" + WIN_DISTANCE + ")";
+  else if(pos > 0.01) lead.textContent = "🔴 Kırmızı Takım önde! (" + Math.abs(clamped).toFixed(0) + "/" + WIN_DISTANCE + ")";
+  else lead.textContent = "Halat tam ortada — eşit durumdalar";
+}
+
+function checkCrossing(){
+  if(pos <= -WIN_DISTANCE){ endGame(1, "crossed"); return true; }
+  if(pos >= WIN_DISTANCE){ endGame(2, "crossed"); return true; }
+  return false;
+}
+
+function endByTimeout(){
+  clearInterval(gameTimerId);
+  if(state !== "playing") return;
+  if(pos < 0) endGame(1, "timeout");
+  else if(pos > 0) endGame(2, "timeout");
+  else endGame(0, "timeout");
+}
+
+function endGame(winner, reason){
+  state = "ended";
+  clearInterval(gameTimerId);
+  ["opts1","opts2"].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.querySelectorAll(".opt").forEach(b=> b.disabled = true);
+  });
+
+  const overlay = document.getElementById("overlay");
+  const title = document.getElementById("winTitle");
+  const text = document.getElementById("winText");
+  const trophy = document.getElementById("trophy");
+
+  if(winner === 0){
+    trophy.textContent = "🤝";
+    title.textContent = "Berabere!";
+    text.textContent = "Süre bitti ve halat tam ortada kaldı.";
+  } else {
+    const name = winner===1 ? "Mavi Takım" : "Kırmızı Takım";
+    trophy.textContent = "🏆";
+    title.textContent = name + " Kazandı! 🎉";
+    text.textContent = reason==="crossed"
+      ? "Halatı çizginin sonuna kadar çekmeyi başardı."
+      : "Süre doldu ve çizgiye en yakın rakip takım kaybetti.";
+  }
+  overlay.classList.add("show");
+}
+
+function resetGame(){
+  document.getElementById("overlay").classList.remove("show");
+  document.getElementById("setupBar").style.display = "flex";
+  document.getElementById("durationInput").value = totalTime;
+  state = "setup";
+  pos = 0;
+  updateTrack();
+  document.getElementById("leadLbl").textContent = "Başlamak için yukarıdan süreyi ayarlayın";
+  document.getElementById("body1").innerHTML = '<div class="placeholder">Oyunu başlatınca soru burada görünecek.</div>';
+  document.getElementById("body2").innerHTML = '<div class="placeholder">Oyunu başlatınca soru burada görünecek.</div>';
+  document.getElementById("timer").textContent = totalTime;
+  document.getElementById("timerBar").style.width = "100%";
+  document.getElementById("timerBar").style.background = "#3AB273";
+  document.getElementById("timerChip").classList.remove("warn");
+}
+
+updateTrack();
+</script>
+</body>
+</html>
