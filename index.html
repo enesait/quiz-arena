@@ -6,6 +6,8 @@
 <title>Sınıf Yarışmaları</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.js"></script>
 <style>
   :root{
     --team1: #3D74F4;
@@ -61,6 +63,7 @@
     display:flex; align-items:center; justify-content:center; font-size:1.2rem;
   }
   .brand-title{ font-family:'Space Grotesk'; font-weight:700; font-size:1.08rem; line-height:1.25; margin:0; color: var(--text-strong); }
+  .brand-sub{ font-family:'Manrope'; font-weight:600; font-size:0.72rem; color: var(--muted); margin-top:2px; }
   .nav-section-label{ font-family:'Manrope'; font-weight:800; font-size:0.7rem; color:#A6AFBD; text-transform:uppercase; letter-spacing:0.07em; margin: 16px 10px 6px; }
   .nav-item{
     display:flex; align-items:center; gap:12px; width:100%;
@@ -77,6 +80,7 @@
   .nav-item[data-view="tugofwar"] .nav-icon{ background: var(--teal-soft); }
   .nav-item[data-view="millionaire"] .nav-icon{ background: var(--amber-soft); }
   .nav-item[data-view="picture"] .nav-icon{ background: var(--violet-soft); }
+  .nav-item[data-view="plickers"] .nav-icon{ background: #FFE8F0; }
   .nav-item small{ display:block; font-weight:600; color:#9AA5B4; font-size:0.7rem; }
   .nav-item:hover:not(.disabled){ background: #F5F6FA; }
   .nav-item.active{ background: var(--violet-soft); color: var(--violet-dark); }
@@ -280,6 +284,53 @@
     .options, .mill-options{ grid-template-columns: 1fr 1fr; }
     .start-btn{ margin-left:0; width:100%; }
   }
+
+  /* ---------- Plickers modu ---------- */
+  .pl-note{ background:#FFF7E6; border:1px solid #F5D98A; color:#6B4E00; font-weight:600; font-size:0.85rem; border-radius:12px; padding:10px 14px; margin-bottom:14px; max-width:1100px; width:100%; }
+  .pl-tabs{ width:100%; max-width:1100px; display:flex; gap:10px; margin-bottom:14px; }
+  .pl-tab{ background:#fff; border:2px solid #E1E7EF; border-radius:12px; padding:10px 18px; font-family:'Space Grotesk'; font-weight:700; cursor:pointer; color:var(--muted); }
+  .pl-tab.active{ border-color: var(--violet); color: var(--violet-dark); background: var(--violet-soft); }
+  .pl-panel{ width:100%; max-width:1100px; }
+  .pl-roster-box{ width:100%; border-radius:12px; border:2px solid #E1E7EF; padding:10px; font-family:'Manrope'; font-size:0.95rem; resize:vertical; }
+  .pl-cards-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(150px,1fr)); gap:22px 16px; margin-top:22px; }
+  .pl-card{ background:#fff; border:2px solid #E1E7EF; border-radius:14px; padding:20px 10px 14px; text-align:center; position:relative; }
+  .pl-card-name{ font-family:'Space Grotesk'; font-weight:700; font-size:0.8rem; margin-bottom:14px; }
+  .pl-card-qrwrap{ position:relative; width:150px; height:150px; margin:0 auto; }
+  .pl-card-qrwrap canvas, .pl-card-qrwrap img{ width:100%; height:100%; display:block; }
+  .pl-letter{ position:absolute; font-family:'Space Grotesk'; font-weight:800; font-size:0.9rem; color: var(--violet-dark); }
+  .pl-letter.top{ top:-20px; left:50%; transform:translateX(-50%); }
+  .pl-letter.right{ right:-20px; top:50%; transform:translateY(-50%); }
+  .pl-letter.bottom{ bottom:-20px; left:50%; transform:translateX(-50%); }
+  .pl-letter.left{ left:-20px; top:50%; transform:translateY(-50%); }
+  .pl-video-wrap{ position:relative; margin-top:14px; max-width:480px; }
+  .pl-video-wrap video{ width:100%; border-radius:14px; display:none; background:#000; }
+  .pl-scan-flash{ position:absolute; inset:0; border-radius:14px; pointer-events:none; opacity:0; transition:opacity 0.2s; }
+  .pl-scan-flash.show{ opacity:1; background:rgba(34,181,115,0.35); }
+  .pl-results-list{ display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; }
+  .pl-result-chip{ background:#F1F3F7; border-radius:10px; padding:6px 12px; font-family:'Manrope'; font-weight:700; font-size:0.8rem; color: var(--muted); }
+  .pl-result-chip .ans{ color: var(--violet-dark); margin-left:4px; }
+  .pl-calib-row{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+
+  @media print{
+    body *{ visibility:hidden; }
+    #plCardsGrid, #plCardsGrid *{ visibility:visible; }
+    #plCardsGrid{ position:absolute; top:0; left:0; width:100%; display:block; }
+    #plCardsGrid .pl-card{
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      width:100%; height:46vh; box-sizing:border-box;
+      border:2px dashed #999; border-radius:0;
+      margin:0 0 3vh 0; padding:40px 10px;
+      page-break-inside: avoid;
+    }
+    #plCardsGrid .pl-card:nth-of-type(2n){ page-break-after: always; }
+    #plCardsGrid .pl-card-name{ font-size:1.4rem; margin-bottom:26px; }
+    #plCardsGrid .pl-card-qrwrap{ width:260px; height:260px; }
+    #plCardsGrid .pl-letter{ font-size:1.5rem; }
+    #plCardsGrid .pl-letter.top{ top:-34px; }
+    #plCardsGrid .pl-letter.right{ right:-34px; }
+    #plCardsGrid .pl-letter.bottom{ bottom:-34px; }
+    #plCardsGrid .pl-letter.left{ left:-34px; }
+  }
 </style>
 </head>
 <body>
@@ -293,7 +344,10 @@
   <aside class="sidebar">
     <div class="brand">
       <div class="brand-badge">🎬</div>
-      <div class="brand-title">Sınıf Yarışmaları</div>
+      <div>
+        <div class="brand-title">Sınıf Yarışmaları</div>
+        <div class="brand-sub">Sait Çelik</div>
+      </div>
     </div>
     <button class="nav-item active" data-view="home"><span class="nav-icon">🏠</span><span>Ana Sayfa</span></button>
     <div class="nav-section-label">Yarışmalar</div>
@@ -301,6 +355,8 @@
     <button class="nav-item" data-view="millionaire"><span class="nav-icon">💰</span><span>Milyoner<small>Din Kültürü</small></span></button>
     <button class="nav-item" data-view="picture"><span class="nav-icon">🖼️</span><span>Resimli Soru<small>Din Kültürü</small></span></button>
     <div class="nav-item disabled"><span class="nav-icon">➕</span><span>Yakında</span></div>
+    <div class="nav-section-label">Araçlar</div>
+    <button class="nav-item" data-view="plickers"><span class="nav-icon">🃏</span><span>Plickers Modu<small>Beta / Prototip</small></span></button>
   </aside>
 
   <main class="content">
@@ -424,6 +480,70 @@
           <div class="panels">
             <div class="panel t1"><div class="panel-head"><span>🔵 Mavi Takım</span><span class="streak" id="picStreak1"></span></div><div id="picBody1"><div class="placeholder">Oyunu başlatınca görsel burada görünecek.</div></div></div>
             <div class="panel t2"><div class="panel-head"><span>🔴 Kırmızı Takım</span><span class="streak" id="picStreak2"></span></div><div id="picBody2"><div class="placeholder">Oyunu başlatınca görsel burada görünecek.</div></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PLICKERS MODU -->
+    <section id="view-plickers" class="view">
+      <div class="game-wrap">
+        <div class="game-topbar"><button class="home-link" data-view="home">🏠 Ana Sayfa</button><span></span></div>
+        <h1 class="game-title">🃏 Plickers Modu</h1>
+        <div class="subtitle">Öğrenciler kağıt kartlarını çevirerek cevap verir, kamera okur.</div>
+        <div class="pl-note">🧪 Bu bir prototiptir. Kamera tek seferde tek kart okuyor (öğrenciler sırayla/gruplar halinde kameraya gösterir), gerçek Plickers gibi tüm sınıfı tek karede okumaz. İlk kullanımda "Kalibrasyon" düğmesiyle bir kartı test edip harflerin doğru çıktığından emin olun.</div>
+
+        <div class="pl-tabs">
+          <button class="pl-tab active" data-pltab="setup">1) Kartları Hazırla</button>
+          <button class="pl-tab" data-pltab="session">2) Canlı Oturum</button>
+        </div>
+
+        <!-- SETUP TAB -->
+        <div class="pl-panel" id="plSetup">
+          <div class="field">
+            <div class="lbl" style="margin-bottom:8px;">Öğrenci isimlerini her satıra bir isim olacak şekilde yazın:</div>
+            <textarea id="plRosterInput" rows="8" class="pl-roster-box" placeholder="Ahmet Yılmaz&#10;Ayşe Kaya&#10;Mehmet Demir&#10;..."></textarea>
+            <div style="display:flex; gap:10px; margin-top:12px; flex-wrap:wrap;">
+              <button class="start-btn" id="plGenerateBtn" style="margin-left:0;">🎴 Kartları Oluştur</button>
+              <button class="preset" id="plPrintBtn">🖨️ Yazdır</button>
+              <button class="preset" id="plClearBtn">🗑️ Sınıfı Sıfırla</button>
+            </div>
+          </div>
+          <div id="plCardsGrid" class="pl-cards-grid"></div>
+        </div>
+
+        <!-- SESSION TAB -->
+        <div class="pl-panel" id="plSession" style="display:none;">
+          <div class="setup-bar">
+            <span class="lbl">❓ Soru:</span>
+            <input type="text" id="plQuestionInput" placeholder="Soruyu yazın veya rastgele seçin" style="flex:1; min-width:220px; padding:8px 12px; border-radius:10px; border:2px solid #E1E7EF; font-family:'Manrope'; font-weight:600;">
+            <button class="preset" id="plRandomQBtn">🎲 Rastgele Soru</button>
+          </div>
+          <div class="field">
+            <div class="options" id="plOptionsGrid"></div>
+          </div>
+          <div class="field">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+              <button class="start-btn" id="plCameraBtn" style="margin-left:0;">📷 Kamerayı Başlat</button>
+              <div class="pl-calib-row">
+                <span class="lbl">Kalibrasyon:</span>
+                <button class="preset" id="plCalibBtn">↻ 90° Döndür</button>
+                <span id="plCalibVal" style="font-family:'Space Grotesk'; font-weight:700;">0°</span>
+              </div>
+            </div>
+            <div class="pl-video-wrap">
+              <video id="plVideo" autoplay playsinline muted></video>
+              <canvas id="plCanvas" style="display:none;"></canvas>
+              <div id="plScanFlash" class="pl-scan-flash"></div>
+            </div>
+          </div>
+          <div class="field">
+            <div class="mill-topline">
+              <span class="mill-name">Cevaplayan: <b id="plAnsweredCount">0</b> / <span id="plTotalCount">0</span></span>
+              <button class="preset" id="plEndRoundBtn">✅ Turu Sıfırla</button>
+            </div>
+            <div class="audience-chart" id="plResultsChart" style="display:none;"></div>
+            <div id="plResultsList" class="pl-results-list"></div>
           </div>
         </div>
       </div>
@@ -853,6 +973,184 @@ function resetPic(){
   document.getElementById("picRaceFill1").style.width="0%"; document.getElementById("picRaceFill2").style.width="0%";
   document.getElementById("picRocket1").style.left="0%"; document.getElementById("picRocket2").style.left="0%";
 }
+
+/* ================= 4) PLICKERS MODU (BETA) ================= */
+let plRoster = [];
+try{ plRoster = JSON.parse(localStorage.getItem("plRoster")||"[]"); }catch(e){ plRoster = []; }
+let plAnswers = {};
+let plCalibOffset = 0;
+let plStream = null;
+let plScanning = false;
+let plLastScanId = null, plLastScanTime = 0;
+
+document.querySelectorAll(".pl-tab").forEach(btn=>{
+  btn.addEventListener("click", ()=>{
+    document.querySelectorAll(".pl-tab").forEach(b=>b.classList.remove("active"));
+    btn.classList.add("active");
+    const tab = btn.dataset.pltab;
+    document.getElementById("plSetup").style.display = tab==="setup" ? "block":"none";
+    document.getElementById("plSession").style.display = tab==="session" ? "block":"none";
+  });
+});
+
+function plRenderCards(){
+  const grid = document.getElementById("plCardsGrid");
+  grid.innerHTML = "";
+  plRoster.forEach(st=>{
+    const card = document.createElement("div"); card.className="pl-card";
+    card.innerHTML = `
+      <div class="pl-card-name">${st.name}</div>
+      <div class="pl-card-qrwrap" id="qr-${st.id}">
+        <span class="pl-letter top">A</span>
+        <span class="pl-letter right">B</span>
+        <span class="pl-letter bottom">C</span>
+        <span class="pl-letter left">D</span>
+      </div>`;
+    grid.appendChild(card);
+    if(window.QRCode){
+      new QRCode(document.getElementById("qr-"+st.id), { text: "PLK|"+st.id, width:260, height:260, correctLevel: QRCode.CorrectLevel.M });
+    }
+  });
+  document.getElementById("plTotalCount").textContent = plRoster.length;
+}
+document.getElementById("plGenerateBtn").addEventListener("click", ()=>{
+  const lines = document.getElementById("plRosterInput").value.split("\n").map(s=>s.trim()).filter(Boolean);
+  plRoster = lines.map((name,i)=>({id:"P"+(i+1), name}));
+  localStorage.setItem("plRoster", JSON.stringify(plRoster));
+  plAnswers = {};
+  plRenderCards();
+  plRenderResults();
+});
+document.getElementById("plPrintBtn").addEventListener("click", ()=> window.print());
+document.getElementById("plClearBtn").addEventListener("click", ()=>{
+  if(!confirm("Sınıf listesi ve tüm kartlar silinsin mi?")) return;
+  plRoster = []; plAnswers = {};
+  localStorage.removeItem("plRoster");
+  document.getElementById("plRosterInput").value="";
+  plRenderCards();
+  plRenderResults();
+});
+if(document.getElementById("plRosterInput") && plRoster.length){
+  document.getElementById("plRosterInput").value = plRoster.map(s=>s.name).join("\n");
+}
+plRenderCards();
+
+document.getElementById("plRandomQBtn").addEventListener("click", ()=>{
+  const q = TUG_QUESTIONS[Math.floor(Math.random()*TUG_QUESTIONS.length)];
+  document.getElementById("plQuestionInput").value = q.q;
+  plRenderOptions(q.o, q.c);
+});
+function plRenderOptions(opts, correctIdx){
+  const grid = document.getElementById("plOptionsGrid"); grid.innerHTML="";
+  const letters=["A","B","C","D"];
+  opts.forEach((text,i)=>{
+    const div = document.createElement("div");
+    div.className="opt"; div.style.cursor="default";
+    div.innerHTML = `<span class="letter">${letters[i]}</span><span>${text}</span>`;
+    if(correctIdx===i) div.style.boxShadow = "0 0 0 2px var(--ok) inset";
+    grid.appendChild(div);
+  });
+}
+
+document.getElementById("plCameraBtn").addEventListener("click", plToggleCamera);
+async function plToggleCamera(){
+  const video = document.getElementById("plVideo");
+  const btn = document.getElementById("plCameraBtn");
+  if(plScanning){
+    plScanning=false;
+    if(plStream) plStream.getTracks().forEach(t=>t.stop());
+    video.style.display="none";
+    btn.textContent="📷 Kamerayı Başlat";
+    return;
+  }
+  try{
+    plStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode:"environment" } });
+    video.srcObject = plStream;
+    video.style.display="block";
+    btn.textContent="⏹ Kamerayı Durdur";
+    plScanning = true;
+    requestAnimationFrame(plScanLoop);
+  }catch(e){
+    alert("Kameraya erişilemedi: " + e.message);
+  }
+}
+function plScanLoop(){
+  if(!plScanning) return;
+  const video = document.getElementById("plVideo");
+  const canvas = document.getElementById("plCanvas");
+  if(video.readyState === video.HAVE_ENOUGH_DATA && video.videoWidth){
+    canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(video, 0,0, canvas.width, canvas.height);
+    const imgData = ctx.getImageData(0,0,canvas.width, canvas.height);
+    const code = window.jsQR ? jsQR(imgData.data, imgData.width, imgData.height) : null;
+    if(code && code.data && code.data.indexOf("PLK|")===0){
+      plHandleScan(code);
+    }
+  }
+  requestAnimationFrame(plScanLoop);
+}
+function plHandleScan(code){
+  const id = code.data.split("|")[1];
+  const now = Date.now();
+  if(id===plLastScanId && now-plLastScanTime < 1200) return;
+  plLastScanId = id; plLastScanTime = now;
+
+  const loc = code.location;
+  const dx = loc.topRightFinderPattern.x - loc.topLeftFinderPattern.x;
+  const dy = loc.topRightFinderPattern.y - loc.topLeftFinderPattern.y;
+  let angle = Math.atan2(dy,dx) * 180/Math.PI;
+  angle = (angle + 360) % 360;
+  const adjusted = (angle - plCalibOffset + 360) % 360;
+  const letterIdx = Math.round(adjusted/90) % 4;
+
+  const student = plRoster.find(s=>s.id===id);
+  if(!student) return;
+  plAnswers[id] = letterIdx;
+  plFlashScan();
+  plRenderResults();
+}
+function plFlashScan(){
+  const el = document.getElementById("plScanFlash");
+  el.classList.add("show");
+  setTimeout(()=>el.classList.remove("show"), 250);
+}
+function plRenderResults(){
+  const letters=["A","B","C","D"];
+  const counts=[0,0,0,0];
+  Object.values(plAnswers).forEach(idx=>counts[idx]++);
+  document.getElementById("plAnsweredCount").textContent = Object.keys(plAnswers).length;
+
+  const chart = document.getElementById("plResultsChart");
+  if(plRoster.length===0){ chart.style.display="none"; }
+  else{
+    chart.style.display="flex"; chart.innerHTML="";
+    const max = Math.max(1,...counts);
+    counts.forEach((c,i)=>{
+      const wrap=document.createElement("div"); wrap.className="audience-bar-wrap";
+      const pct = Math.round((c/max)*100);
+      wrap.innerHTML = `<span class="audience-pct">${c}</span><div class="audience-bar" style="height:${Math.max(pct,4)}%"></div><span class="audience-pct">${letters[i]}</span>`;
+      chart.appendChild(wrap);
+    });
+  }
+
+  const list = document.getElementById("plResultsList"); list.innerHTML="";
+  plRoster.forEach(st=>{
+    const chip = document.createElement("div"); chip.className="pl-result-chip";
+    const ans = plAnswers[st.id];
+    chip.innerHTML = ans!==undefined ? `${st.name}<span class="ans">→ ${letters[ans]}</span>` : `${st.name}<span style="color:#C3CAD4;"> — </span>`;
+    list.appendChild(chip);
+  });
+}
+document.getElementById("plCalibBtn").addEventListener("click", ()=>{
+  plCalibOffset = (plCalibOffset + 90) % 360;
+  document.getElementById("plCalibVal").textContent = plCalibOffset+"°";
+});
+document.getElementById("plEndRoundBtn").addEventListener("click", ()=>{
+  plAnswers = {};
+  plRenderResults();
+});
+plRenderResults();
 </script>
 </body>
 </html>
