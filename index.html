@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
 <style>
   :root{
     --team1: #3D74F4;
@@ -81,6 +81,10 @@
   .nav-item[data-view="millionaire"] .nav-icon{ background: var(--amber-soft); }
   .nav-item[data-view="picture"] .nav-icon{ background: var(--violet-soft); }
   .nav-item[data-view="plickers"] .nav-icon{ background: #FFE8F0; }
+  .nav-item[data-view="matching"] .nav-icon{ background: var(--teal-soft); }
+  .nav-item[data-view="truefalse"] .nav-icon{ background: var(--amber-soft); }
+  .nav-item[data-view="ordering"] .nav-icon{ background: var(--violet-soft); }
+  .nav-item[data-view="mapmark"] .nav-icon{ background: var(--blue-soft); }
   .nav-item small{ display:block; font-weight:600; color:#9AA5B4; font-size:0.7rem; }
   .nav-item:hover:not(.disabled){ background: #F5F6FA; }
   .nav-item.active{ background: var(--violet-soft); color: var(--violet-dark); }
@@ -311,6 +315,65 @@
   .pl-result-chip .ans{ color: var(--violet-dark); margin-left:4px; }
   .pl-calib-row{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
 
+  /* ---------- etkileşimli etkinlikler (eşleştirme / doğru-yanlış / sıralama / harita) ---------- */
+  .activity-note{ background:#EEF2FF; border:1px solid #C9D4FF; color:#2A3B66; font-weight:600; font-size:0.85rem; border-radius:12px; padding:10px 14px; margin-bottom:14px; max-width:1100px; width:100%; }
+  .activity-toolbar{ width:100%; max-width:1100px; display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin-bottom:14px; }
+  .activity-toolbar select{ font-family:'Space Grotesk'; font-weight:700; padding:9px 12px; border-radius:10px; border:2px solid #E1E7EF; color:var(--ink); background:#fff; }
+  .activity-score{ margin-left:auto; font-family:'Space Grotesk'; font-weight:700; color:var(--muted); background:#fff; border-radius:12px; padding:8px 14px; box-shadow:0 4px 0 rgba(20,30,45,0.06); }
+
+  .drag-chip{
+    display:inline-flex; align-items:center; gap:6px; background:#fff; border:2px solid #E1E7EF; border-radius:12px;
+    padding:10px 14px; font-family:'Manrope'; font-weight:700; font-size:0.9rem; color:var(--ink);
+    cursor:grab; box-shadow:0 3px 0 rgba(20,30,45,0.08); user-select:none; touch-action:none;
+  }
+  .drag-chip.locked{ opacity:0.45; cursor:default; box-shadow:none; border-style:dashed; }
+  .drag-chip.source-dragging{ opacity:0.25; }
+  .drag-clone{ box-shadow:0 8px 20px rgba(20,30,45,0.28) !important; transform:scale(1.04); }
+
+  .chips-pool{ display:flex; flex-wrap:wrap; gap:10px; padding:16px; background:var(--card); border-radius:16px; box-shadow:0 8px 0 rgba(20,30,45,0.06); margin-bottom:16px; min-height:60px; width:100%; max-width:1100px; }
+
+  .match-grid{ display:flex; gap:24px; flex-wrap:wrap; width:100%; max-width:1100px; }
+  .match-col{ flex:1; min-width:260px; display:flex; flex-direction:column; gap:10px; }
+  .match-col-title{ font-family:'Space Grotesk'; font-weight:700; color:var(--muted); font-size:0.85rem; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:4px; }
+  .drop-zone{
+    border:2px dashed #C7CFDC; border-radius:14px; padding:14px 16px; min-height:52px; background:#F9FAFC;
+    display:flex; align-items:center; font-family:'Manrope'; font-weight:700; font-size:0.92rem; color:var(--muted);
+    transition: background 0.2s, border-color 0.2s;
+  }
+  .drop-zone.filled{ border-style:solid; border-color:var(--ok); background:#E9FBF3; color:var(--ink); }
+  .drop-zone.wrong-flash{ border-color:var(--bad); background:#FFEDEA; animation: shakeZone 0.35s ease; }
+  @keyframes shakeZone{ 0%,100%{transform:translateX(0);} 25%{transform:translateX(-6px);} 75%{transform:translateX(6px);} }
+
+  .tf-columns{ display:flex; gap:16px; width:100%; max-width:1100px; flex-wrap:wrap; }
+  .tf-zone{ flex:1; min-width:260px; border-radius:16px; padding:16px; min-height:220px; display:flex; flex-direction:column; gap:8px; }
+  .tf-zone.tf-true{ background:#E9FBF3; border:2px dashed var(--ok); }
+  .tf-zone.tf-false{ background:#FFEDEA; border:2px dashed var(--bad); }
+  .tf-zone-title{ font-family:'Space Grotesk'; font-weight:700; font-size:1rem; margin-bottom:4px; }
+  .tf-zone.tf-true .tf-zone-title{ color:#0E7A4E; }
+  .tf-zone.tf-false .tf-zone-title{ color:#B5352A; }
+  .tf-chip{ width:100%; text-align:left; white-space:normal; }
+  .tf-zone.wrong-flash{ animation: shakeZone 0.35s ease; }
+
+  .order-slots{ display:flex; flex-direction:column; gap:8px; width:100%; max-width:700px; margin:0 auto 16px; }
+  .order-slot{ display:flex; align-items:center; gap:12px; border:2px dashed #C7CFDC; border-radius:14px; padding:8px 12px; min-height:54px; background:#F9FAFC; }
+  .order-slot .slot-num{ flex:0 0 auto; width:28px; height:28px; border-radius:50%; background:#EEF1F4; color:#5A6B7B; display:flex; align-items:center; justify-content:center; font-family:'Space Grotesk'; font-weight:800; font-size:0.85rem; }
+  .order-slot .drag-chip{ flex:1; }
+  .order-slot.correct{ border-style:solid; border-color:var(--ok); background:#E9FBF3; }
+  .order-slot.wrong{ border-style:solid; border-color:var(--bad); background:#FFEDEA; }
+
+  .map-wrap{ position:relative; width:100%; max-width:640px; margin:0 auto 16px; background:#E8F0FF; border-radius:20px; overflow:hidden; box-shadow:0 8px 0 rgba(20,30,45,0.06); }
+  .map-wrap svg{ display:block; width:100%; height:auto; }
+  .map-pin{ position:absolute; width:20px; height:20px; border-radius:50%; background:#fff; border:3px dashed var(--violet); transform:translate(-50%,-50%); display:flex; align-items:center; justify-content:center; }
+  .map-pin.filled{ border-style:solid; border-color:var(--ok); background:#E9FBF3; }
+  .map-pin.wrong-flash{ animation: shakeZone 0.35s ease; border-color:var(--bad); }
+  .map-pin-label{ position:absolute; top:26px; left:50%; transform:translateX(-50%); white-space:nowrap; font-family:'Space Grotesk'; font-weight:700; font-size:0.75rem; background:#fff; padding:2px 8px; border-radius:8px; box-shadow:0 2px 0 rgba(20,30,45,0.08); }
+
+  .result-banner{ width:100%; max-width:1100px; background:var(--card); border-radius:16px; padding:14px 18px; text-align:center; font-family:'Space Grotesk'; font-weight:700; color:var(--violet-dark); box-shadow:0 6px 0 rgba(20,30,45,0.06); margin-top:6px; }
+
+  @media (max-width:620px){
+    .tf-columns{ flex-direction:column; }
+  }
+
   @media print{
     body *{ visibility:hidden; }
     #plCardsGrid, #plCardsGrid *{ visibility:visible; }
@@ -354,7 +417,11 @@
     <button class="nav-item" data-view="tugofwar"><span class="nav-icon">🪢</span><span>Halat Çekme<small>Din Kültürü</small></span></button>
     <button class="nav-item" data-view="millionaire"><span class="nav-icon">💰</span><span>Milyoner<small>Din Kültürü</small></span></button>
     <button class="nav-item" data-view="picture"><span class="nav-icon">🖼️</span><span>Resimli Soru<small>Din Kültürü</small></span></button>
-    <div class="nav-item disabled"><span class="nav-icon">➕</span><span>Yakında</span></div>
+    <div class="nav-section-label">Etkileşimli Etkinlikler</div>
+    <button class="nav-item" data-view="matching"><span class="nav-icon">🧩</span><span>Eşleştirme<small>Din Kültürü</small></span></button>
+    <button class="nav-item" data-view="truefalse"><span class="nav-icon">⚖️</span><span>Doğru / Yanlış<small>Din Kültürü</small></span></button>
+    <button class="nav-item" data-view="ordering"><span class="nav-icon">🔢</span><span>Sıralama<small>Din Kültürü</small></span></button>
+    <button class="nav-item" data-view="mapmark"><span class="nav-icon">🗺️</span><span>Haritada İşaretle<small>Din Kültürü</small></span></button>
     <div class="nav-section-label">Araçlar</div>
     <button class="nav-item" data-view="plickers"><span class="nav-icon">🃏</span><span>Plickers Modu<small>Beta / Prototip</small></span></button>
   </aside>
@@ -482,6 +549,99 @@
             <div class="panel t2"><div class="panel-head"><span>🔴 Kırmızı Takım</span><span class="streak" id="picStreak2"></span></div><div id="picBody2"><div class="placeholder">Oyunu başlatınca görsel burada görünecek.</div></div></div>
           </div>
         </div>
+      </div>
+    </section>
+
+    <!-- EŞLEŞTİRME -->
+    <section id="view-matching" class="view">
+      <div class="game-wrap">
+        <div class="game-topbar"><button class="home-link" data-view="home">🏠 Ana Sayfa</button><span></span></div>
+        <h1 class="game-title">🧩 Eşleştirme Etkinliği</h1>
+        <div class="subtitle">Soldaki kavramı sürükleyip sağda doğru eşiyle birleştir.</div>
+        <div class="activity-toolbar">
+          <button class="preset" id="matchNewRoundBtn">🔀 Yeni Tur</button>
+          <span class="activity-score" id="matchScore">0 / 0 doğru</span>
+        </div>
+        <div class="match-grid">
+          <div class="match-col">
+            <div class="match-col-title">Kavramlar</div>
+            <div id="matchChipsCol" style="display:flex; flex-direction:column; gap:10px;"></div>
+          </div>
+          <div class="match-col">
+            <div class="match-col-title">Eşleri</div>
+            <div id="matchZonesCol" style="display:flex; flex-direction:column; gap:10px;"></div>
+          </div>
+        </div>
+        <div class="result-banner" id="matchBanner" style="display:none;"></div>
+      </div>
+    </section>
+
+    <!-- DOĞRU / YANLIŞ AYIRMA -->
+    <section id="view-truefalse" class="view">
+      <div class="game-wrap">
+        <div class="game-topbar"><button class="home-link" data-view="home">🏠 Ana Sayfa</button><span></span></div>
+        <h1 class="game-title">⚖️ Doğru / Yanlış Ayırma</h1>
+        <div class="subtitle">İfadeyi sürükleyip doğru kutuya bırak.</div>
+        <div class="activity-toolbar">
+          <button class="preset" id="tfNewRoundBtn">🔀 Yeni Tur</button>
+          <span class="activity-score" id="tfScore">0 / 0 doğru</span>
+        </div>
+        <div class="chips-pool" id="tfPool"></div>
+        <div class="tf-columns">
+          <div class="tf-zone tf-true drop-zone" id="tfZoneTrue" data-expect="true">
+            <div class="tf-zone-title">✅ Doğru</div>
+          </div>
+          <div class="tf-zone tf-false drop-zone" id="tfZoneFalse" data-expect="false">
+            <div class="tf-zone-title">❌ Yanlış</div>
+          </div>
+        </div>
+        <div class="result-banner" id="tfBanner" style="display:none;"></div>
+      </div>
+    </section>
+
+    <!-- SIRALAMA -->
+    <section id="view-ordering" class="view">
+      <div class="game-wrap">
+        <div class="game-topbar"><button class="home-link" data-view="home">🏠 Ana Sayfa</button><span></span></div>
+        <h1 class="game-title">🔢 Sıralama Etkinliği</h1>
+        <div class="subtitle">Kartları sürükleyerek doğru kronolojik sıraya diz, sonra kontrol et.</div>
+        <div class="activity-toolbar">
+          <span class="lbl" style="font-family:'Space Grotesk'; font-weight:600; color:var(--muted);">Konu:</span>
+          <select id="orderTopicSelect">
+            <option value="pillars">İslam'ın Şartları</option>
+            <option value="hajj">Hac İbadetinin Adımları</option>
+          </select>
+          <button class="preset" id="orderShuffleBtn">🔀 Karıştır</button>
+          <button class="start-btn" id="orderCheckBtn" style="margin-left:0;">✅ Kontrol Et</button>
+          <span class="activity-score" id="orderScore">&nbsp;</span>
+        </div>
+        <div class="chips-pool" id="orderPool"></div>
+        <div class="order-slots" id="orderSlots"></div>
+        <div class="result-banner" id="orderBanner" style="display:none;"></div>
+      </div>
+    </section>
+
+    <!-- HARİTADA İŞARETLEME -->
+    <section id="view-mapmark" class="view">
+      <div class="game-wrap">
+        <div class="game-topbar"><button class="home-link" data-view="home">🏠 Ana Sayfa</button><span></span></div>
+        <h1 class="game-title">🗺️ Haritada İşaretleme</h1>
+        <div class="subtitle">Şehir etiketini sürükleyip haritadaki doğru noktaya bırak.</div>
+        <div class="activity-toolbar">
+          <button class="preset" id="mapNewRoundBtn">🔀 Yeni Tur</button>
+          <span class="activity-score" id="mapScore">0 / 0 doğru</span>
+        </div>
+        <div class="chips-pool" id="mapChipsPool"></div>
+        <div class="map-wrap">
+          <svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+            <rect x="0" y="0" width="400" height="400" fill="#E8F0FF"/>
+            <path d="M60,80 C140,40 260,50 320,110 C360,160 340,240 300,300 C250,360 150,370 100,320 C50,270 40,150 60,80 Z" fill="#DCE9FF" stroke="#B9CFF5" stroke-width="2"/>
+          </svg>
+          <div class="map-pin drop-zone" id="pinMekke" data-city="mekke" style="left:46%; top:70%;"></div>
+          <div class="map-pin drop-zone" id="pinMedine" data-city="medine" style="left:44%; top:52%;"></div>
+          <div class="map-pin drop-zone" id="pinKudus" data-city="kudus" style="left:34%; top:28%;"></div>
+        </div>
+        <div class="result-banner" id="mapBanner" style="display:none;"></div>
       </div>
     </section>
 
@@ -1151,6 +1311,323 @@ document.getElementById("plEndRoundBtn").addEventListener("click", ()=>{
   plRenderResults();
 });
 plRenderResults();
+
+/* ================= SÜRÜKLE-BIRAK ORTAK YARDIMCI ================= */
+function makeDraggable(chip, onDrop){
+  chip.style.touchAction = "none";
+  chip.addEventListener("pointerdown", function(e){
+    if(chip.classList.contains("locked")) return;
+    e.preventDefault();
+    const rect = chip.getBoundingClientRect();
+    const offsetX = e.clientX - rect.left;
+    const offsetY = e.clientY - rect.top;
+    const clone = chip.cloneNode(true);
+    clone.classList.add("drag-clone");
+    clone.style.position = "fixed";
+    clone.style.left = rect.left+"px";
+    clone.style.top = rect.top+"px";
+    clone.style.width = rect.width+"px";
+    clone.style.margin = "0";
+    clone.style.zIndex = "9999";
+    clone.style.pointerEvents = "none";
+    document.body.appendChild(clone);
+    chip.classList.add("source-dragging");
+
+    function move(ev){
+      clone.style.left = (ev.clientX - offsetX)+"px";
+      clone.style.top = (ev.clientY - offsetY)+"px";
+    }
+    function up(ev){
+      document.removeEventListener("pointermove", move);
+      document.removeEventListener("pointerup", up);
+      clone.style.display = "none";
+      const target = document.elementFromPoint(ev.clientX, ev.clientY);
+      clone.remove();
+      chip.classList.remove("source-dragging");
+      onDrop(target);
+    }
+    document.addEventListener("pointermove", move);
+    document.addEventListener("pointerup", up);
+  });
+}
+function flashWrong(el){
+  el.classList.add("wrong-flash");
+  setTimeout(()=> el.classList.remove("wrong-flash"), 350);
+}
+
+/* ================= 5) EŞLEŞTİRME ================= */
+const MATCH_PAIRS = [
+  {a:"Ramazan", b:"Oruç"},
+  {a:"Hz. İbrahim", b:"Kurban"},
+  {a:"Hz. Musa", b:"Tevrat"},
+  {a:"Hz. İsa", b:"İncil"},
+  {a:"Hz. Muhammed", b:"Kur'an-ı Kerim"},
+  {a:"Zengin Müslüman", b:"Zekat"},
+  {a:"Hacca Gitmek", b:"Kabe"},
+  {a:"Ezan Okunan Yer", b:"Minare"},
+  {a:"İmamın Namaz Kıldırdığı Yer", b:"Mihrap"},
+  {a:"Kur'an'ın İnmeye Başladığı Gece", b:"Kadir Gecesi"}
+];
+const MATCH_ROUND_SIZE = 6;
+let matchRound = [], matchCorrectCount = 0;
+function startMatchRound(){
+  matchRound = shuffle(MATCH_PAIRS).slice(0, MATCH_ROUND_SIZE);
+  matchCorrectCount = 0;
+  document.getElementById("matchBanner").style.display = "none";
+  renderMatchRound();
+}
+function renderMatchRound(){
+  const chipsCol = document.getElementById("matchChipsCol");
+  const zonesCol = document.getElementById("matchZonesCol");
+  chipsCol.innerHTML = ""; zonesCol.innerHTML = "";
+  const leftItems = matchRound.map((p,i)=>({key:"m"+i, text:p.a}));
+  const rightItems = shuffle(matchRound.map((p,i)=>({key:"m"+i, text:p.b})));
+  leftItems.forEach(item=>{
+    const chip = document.createElement("div");
+    chip.className = "drag-chip";
+    chip.dataset.key = item.key;
+    chip.textContent = item.text;
+    chipsCol.appendChild(chip);
+    makeDraggable(chip, (target)=> handleMatchDrop(chip, target));
+  });
+  rightItems.forEach(item=>{
+    const zone = document.createElement("div");
+    zone.className = "drop-zone";
+    zone.dataset.key = item.key;
+    zone.textContent = item.text;
+    zonesCol.appendChild(zone);
+  });
+  updateMatchScore();
+}
+function handleMatchDrop(chip, target){
+  if(chip.classList.contains("locked")) return;
+  const zone = target ? target.closest(".drop-zone") : null;
+  if(!zone || !zone.closest("#matchZonesCol")) return;
+  if(zone.classList.contains("filled")) return;
+  if(zone.dataset.key === chip.dataset.key){
+    zone.classList.add("filled");
+    zone.textContent = chip.textContent + " → " + zone.textContent;
+    chip.classList.add("locked");
+    chip.style.display = "none";
+    matchCorrectCount++;
+    updateMatchScore();
+    if(matchCorrectCount === matchRound.length){
+      const banner = document.getElementById("matchBanner");
+      banner.textContent = "🎉 Tebrikler! Tüm eşleştirmeleri doğru yaptın.";
+      banner.style.display = "block";
+    }
+  } else {
+    flashWrong(zone);
+  }
+}
+function updateMatchScore(){
+  document.getElementById("matchScore").textContent = matchCorrectCount + " / " + matchRound.length + " doğru";
+}
+document.getElementById("matchNewRoundBtn").addEventListener("click", startMatchRound);
+startMatchRound();
+
+/* ================= 6) DOĞRU / YANLIŞ AYIRMA ================= */
+const TF_STATEMENTS = [
+  {text:"İslam'ın şartı beştir.", val:true},
+  {text:"Namaz günde 3 vakit kılınır.", val:false},
+  {text:"Kur'an-ı Kerim Arapça olarak indirilmiştir.", val:true},
+  {text:"Zekat, belirli bir mala sahip zengin Müslümanlara farzdır.", val:true},
+  {text:"Oruç ibadetinde gündüz yemek yenilebilir.", val:false},
+  {text:"Hac ibadeti, gücü yetenlere ömürde bir kez farzdır.", val:true},
+  {text:"Kurban Bayramı, Ramazan ayı içinde kutlanır.", val:false},
+  {text:"Peygamberimiz Hz. Muhammed Mekke'de doğmuştur.", val:true},
+  {text:"Hz. İbrahim, Hz. Musa'nın oğludur.", val:false},
+  {text:"Emanet, başkasına ait bir eşyayı koruyup zamanında sahibine teslim etmektir.", val:true},
+  {text:"Yalan söylemek İslam ahlakında güzel bir davranış olarak kabul edilir.", val:false},
+  {text:"Ezan, namaz vaktinin geldiğini bildirmek için okunur.", val:true}
+];
+const TF_ROUND_SIZE = 8;
+let tfRound = [], tfCorrectCount = 0;
+function startTfRound(){
+  tfRound = shuffle(TF_STATEMENTS).slice(0, TF_ROUND_SIZE);
+  tfCorrectCount = 0;
+  document.getElementById("tfBanner").style.display = "none";
+  document.getElementById("tfZoneTrue").querySelectorAll(".tf-chip").forEach(c=>c.remove());
+  document.getElementById("tfZoneFalse").querySelectorAll(".tf-chip").forEach(c=>c.remove());
+  renderTfPool();
+  updateTfScore();
+}
+function renderTfPool(){
+  const pool = document.getElementById("tfPool");
+  pool.innerHTML = "";
+  tfRound.forEach((st,i)=>{
+    const chip = document.createElement("div");
+    chip.className = "drag-chip tf-chip";
+    chip.dataset.idx = i;
+    chip.dataset.val = st.val ? "true":"false";
+    chip.textContent = st.text;
+    pool.appendChild(chip);
+    makeDraggable(chip, (target)=> handleTfDrop(chip, target));
+  });
+}
+function handleTfDrop(chip, target){
+  if(chip.classList.contains("locked")) return;
+  const zone = target ? target.closest(".drop-zone") : null;
+  if(!zone || !zone.classList.contains("tf-zone")) return;
+  if(zone.dataset.expect === chip.dataset.val){
+    chip.classList.add("locked");
+    zone.appendChild(chip);
+    tfCorrectCount++;
+    updateTfScore();
+    if(tfCorrectCount === tfRound.length){
+      const banner = document.getElementById("tfBanner");
+      banner.textContent = "🎉 Harika! Tüm ifadeleri doğru ayırdın.";
+      banner.style.display = "block";
+    }
+  } else {
+    flashWrong(zone);
+  }
+}
+function updateTfScore(){
+  document.getElementById("tfScore").textContent = tfCorrectCount + " / " + tfRound.length + " doğru";
+}
+document.getElementById("tfNewRoundBtn").addEventListener("click", startTfRound);
+startTfRound();
+
+/* ================= 7) SIRALAMA ================= */
+const ORDER_SETS = {
+  pillars: { items: ["Kelime-i Şehadet Getirmek","Namaz Kılmak","Oruç Tutmak","Zekat Vermek","Hacca Gitmek"] },
+  hajj: { items: ["İhrama Girmek","Kabe'yi Tavaf Etmek","Safa ile Merve Arasında Sa'y Yapmak","Arafat'ta Vakfeye Durmak","Şeytan Taşlamak","Kurban Kesmek"] }
+};
+let orderCurrentSet = "pillars";
+function startOrderRound(){
+  const setDef = ORDER_SETS[orderCurrentSet];
+  const orderItems = setDef.items.map((text,i)=>({key:"o"+i, text, correctIndex:i}));
+  document.getElementById("orderBanner").style.display = "none";
+  document.getElementById("orderScore").textContent = "\u00A0";
+  renderOrderSlots(orderItems.length);
+  renderOrderPool(shuffle(orderItems));
+}
+function renderOrderSlots(n){
+  const slotsWrap = document.getElementById("orderSlots");
+  slotsWrap.innerHTML = "";
+  for(let i=0;i<n;i++){
+    const slot = document.createElement("div");
+    slot.className = "order-slot drop-zone";
+    slot.dataset.slot = i;
+    slot.innerHTML = '<span class="slot-num">'+(i+1)+'</span>';
+    slotsWrap.appendChild(slot);
+  }
+}
+function renderOrderPool(items){
+  const pool = document.getElementById("orderPool");
+  pool.innerHTML = "";
+  items.forEach(item=>{
+    const chip = document.createElement("div");
+    chip.className = "drag-chip";
+    chip.dataset.key = item.key;
+    chip.dataset.correctIndex = item.correctIndex;
+    chip.textContent = item.text;
+    makeDraggable(chip, (target)=> handleOrderDrop(chip, target));
+    pool.appendChild(chip);
+  });
+}
+function handleOrderDrop(chip, target){
+  clearOrderCheckMarks();
+  const pool = document.getElementById("orderPool");
+  const slot = target ? target.closest(".order-slot") : null;
+  if(slot){
+    const existing = slot.querySelector(".drag-chip");
+    if(existing && existing !== chip){ pool.appendChild(existing); }
+    slot.appendChild(chip);
+  } else {
+    if(chip.parentElement !== pool) pool.appendChild(chip);
+  }
+}
+function clearOrderCheckMarks(){
+  document.querySelectorAll(".order-slot").forEach(s=> s.classList.remove("correct","wrong"));
+}
+document.getElementById("orderCheckBtn").addEventListener("click", ()=>{
+  const slots = document.querySelectorAll(".order-slot");
+  let correct = 0, filled = 0;
+  slots.forEach(slot=>{
+    const chip = slot.querySelector(".drag-chip");
+    slot.classList.remove("correct","wrong");
+    if(chip){
+      filled++;
+      if(parseInt(chip.dataset.correctIndex,10) === parseInt(slot.dataset.slot,10)){
+        slot.classList.add("correct"); correct++;
+      } else {
+        slot.classList.add("wrong");
+      }
+    }
+  });
+  document.getElementById("orderScore").textContent = correct + " / " + slots.length + " doğru sırada";
+  const banner = document.getElementById("orderBanner");
+  if(correct === slots.length && filled === slots.length){
+    banner.textContent = "🎉 Tebrikler! Sıralama tamamen doğru.";
+    banner.style.display = "block";
+  } else {
+    banner.style.display = "none";
+  }
+});
+document.getElementById("orderShuffleBtn").addEventListener("click", startOrderRound);
+document.getElementById("orderTopicSelect").addEventListener("change", (e)=>{
+  orderCurrentSet = e.target.value;
+  startOrderRound();
+});
+startOrderRound();
+
+/* ================= 8) HARİTADA İŞARETLEME ================= */
+const MAP_CITIES = [
+  {key:"mekke", label:"Mekke"},
+  {key:"medine", label:"Medine"},
+  {key:"kudus", label:"Kudüs"}
+];
+let mapCorrectCount = 0;
+function startMapRound(){
+  mapCorrectCount = 0;
+  document.getElementById("mapBanner").style.display = "none";
+  document.querySelectorAll(".map-pin").forEach(pin=>{
+    pin.classList.remove("filled");
+    pin.innerHTML = "";
+  });
+  const pool = document.getElementById("mapChipsPool");
+  pool.innerHTML = "";
+  shuffle(MAP_CITIES).forEach(city=>{
+    const chip = document.createElement("div");
+    chip.className = "drag-chip";
+    chip.dataset.city = city.key;
+    chip.textContent = city.label;
+    pool.appendChild(chip);
+    makeDraggable(chip, (target)=> handleMapDrop(chip, target, city.label));
+  });
+  updateMapScore();
+}
+function handleMapDrop(chip, target, label){
+  if(chip.classList.contains("locked")) return;
+  const pin = target ? target.closest(".map-pin") : null;
+  if(!pin) return;
+  if(pin.classList.contains("filled")) return;
+  if(pin.dataset.city === chip.dataset.city){
+    pin.classList.add("filled");
+    const lbl = document.createElement("div");
+    lbl.className = "map-pin-label";
+    lbl.textContent = label;
+    pin.appendChild(lbl);
+    chip.classList.add("locked");
+    chip.style.display = "none";
+    mapCorrectCount++;
+    updateMapScore();
+    if(mapCorrectCount === MAP_CITIES.length){
+      const banner = document.getElementById("mapBanner");
+      banner.textContent = "🎉 Tebrikler! Tüm şehirleri doğru işaretledin.";
+      banner.style.display = "block";
+    }
+  } else {
+    flashWrong(pin);
+  }
+}
+function updateMapScore(){
+  document.getElementById("mapScore").textContent = mapCorrectCount + " / " + MAP_CITIES.length + " doğru";
+}
+document.getElementById("mapNewRoundBtn").addEventListener("click", startMapRound);
+startMapRound();
 </script>
 </body>
 </html>
