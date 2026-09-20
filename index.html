@@ -463,6 +463,9 @@
   .adm-btn.ok{ background:#E9F8F1; border-color:#BFECD9; color:#0E9F6E; }
   .msg-bar{ display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px 12px; padding:2px 4px; font-family:'Manrope'; font-weight:800; font-size:.92rem; color:var(--ink); }
   .msg-card:not(.unread){ background:#FAFBFC; }
+  .msg-bar-btns{ display:flex; flex-wrap:wrap; gap:8px; }
+  .msg-empty .msg-key{ margin:18px 0 12px; }
+  .msg-empty .msg-retry{ margin-top:16px; }
   .msg-empty{ align-self:center; width:100%; max-width:520px; box-sizing:border-box; background:#fff; border-radius:24px; padding:48px 24px; text-align:center; box-shadow:0 8px 0 rgba(20,30,45,0.05); }
   .msg-empty-t{ font-family:'Manrope'; font-weight:800; font-size:1.25rem; color:var(--ink); margin-bottom:6px; }
   .msg-empty-s{ font-family:'Manrope'; font-weight:600; font-size:1rem; color:var(--muted); }
@@ -1517,6 +1520,7 @@ function authApply(){
   document.getElementById("authChipText").textContent = Auth.user ? AUTH_ROLE_ICON[r] + " " + Auth.user.name + (r === "patron" ? "" : " · " + AUTH_ROLE_LABEL[r]) : "";
   if(!Auth.user) setTimeout(()=>{ const u = document.getElementById("authUser"); if(u) u.focus(); }, 50);
   msgUpdateBadge();
+  msgPollSync();
 }
 
 let authFails = 0, authLockUntil = 0;
@@ -1682,22 +1686,66 @@ function admImport(input){
   };
   r.readAsText(f);
 }
-/* ---- İletişime Geçin formu ve Mesajlar (patron) ---- */
-const MSG_KEY = "contactMessagesV1", MSG_LAST_KEY = "contactLastSendV1", MSG_MAX = 200;
+/* ---- İletişime Geçin formu ve Mesajlar (patron) ----
+   Mesajlar sunucuda (api/contact.js + Upstash Redis) tutulur; böylece başka telefondan gönderilen mesaj patrona ulaşır. */
+const MSG_API = "/api/contact", MSG_KEY_STORE = "contactAdminKeyV1", MSG_LAST_KEY = "contactLastSendV1";
+let msgCache = [], msgState = "idle", msgPoll = null, msgSig = "";   // msgState: idle | loading | ok | nokey | unauth | unconfigured | error
 function msgEsc(v){ return String(v == null ? "" : v).replace(/[&<>"']/g, ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch])); }
-function msgLoad(){
-  try{ const a = JSON.parse(localStorage.getItem(MSG_KEY)); return Array.isArray(a) ? a.filter(m=>m && m.id) : []; }
-  catch(e){ return []; }
+function msgAdminKey(){ try{ return localStorage.getItem(MSG_KEY_STORE) || ""; }catch(e){ return ""; } }
+async function msgApi(method, body){
+  const res = await fetch(MSG_API, {
+    method: method, cache: "no-store",
+    headers: { "Content-Type": "application/json", "x-admin-key": msgAdminKey() },
+    body: body ? JSON.stringify(body) : undefined
+  });
+  let data = null; try{ data = await res.json(); }catch(e){}
+  return { ok: res.ok, status: res.status, data: data };
 }
-function msgSave(list){ try{ localStorage.setItem(MSG_KEY, JSON.stringify(list)); return true; }catch(e){ return false; } }
+/* Sunucudan listeyi çeker; liste veya durum değiştiyse true döner */
+async function msgFetch(){
+  if(Auth.role() !== "patron") return false;
+  const before = msgSig;
+  if(!msgAdminKey()){ msgState = "nokey"; msgCache = []; }
+  else {
+    try{
+      const r = await msgApi("GET");
+      if(r.ok){ msgCache = Array.isArray(r.data && r.data.messages) ? r.data.messages : []; msgState = "ok"; }
+      else if(r.status === 401){ msgState = "unauth"; msgCache = []; }
+      else if(r.status === 503){ msgState = "unconfigured"; msgCache = []; }
+      else msgState = "error";
+    }catch(e){ msgState = "error"; }
+  }
+  msgSig = msgState + JSON.stringify(msgCache);
+  msgUpdateBadge();
+  return msgSig !== before;
+}
 function msgUpdateBadge(){
   const el = document.getElementById("navMsgCount"); if(!el) return;
-  const n = Auth.role() === "patron" ? msgLoad().filter(m=>!m.read).length : 0;
+  const n = (Auth.role() === "patron" && msgState === "ok") ? msgCache.filter(m=>!m.read).length : 0;
   el.textContent = n > 99 ? "99+" : String(n);
   el.classList.toggle("show", n > 0);
   document.body.classList.toggle("has-unread", n > 0);
 }
+function msgViewActive(){ const v = document.getElementById("view-messages"); return !!(v && v.classList.contains("active")); }
+/* Patron girişinde arka planda yeni mesajları kontrol eder (30 sn'de bir) */
+function msgPollSync(){
+  if(Auth.role() === "patron"){
+    if(!msgPoll){
+      msgPoll = setInterval(async ()=>{ if(document.hidden) return; if(await msgFetch() && msgViewActive()) msgRender(); }, 30000);
+      msgFetch().then(()=>{ if(msgViewActive()) msgRender(); });
+    }
+  } else {
+    if(msgPoll){ clearInterval(msgPoll); msgPoll = null; }
+    msgCache = []; msgState = "idle"; msgSig = "";
+  }
+}
+function msgOpen(){
+  msgState = msgState === "idle" ? "loading" : msgState;
+  msgRender();
+  msgFetch().then(()=>{ if(msgViewActive()) msgRender(); });
+}
 
+/* ---- İletişime Geçin penceresi (giriş ekranı) ---- */
 const cmSel = { role:"", reason:"" };
 function cmEl(id){ return document.getElementById(id); }
 function cmOpen(){
@@ -1717,7 +1765,9 @@ function cmPick(group, key, btn){
   group.querySelectorAll("button").forEach(b=>{ const on = b === btn; b.classList.toggle("on", on); b.setAttribute("aria-pressed", on ? "true" : "false"); });
   cmSel[key] = btn.dataset.v; cmEl("cmErr").textContent = "";
 }
-function cmSubmit(){
+let cmBusy = false;
+async function cmSubmit(){
+  if(cmBusy) return;
   const err = cmEl("cmErr"), name = cmEl("cmName").value.trim().replace(/\s+/g," "), phone = cmEl("cmPhone").value.trim();
   const digits = phone.replace(/\D/g,"");
   if(!cmSel.role){ err.textContent = "Kimliğinizi seçin (Öğretmen veya Yönetici)."; return; }
@@ -1725,14 +1775,28 @@ function cmSubmit(){
   if(!cmSel.reason){ err.textContent = "Giriş nedeninizi seçin."; return; }
   let last = 0; try{ last = Number(localStorage.getItem(MSG_LAST_KEY)) || 0; }catch(e){}
   if(Date.now() - last < 30000){ err.textContent = "Az önce bir mesaj gönderdiniz. Lütfen 30 saniye bekleyin."; return; }
-  const list = msgLoad();
-  list.unshift({ id: authId(), ts: Date.now(), role: cmSel.role, name: name, phone: phone, reason: cmSel.reason, read: false });
-  if(list.length > MSG_MAX) list.length = MSG_MAX;
-  if(!msgSave(list)){ err.textContent = "Mesaj gönderilemedi. Lütfen tekrar deneyin."; return; }
-  try{ localStorage.setItem(MSG_LAST_KEY, String(Date.now())); }catch(e){}
-  err.textContent = "";
-  cmEl("cmForm").style.display = "none"; cmEl("cmDone").style.display = "block";
-  setTimeout(()=>{ const b = cmEl("cmDoneBtn"); if(b) b.focus(); }, 30);
+  const btn = cmEl("cmSend");
+  cmBusy = true; btn.disabled = true; btn.textContent = "Gönderiliyor…"; err.textContent = "";
+  try{
+    const res = await fetch(MSG_API, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ role: cmSel.role, name: name, phone: phone, reason: cmSel.reason })
+    });
+    let data = null; try{ data = await res.json(); }catch(e){}
+    if(res.ok){
+      try{ localStorage.setItem(MSG_LAST_KEY, String(Date.now())); }catch(e){}
+      cmEl("cmForm").style.display = "none"; cmEl("cmDone").style.display = "block";
+      setTimeout(()=>{ const b = cmEl("cmDoneBtn"); if(b) b.focus(); }, 30);
+    } else if(res.status === 400 || res.status === 429){
+      err.textContent = (data && data.error) || "Mesaj gönderilemedi. Lütfen tekrar deneyin.";
+    } else {
+      err.textContent = "Mesaj gönderilemedi. Lütfen daha sonra tekrar deneyin.";
+    }
+  }catch(e){
+    err.textContent = "Bağlantı kurulamadı. İnternetinizi kontrol edip tekrar deneyin.";
+  }finally{
+    cmBusy = false; btn.disabled = false; btn.textContent = "Gönder";
+  }
 }
 cmEl("authContactBtn").addEventListener("click", cmOpen);
 cmEl("cmClose").addEventListener("click", cmClose);
@@ -1744,6 +1808,7 @@ cmEl("cmSend").addEventListener("click", cmSubmit);
 cmEl("cmPhone").addEventListener("keydown", (e)=>{ if(e.key === "Enter"){ e.preventDefault(); cmSubmit(); } });
 document.addEventListener("keydown", (e)=>{ if(e.key === "Escape" && cmEl("contactOverlay").classList.contains("show")) cmClose(); });
 
+/* ---- Mesajlar sayfası ---- */
 function msgTgHref(phone){
   let d = String(phone || "").replace(/\D/g,"");
   if(d.indexOf("00") === 0) d = d.slice(2);
@@ -1755,17 +1820,30 @@ function msgFmtDate(ts){
   try{ return new Date(ts).toLocaleString("tr-TR", { day:"numeric", month:"long", hour:"2-digit", minute:"2-digit" }); }
   catch(e){ return ""; }
 }
-function msgRender(markRead){
+function msgNotice(title, text, withKey, withRetry){
+  return '<div class="msg-empty"><div class="msg-empty-t">' + msgEsc(title) + '</div><div class="msg-empty-s">' + msgEsc(text) + '</div>'
+    + (withKey ? '<input class="auth-field msg-key" id="msgKeyInput" type="password" placeholder="Yönetici anahtarı" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Yönetici anahtarı">'
+      + '<button type="button" class="auth-btn" data-msg="savekey">Kaydet</button>' : '')
+    + (withRetry ? '<button type="button" class="adm-btn msg-retry" data-msg="refresh">↻ Yenile</button>' : '')
+    + '</div>';
+}
+function msgRender(){
   const body = document.getElementById("messagesBody");
   if(!body || Auth.role() !== "patron") return;
-  const list = msgLoad().sort((a, b)=> ((a.read ? 1 : 0) - (b.read ? 1 : 0)) || (b.ts - a.ts));
-  if(!list.length){
-    body.innerHTML = '<div class="msg-empty"><div class="msg-empty-t">Henüz mesaj yok</div><div class="msg-empty-s">Form dolduran olursa burada görünecek.</div></div>';
-    msgUpdateBadge(); return;
-  }
+  if(msgState === "idle" || msgState === "loading"){ body.innerHTML = msgNotice("Mesajlar yükleniyor…", "", false, false); return; }
+  if(msgState === "nokey"){ body.innerHTML = msgNotice("Yönetici anahtarı gerekli", "Vercel’de MESSAGES_ADMIN_KEY olarak belirlediğiniz anahtarı girin. Bu cihazda bir kez sorulur.", true, false); return; }
+  if(msgState === "unauth"){ body.innerHTML = msgNotice("Anahtar hatalı", "Girdiğiniz yönetici anahtarı sunucudakiyle uyuşmuyor. Tekrar deneyin.", true, false); return; }
+  if(msgState === "unconfigured"){ body.innerHTML = msgNotice("Mesaj sistemi kurulu değil", "Vercel’de Upstash Redis’i projeye bağlayın, MESSAGES_ADMIN_KEY ekleyin ve yeniden yayınlayın.", false, true); return; }
+  if(msgState === "error"){ body.innerHTML = msgNotice("Mesajlar alınamadı", "Bağlantınızı kontrol edip yeniden deneyin.", false, true); return; }
+  const list = msgCache.slice().sort((a, b)=> ((a.read ? 1 : 0) - (b.read ? 1 : 0)) || (b.ts - a.ts));
   const unreadN = list.filter(m=>!m.read).length;
-  const bar = unreadN ? '<div class="msg-bar"><span>' + unreadN + ' okunmamış mesaj</span>'
-    + (unreadN > 1 ? '<button type="button" class="adm-btn ok" data-msg="readall">✓ Tümünü okundu işaretle</button>' : '') + '</div>' : '';
+  const bar = '<div class="msg-bar"><span>' + (unreadN ? unreadN + ' okunmamış mesaj' : (list.length ? 'Tüm mesajlar okundu' : '')) + '</span><span class="msg-bar-btns">'
+    + (unreadN > 1 ? '<button type="button" class="adm-btn ok" data-msg="readall">✓ Tümünü okundu işaretle</button>' : '')
+    + '<button type="button" class="adm-btn" data-msg="refresh">↻ Yenile</button></span></div>';
+  if(!list.length){
+    body.innerHTML = bar + '<div class="msg-empty"><div class="msg-empty-t">Henüz mesaj yok</div><div class="msg-empty-s">Form dolduran olursa burada görünecek.</div></div>';
+    return;
+  }
   body.innerHTML = bar + list.map(m=>{
     const tg = msgTgHref(m.phone);
     return '<div class="msg-card' + (m.read ? '' : ' unread') + '" data-id="' + msgEsc(m.id) + '">'
@@ -1780,28 +1858,41 @@ function msgRender(markRead){
       + '<button type="button" class="adm-btn danger" data-msg="del" data-id="' + msgEsc(m.id) + '">🗑️ Sil</button>'
       + '</div></div>';
   }).join("");
-  msgUpdateBadge();
+}
+async function msgAction(method, payload){
+  try{
+    const r = await msgApi(method, payload);
+    if(!r.ok){ alert(r.status === 401 ? "Yönetici anahtarı hatalı." : "İşlem yapılamadı. Lütfen tekrar deneyin."); }
+  }catch(e){ alert("Bağlantı kurulamadı. Lütfen tekrar deneyin."); }
+  await msgFetch(); msgRender();
+}
+function msgSaveKey(){
+  const inp = document.getElementById("msgKeyInput"), v = inp ? inp.value.trim() : "";
+  if(!v){ if(inp) inp.focus(); return; }
+  try{ localStorage.setItem(MSG_KEY_STORE, v); }catch(e){}
+  msgState = "loading"; msgRender();
+  msgFetch().then(()=>{ if(msgViewActive()) msgRender(); });
 }
 document.getElementById("messagesBody").addEventListener("click", (e)=>{
   const b = e.target.closest("[data-msg]"); if(!b || Auth.role() !== "patron") return;
-  const id = b.dataset.id, list = msgLoad();
-  if(b.dataset.msg === "readall"){ list.forEach(x=>{ x.read = true; }); msgSave(list); msgRender(); return; }
-  const m = list.find(x=>x.id === id); if(!m) return;
-  if(b.dataset.msg === "read"){ m.read = true; msgSave(list); msgRender(); return; }
-  if(b.dataset.msg === "del"){
+  const act = b.dataset.msg, id = b.dataset.id;
+  if(act === "savekey") return msgSaveKey();
+  if(act === "refresh"){ msgState = "loading"; msgRender(); msgFetch().then(()=>{ if(msgViewActive()) msgRender(); }); return; }
+  if(act === "readall") return msgAction("PATCH", { all:true });
+  if(act === "read") return msgAction("PATCH", { id:id, read:true });
+  if(act === "del"){
     if(!confirm("Bu mesaj silinsin mi?")) return;
-    msgSave(list.filter(x=>x.id !== id)); msgRender(false);
-  } else if(b.dataset.msg === "copy"){
+    return msgAction("DELETE", { id:id });
+  }
+  if(act === "copy"){
+    const m = msgCache.find(x=>x.id === id); if(!m) return;
     const done = ()=>{ const old = b.textContent; b.textContent = "✓ Kopyalandı"; setTimeout(()=>{ b.textContent = old; }, 1400); };
     if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(m.phone).then(done, ()=>{ prompt("Numarayı kopyalayın:", m.phone); });
     else prompt("Numarayı kopyalayın:", m.phone);
   }
 });
-window.addEventListener("storage", (e)=>{
-  if(e.key !== MSG_KEY) return;
-  msgUpdateBadge();
-  const v = document.getElementById("view-messages");
-  if(v && v.classList.contains("active")) msgRender();
+document.getElementById("messagesBody").addEventListener("keydown", (e)=>{
+  if(e.key === "Enter" && e.target && e.target.id === "msgKeyInput"){ e.preventDefault(); msgSaveKey(); }
 });
 
 authApply();
@@ -1824,7 +1915,7 @@ function showView(view){
   closeSidebar();
   if(view==="sorxadd"){ sorxAddRender(); }
   if(view==="admin"){ adminRender(); }
-  if(view==="messages"){ msgRender(); }
+  if(view==="messages"){ msgOpen(); }
   if(view==="classes"){
     if(!sinifKeepNav) sinifNav = {classId:null, courseId:null, unitId:null};
     sinifKeepNav = false;
