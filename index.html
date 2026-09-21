@@ -1456,6 +1456,34 @@ t)).default()}catch(e){warn(`JpxImage#getJsModule: ${e}`)}e(n)}static async#E(e,
 <div class="overlay" id="overlayOrd"><div class="win-card"><div class="trophy" id="ordTrophy">🏆</div><h2 id="ordWinTitle">Takım Kazandı!</h2><p id="ordWinText">Hedef puana ulaşan takım oldu.</p><button onclick="ordReset()">Yeniden Oyna</button></div></div>
 
 <script>
+/* ---- Firebase (Gerçek Zamanlı Veritabanı + Depolama): Ders Kitapları / Ders Sunumları
+   kaynakları VE giriş hesapları (patron/yönetici/öğretmen) artık bir cihaza değil buluta
+   kaydediliyor; bir cihazda eklenen her şey, aynı sayfayı açan tüm cihazlarda anında görünür.
+   ÖNEMLİ: Aşağıdaki değerler YER TUTUCUDUR — kendi Firebase projenizin bilgileriyle
+   değiştirmeniz gerekir (Firebase Console > Project settings > SDK setup and configuration). */
+const firebaseConfig = {
+  apiKey: "BURAYA_KENDI_API_KEY_DEĞERİNİZİ_YAZIN",
+  authDomain: "BURAYA_KENDI_PROJENIZ.firebaseapp.com",
+  databaseURL: "https://BURAYA_KENDI_PROJENIZ-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "BURAYA_KENDI_PROJENIZ",
+  storageBucket: "BURAYA_KENDI_PROJENIZ.firebasestorage.app",
+  messagingSenderId: "BURAYA_KENDI_SENDER_ID",
+  appId: "BURAYA_KENDI_APP_ID",
+};
+let firebaseHazir = false;
+let fbDb = null;
+let fbStorage = null;
+try{
+  firebase.initializeApp(firebaseConfig);
+  fbDb = firebase.database();
+  fbStorage = firebase.storage();
+  // Realtime Database kuralları "auth != null" isteyebiliyor; uygulamanın kendi giriş
+  // ekranından bağımsız olarak herkes için görünmez bir anonim oturum açıyoruz ki
+  // okuma/yazma istekleri reddedilmesin.
+  firebase.auth().signInAnonymously().catch(e=>console.error("Anonim giriş hatası:", e));
+  firebaseHazir = true;
+}catch(e){ console.error("Firebase başlatılamadı, veriler yalnızca bu cihazda saklanacak:", e); }
+
 /* ================= GİRİŞ VE YETKİ ================= */
 const AUTH_KEY = "authUsersV1", AUTH_SESSION = "authSessionV1", AUTH_PATRON_DEFAULT = "NUSMİDSA";
 const AUTH_ROLE_LABEL = { patron:"Patron", yonetici:"Yönetici", ogretmen:"Öğretmen" };
@@ -1485,12 +1513,36 @@ function authLoad(){
   d.users = Array.isArray(d.users) ? d.users.filter(u=>u && u.id && u.name && (u.role === "yonetici" || u.role === "ogretmen") && typeof u.pw === "string" && u.pw) : [];
   return d;
 }
+let authSyncOn = false;
+function authAttachSync(){
+  if(!firebaseHazir || authSyncOn) return;
+  authSyncOn = true;
+  const ref = fbDb.ref("dkabSorXAuth/accounts");
+  // Bulutta hesap bilgisi hiç yoksa (ilk kullanım), bu cihazdaki mevcut hesapları
+  // (en azından varsayılan patron şifresini) taşı. Zaten veri varsa dokunma.
+  ref.transaction(cur=>{
+    if(cur && typeof cur === "object" && cur.patron) return; // dokunma
+    return authLoad();
+  }).catch(e=>console.error("Hesap ilk veri oluşturma hatası:", e));
+  ref.on("value", snap=>{
+    const v = snap.val();
+    if(!v || typeof v !== "object" || !v.patron) return;
+    authData = v;
+    authData.users = Array.isArray(authData.users) ? authData.users : [];
+    try{ localStorage.setItem(AUTH_KEY, JSON.stringify(authData)); }catch(e){}
+    if(document.getElementById("adminUsersList")) adminRender();
+  }, e=>console.error("Hesap senkronizasyon hatası:", e));
+}
+
 let authData = authLoad();
 function authSave(){
-  try{ localStorage.setItem(AUTH_KEY, JSON.stringify(authData)); return true; }
+  try{ localStorage.setItem(AUTH_KEY, JSON.stringify(authData)); }
   catch(e){ alert("Kaydetme başarısız oldu: tarayıcı depolama alanı dolu olabilir."); return false; }
+  if(firebaseHazir){ fbDb.ref("dkabSorXAuth/accounts").set(authData).catch(e=>console.error("Hesap bulut kaydı başarısız:", e)); }
+  return true;
 }
 if(!localStorage.getItem(AUTH_KEY)) authSave();
+authAttachSync();
 function authGenPw(){
   const chars = "ABCDEFGHJKLMNPRSTUVYZ23456789", buf = new Uint32Array(6); let out = "";
   (window.crypto || window.msCrypto).getRandomValues(buf);
@@ -4346,31 +4398,7 @@ function unitOpen(game, toBank){
   }
 }
 
-/* ---- Firebase (Gerçek Zamanlı Veritabanı + Depolama): Ders Kitapları / Ders Sunumları
-   kaynakları bir cihaza değil buluta kaydedilir; bir cihazda eklenen dosya ve klasör
-   yapısı, aynı sayfayı açan tüm cihazlarda anında görünür. ---- */
-const firebaseConfig = {
-  apiKey: "AIzaSyDUB108MFl7V1r6-wWIJKaHIiCYtYqp5Q4",
-  authDomain: "midsa-490ac.firebaseapp.com",
-  databaseURL: "https://midsa-490ac-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "midsa-490ac",
-  storageBucket: "midsa-490ac.firebasestorage.app",
-  messagingSenderId: "947555331538",
-  appId: "1:947555331538:web:3e105ed69fb247ae9e6c0b",
-};
-let firebaseHazir = false;
-let fbDb = null;
-let fbStorage = null;
-try{
-  firebase.initializeApp(firebaseConfig);
-  fbDb = firebase.database();
-  fbStorage = firebase.storage();
-  // Realtime Database kuralları "auth != null" isteyebiliyor; uygulamanın kendi giriş
-  // ekranından bağımsız olarak herkes için görünmez bir anonim oturum açıyoruz ki
-  // okuma/yazma istekleri reddedilmesin.
-  firebase.auth().signInAnonymously().catch(e=>console.error("Anonim giriş hatası:", e));
-  firebaseHazir = true;
-}catch(e){ console.error("Firebase başlatılamadı, kaynaklar yalnızca bu cihazda saklanacak:", e); }
+/* ---- Firebase başlatma bloğu, dosyanın başına (giriş/yetki bölümünden önce) taşındı ---- */
 
 /* ---- Dosya deposu (IndexedDB): eski/yedek yol — Firebase'e ulaşılamadığında kullanılır ---- */
 let idbPromise = null;
