@@ -4646,31 +4646,34 @@ function libLoad(sec){
   return libNormalizeTree(d);
 }
 // Sınıf/ders/ünite ağacında tek bir değişiklik (ekleme/yeniden adlandırma/silme) yapar.
-// Bulut varsa Firebase transaction ile "en güncel sunucu verisi üzerinde" değişikliği
-// uygular — böylece iki cihaz aynı anda farklı yerlere ekleme yapsa bile birbirinin
-// değişikliğini silmez (üzerine yazmaz).
+// Önce değişikliği HEMEN ekranda gösterir (yavaş/zayıf bağlantıda bile uygulama beklemeden
+// tepki verir), ardından buluta arka planda yazar. Bulut varsa bunu Firebase transaction
+// ile "en güncel sunucu verisi üzerinde" uygular — böylece iki cihaz aynı anda farklı
+// yerlere ekleme yapsa bile birbirinin değişikliğini silmez (üzerine yazmaz).
 function libTreeMutate(sec, mutateFn){
-  if(firebaseHazir){
-    fbDb.ref("dkabSorXLib/"+sec+"/tree").transaction(cur=>{
-      const fresh = libNormalizeTree(cur ? JSON.parse(JSON.stringify(cur)) : null);
-      mutateFn(fresh);
-      sinifSortClasses(fresh.classes);
-      return fresh;
-    }, (error, committed, snapshot)=>{
-      if(error){ console.error("Değişiklik kaydedilemedi:", error); alert("Değişiklik kaydedilemedi, internet bağlantınızı kontrol edip tekrar deneyin."); return; }
-      if(committed && snapshot){
-        libData[sec] = libNormalizeTree(snapshot.val());
-        try{ localStorage.setItem(LIB[sec].key, JSON.stringify(libData[sec])); }catch(e){}
-      }
+  // 1) Anında yerel görünüm
+  if(!libData[sec]) libData[sec] = { classes: sinifDefaultClasses() };
+  const optimistic = libNormalizeTree(JSON.parse(JSON.stringify(libData[sec])));
+  mutateFn(optimistic);
+  sinifSortClasses(optimistic.classes);
+  libData[sec] = optimistic;
+  try{ localStorage.setItem(LIB[sec].key, JSON.stringify(optimistic)); }catch(e){}
+  libRender(sec);
+  if(!firebaseHazir) return;
+  // 2) Arka planda bulutla uzlaştır (beklemeden)
+  fbDb.ref("dkabSorXLib/"+sec+"/tree").transaction(cur=>{
+    const fresh = libNormalizeTree(cur ? JSON.parse(JSON.stringify(cur)) : null);
+    mutateFn(fresh);
+    sinifSortClasses(fresh.classes);
+    return fresh;
+  }, (error, committed, snapshot)=>{
+    if(error){ console.error("Bulut senkronizasyonu başarısız oldu (değişiklik şimdilik yalnızca bu cihazda):", error); return; }
+    if(committed && snapshot){
+      libData[sec] = libNormalizeTree(snapshot.val());
+      try{ localStorage.setItem(LIB[sec].key, JSON.stringify(libData[sec])); }catch(e){}
       libRender(sec);
-    });
-  } else {
-    if(!libData[sec]) libData[sec] = { classes: sinifDefaultClasses() };
-    mutateFn(libData[sec]);
-    sinifSortClasses(libData[sec].classes);
-    try{ localStorage.setItem(LIB[sec].key, JSON.stringify(libData[sec])); }catch(e){}
-    libRender(sec);
-  }
+    }
+  });
 }
 function libAttachSync(sec){
   if(!firebaseHazir || libSyncOn[sec]) return;
@@ -4820,9 +4823,17 @@ function libRender(sec){
   body.innerHTML = html;
 }
 
+// Yükleme, zayıf bağlantıda süresiz beklemesin diye bir süre sınırı ile sarmalanır.
+function libUploadWithTimeout(sref, file, ms){
+  const task = sref.put(file, { contentType: file.type || guessMime(file.name) || undefined });
+  return new Promise((resolve, reject)=>{
+    const timer = setTimeout(()=>{ try{ task.cancel(); }catch(e){} reject(new Error("timeout")); }, ms);
+    task.then(()=>{ clearTimeout(timer); resolve(); }, err=>{ clearTimeout(timer); reject(err); });
+  });
+}
 async function libAddFiles(sec, unitId, fileList){
   const items = resLoad(sec, unitId);
-  let added = 0;
+  let added = 0, anyTimeout = false;
   for(const f of Array.from(fileList)){
     if(f.size > 200*1024*1024 && !confirm('"'+f.name+'" çok büyük bir dosya ('+fmtSize(f.size)+'). Yine de yüklensin mi?')) continue;
     const key = libId("f");
@@ -4831,9 +4842,10 @@ async function libAddFiles(sec, unitId, fileList){
       try{
         storagePath = "dkabSorXFiles/"+sec+"/"+unitId+"/"+key+"_"+f.name;
         const sref = fbStorage.ref(storagePath);
-        await sref.put(f, { contentType: f.type || guessMime(f.name) || undefined });
+        await libUploadWithTimeout(sref, f, 25000);
         url = await sref.getDownloadURL();
       }catch(e){
+        if(e && e.message==="timeout") anyTimeout = true;
         console.error("Buluta yükleme hatası:", e);
         storagePath = null; url = null;
       }
@@ -4847,7 +4859,7 @@ async function libAddFiles(sec, unitId, fileList){
       catch(e){ alert('"'+f.name+'" ne buluta ne de bu tarayıcıya kaydedilebildi.'); continue; }
       items.push({ id:libId("r"), kind:"file", title:f.name.replace(/\.[^.]+$/, ""), fileKey:key, fileName:f.name, mime:f.type||guessMime(f.name), size:f.size, localOnly:true });
       added++;
-      alert('"'+f.name+'" buluta yüklenemedi (bağlantı sorunu olabilir), bu yüzden yalnızca bu cihazda saklandı ve diğer cihazlarla paylaşılmayacak. Bağlantınız düzeldiğinde dosyayı silip yeniden eklemeniz önerilir.');
+      alert('"'+f.name+'" buluta yüklenemedi ('+(anyTimeout ? "bağlantı çok yavaş olduğu için yükleme zaman aşımına uğradı" : "bağlantı sorunu olabilir")+'), bu yüzden yalnızca bu cihazda saklandı ve diğer cihazlarla paylaşılmayacak. Daha hızlı bir bağlantıya geçtiğinizde dosyayı silip yeniden eklemeniz önerilir.');
     }
   }
   if(added) resSave(sec, unitId, items);
@@ -6006,10 +6018,15 @@ function libWire(sec){
       const name = input ? input.value.trim() : "";
       if(!name){ if(input) input.focus(); return; }
       const classId = nav.classId, courseId = nav.courseId, kindT = kind;
+      // Kimlikler burada bir kez üretilir: libTreeMutate değişikliği hem anında yerelde
+      // hem de arka planda buluta uygularken aynı kimlikleri kullanmalı, yoksa iki farklı
+      // kayıt oluşup kısa süreliğine ekranda tekrar görünebilir.
+      const newId = kindT==="class" ? libId("c") : kindT==="course" ? libId("k") : libId("u");
+      const defaultCourseId = kindT==="class" ? libId("k") : null;
       libTreeMutate(sec, fresh=>{
-        if(kindT==="class") fresh.classes.push({ id:libId("c"), name, courses:[ { id:libId("k"), name:"Din Kültürü ve Ahlak Bilgisi", units:[] } ] });
-        else if(kindT==="course"){ const c = fresh.classes.find(x=>x.id===classId); if(c) c.courses.push({ id:libId("k"), name, units:[] }); }
-        else if(kindT==="unit"){ const c = fresh.classes.find(x=>x.id===classId); const co2 = c && c.courses.find(x=>x.id===courseId); if(co2) co2.units.push({ id:libId("u"), name }); }
+        if(kindT==="class"){ if(!fresh.classes.find(x=>x.id===newId)) fresh.classes.push({ id:newId, name, courses:[ { id:defaultCourseId, name:"Din Kültürü ve Ahlak Bilgisi", units:[] } ] }); }
+        else if(kindT==="course"){ const c = fresh.classes.find(x=>x.id===classId); if(c && !c.courses.find(x=>x.id===newId)) c.courses.push({ id:newId, name, units:[] }); }
+        else if(kindT==="unit"){ const c = fresh.classes.find(x=>x.id===classId); const co2 = c && c.courses.find(x=>x.id===courseId); if(co2 && !co2.units.find(x=>x.id===newId)) co2.units.push({ id:newId, name }); }
       });
       if(input) input.value = "";
     }
