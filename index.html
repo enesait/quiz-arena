@@ -8,6 +8,10 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <style>
   :root{
     --team1: #3D74F4;
@@ -4342,7 +4346,33 @@ function unitOpen(game, toBank){
   }
 }
 
-/* ---- Dosya deposu (IndexedDB): kitap ve sunum dosyaları ---- */
+/* ---- Firebase (Gerçek Zamanlı Veritabanı + Depolama): Ders Kitapları / Ders Sunumları
+   kaynakları bir cihaza değil buluta kaydedilir; bir cihazda eklenen dosya ve klasör
+   yapısı, aynı sayfayı açan tüm cihazlarda anında görünür. ---- */
+const firebaseConfig = {
+  apiKey: "AIzaSyDUB108MFl7V1r6-wWIJKaHIiCYtYqp5Q4",
+  authDomain: "midsa-490ac.firebaseapp.com",
+  databaseURL: "https://midsa-490ac-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "midsa-490ac",
+  storageBucket: "midsa-490ac.firebasestorage.app",
+  messagingSenderId: "947555331538",
+  appId: "1:947555331538:web:3e105ed69fb247ae9e6c0b",
+};
+let firebaseHazir = false;
+let fbDb = null;
+let fbStorage = null;
+try{
+  firebase.initializeApp(firebaseConfig);
+  fbDb = firebase.database();
+  fbStorage = firebase.storage();
+  // Realtime Database kuralları "auth != null" isteyebiliyor; uygulamanın kendi giriş
+  // ekranından bağımsız olarak herkes için görünmez bir anonim oturum açıyoruz ki
+  // okuma/yazma istekleri reddedilmesin.
+  firebase.auth().signInAnonymously().catch(e=>console.error("Anonim giriş hatası:", e));
+  firebaseHazir = true;
+}catch(e){ console.error("Firebase başlatılamadı, kaynaklar yalnızca bu cihazda saklanacak:", e); }
+
+/* ---- Dosya deposu (IndexedDB): eski/yedek yol — Firebase'e ulaşılamadığında kullanılır ---- */
 let idbPromise = null;
 function idbOpen(){
   if(idbPromise) return idbPromise;
@@ -4392,9 +4422,12 @@ function backupKeys(){
   }
   return keys;
 }
-function backupCardHtml(fileInputId){
+function backupCardHtml(fileInputId, cloud){
+  const desc = cloud
+    ? 'Sınıf, ders, ünite ve kaynaklarınız (yüklediğiniz dosyalar dahil) artık buluta kaydediliyor: bir cihazda eklediğiniz her şey, aynı sayfayı açan diğer tüm cihazlarda anında görünür. Aşağıdaki yedek, bulut çalışmadığında (internet kesintisi vb.) diye tutulan ekstra bir güvenlik kopyasıdır.'
+    : 'Sınıf, ders, ünite, sorular, kitap ve sunum kaynaklarınız (dosyalar dahil) bu tarayıcıda saklanır. Yeni bir dosya sürümüne ya da başka bir cihaza geçmeden önce yedek alın, sonra “Yedek Yükle” ile aynı verilere ulaşın. Çok dosya eklediyseniz yedek dosyası büyük olabilir.';
   return '<div class="sinif-backup"><div class="sinif-section-title" style="margin:0;">💾 Yedekle / Geri Yükle</div>'
-    + '<p>Sınıf, ders, ünite, sorular, kitap ve sunum kaynaklarınız (dosyalar dahil) bu tarayıcıda saklanır. Yeni bir dosya sürümüne ya da başka bir cihaza geçmeden önce yedek alın, sonra “Yedek Yükle” ile aynı verilere ulaşın. Çok dosya eklediyseniz yedek dosyası büyük olabilir.</p>'
+    + '<p>'+desc+'</p>'
     + '<div class="act-buttons"><button class="act-play" data-act="backup">💾 Yedek İndir</button><button class="act-edit" data-act="restore-pick">📂 Yedek Yükle</button></div>'
     + '<input type="file" id="'+fileInputId+'" data-role="restore" accept=".json,application/json" style="display:none"></div>';
 }
@@ -4434,6 +4467,18 @@ function sinifRestore(file){
     try{
       Object.keys(p.data).forEach(k=>{ if(APP_STORAGE_KEYS.includes(k) || k.startsWith("unitQ:") || k.startsWith("res:")) localStorage.setItem(k, p.data[k]); });
     }catch(e){ alert("Yedek yüklenirken depolama alanı doldu."); }
+    // Ders Kitapları / Ders Sunumları ağaç yapısı ve kaynak listeleri buluta da yazılır ki
+    // geri yükleme, diğer cihazlardaki mevcut bulut verisinin üzerine yazılıp yeni durum olsun.
+    if(firebaseHazir){
+      for(const sec of Object.keys(LIB)){
+        const treeRaw = p.data[LIB[sec].key];
+        if(treeRaw){ try{ await fbDb.ref("dkabSorXLib/"+sec+"/tree").set(JSON.parse(treeRaw)); }catch(e){} }
+      }
+      for(const k of Object.keys(p.data)){
+        const m = k.match(/^res:(kitap|sunum):(.+)$/);
+        if(m){ try{ await fbDb.ref("dkabSorXLib/"+m[1]+"/res/"+m[2]).set(JSON.parse(p.data[k])); }catch(e){} }
+      }
+    }
     if(p.files && typeof p.files==="object"){
       for(const k of Object.keys(p.files)){
         const f = p.files[k];
@@ -4582,6 +4627,8 @@ const LIB = {
   sunum: { title:"Ders Sunumları", icon:"📽️", key:"sunumTreeV1", body:"sunumBody" }
 };
 const libData = {}, libNav = {};
+const resCache = {}; // resCache[sec] = { [unitId]: [items] } — Firebase'ten anlık gelen kaynak listeleri
+const libSyncOn = {}; // sec -> true, gerçek zamanlı dinleyici kurulduysa
 function libId(prefix){ return prefix + Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
 function libLoad(sec){
   let d = null;
@@ -4593,22 +4640,56 @@ function libSave(sec){
   if(libData[sec]) sinifSortClasses(libData[sec].classes);
   try{ localStorage.setItem(LIB[sec].key, JSON.stringify(libData[sec])); }
   catch(e){ alert("Kaydetme başarısız oldu: tarayıcı depolama alanı dolu olabilir."); }
+  if(firebaseHazir){ fbDb.ref("dkabSorXLib/"+sec+"/tree").set(libData[sec]).catch(e=>console.error("Bulut kaydı başarısız:", e)); }
 }
-Object.keys(LIB).forEach(sec=>{ libData[sec] = libLoad(sec); libNav[sec] = {classId:null, courseId:null, unitId:null}; libSave(sec); });
+function libAttachSync(sec){
+  if(!firebaseHazir || libSyncOn[sec]) return;
+  libSyncOn[sec] = true;
+  fbDb.ref("dkabSorXLib/"+sec+"/tree").on("value", snap=>{
+    const v = snap.val();
+    if(v && Array.isArray(v.classes)){
+      libData[sec] = v;
+      try{ localStorage.setItem(LIB[sec].key, JSON.stringify(v)); }catch(e){}
+    } else if(!libData[sec] || !libData[sec].classes || !libData[sec].classes.length){
+      // Bulutta henüz veri yok: bu cihazın (varsa) mevcut yerel yapısını buluta taşı.
+      fbDb.ref("dkabSorXLib/"+sec+"/tree").set(libData[sec]).catch(()=>{});
+    }
+    libRender(sec);
+  }, e=>console.error("Senkronizasyon hatası:", e));
+  fbDb.ref("dkabSorXLib/"+sec+"/res").on("value", snap=>{
+    resCache[sec] = snap.val() || {};
+    libRender(sec);
+  }, e=>console.error("Kaynak senkronizasyon hatası:", e));
+}
+Object.keys(LIB).forEach(sec=>{ libData[sec] = libLoad(sec); libNav[sec] = {classId:null, courseId:null, unitId:null}; libAttachSync(sec); });
 
 function resKey(sec, unitId){ return "res:"+sec+":"+unitId; }
 function resLoad(sec, unitId){
+  if(resCache[sec] && Object.prototype.hasOwnProperty.call(resCache[sec], unitId)){
+    const a = resCache[sec][unitId];
+    return Array.isArray(a) ? a : [];
+  }
   try{ const a = JSON.parse(localStorage.getItem(resKey(sec, unitId))); if(Array.isArray(a)) return a; }catch(e){}
   return [];
 }
 function resSave(sec, unitId, arr){
+  resCache[sec] = resCache[sec] || {};
+  resCache[sec][unitId] = arr;
   try{ localStorage.setItem(resKey(sec, unitId), JSON.stringify(arr)); }
   catch(e){ alert("Kaydetme başarısız oldu: tarayıcı depolama alanı dolu olabilir."); }
+  if(firebaseHazir){ fbDb.ref("dkabSorXLib/"+sec+"/res/"+unitId).set(arr).catch(e=>console.error("Bulut kaydı başarısız:", e)); }
 }
 async function resPurgeUnit(sec, unitId){
   const items = resLoad(sec, unitId);
-  for(const it of items){ if(it.kind==="file"){ try{ await idbDelete(it.fileKey); }catch(e){} } }
+  for(const it of items){
+    if(it.kind==="file"){
+      if(it.storagePath && fbStorage){ try{ await fbStorage.ref(it.storagePath).delete(); }catch(e){} }
+      if(it.fileKey){ try{ await idbDelete(it.fileKey); }catch(e){} }
+    }
+  }
+  if(resCache[sec]) delete resCache[sec][unitId];
   try{ localStorage.removeItem(resKey(sec, unitId)); }catch(e){}
+  if(firebaseHazir){ try{ await fbDb.ref("dkabSorXLib/"+sec+"/res/"+unitId).remove(); }catch(e){} }
 }
 function guessMime(name){
   const n = (name||"").toLowerCase();
@@ -4636,7 +4717,7 @@ function resIcon(it){
 function fmtSize(b){ return b<1024*1024 ? Math.max(1, Math.round(b/1024))+" KB" : (b/1024/1024).toFixed(1)+" MB"; }
 function resMeta(it){
   if(it.kind==="link"){ try{ return new URL(it.url).hostname; }catch(e){ return it.url; } }
-  return it.fileName+" • "+fmtSize(it.size||0);
+  return it.fileName+" • "+fmtSize(it.size||0)+(it.localOnly ? " • yalnızca bu cihazda" : "");
 }
 function resCardHtml(it){
   return '<div class="res-card"><div class="res-icon">'+resIcon(it)+'</div>'
@@ -4697,7 +4778,7 @@ function libRender(sec){
     html += data.classes.length ? '<div class="sinif-grid">'+data.classes.map(c=>sinifCard("class", c.id, c.name, c.courses.length+" ders • "+c.courses.reduce((s,x)=>s+x.units.length,0)+" ünite", !edit)).join("")+'</div>' : '<div class="sinif-empty">Henüz sınıf yok. '+(edit?"Aşağıdan ekleyin.":hint)+'</div>';
     if(edit){
       html += sinifAddBar("class", "Yeni sınıf adı (örn. 9. Sınıf)", "Sınıf Ekle", "libAddInput-"+sec);
-      html += backupCardHtml("libRestore-"+sec);
+      html += backupCardHtml("libRestore-"+sec, true);
     }
   }
   body.innerHTML = html;
@@ -4707,12 +4788,31 @@ async function libAddFiles(sec, unitId, fileList){
   const items = resLoad(sec, unitId);
   let added = 0;
   for(const f of Array.from(fileList)){
-    if(f.size > 50*1024*1024 && !confirm('"'+f.name+'" büyük bir dosya ('+fmtSize(f.size)+'). Tarayıcıda saklanır ve yedeği büyütür; büyük dosyalar için bağlantı eklemek daha güvenlidir. Yine de eklensin mi?')) continue;
+    if(f.size > 200*1024*1024 && !confirm('"'+f.name+'" çok büyük bir dosya ('+fmtSize(f.size)+'). Yine de yüklensin mi?')) continue;
     const key = libId("f");
-    try{ await idbPut(key, { blob:f, name:f.name, type:f.type||guessMime(f.name) }); }
-    catch(e){ alert('"'+f.name+'" tarayıcıda saklanamadı. Bu tarayıcı dosya saklamayı desteklemiyor ya da depolama alanı dolu olabilir; bağlantı eklemeyi deneyin.'); continue; }
-    items.push({ id:libId("r"), kind:"file", title:f.name.replace(/\.[^.]+$/, ""), fileKey:key, fileName:f.name, mime:f.type||guessMime(f.name), size:f.size });
-    added++;
+    let url = null, storagePath = null;
+    if(firebaseHazir && fbStorage){
+      try{
+        storagePath = "dkabSorXFiles/"+sec+"/"+unitId+"/"+key+"_"+f.name;
+        const sref = fbStorage.ref(storagePath);
+        await sref.put(f, { contentType: f.type || guessMime(f.name) || undefined });
+        url = await sref.getDownloadURL();
+      }catch(e){
+        console.error("Buluta yükleme hatası:", e);
+        storagePath = null; url = null;
+      }
+    }
+    if(url){
+      items.push({ id:libId("r"), kind:"file", title:f.name.replace(/\.[^.]+$/, ""), fileName:f.name, mime:f.type||guessMime(f.name), size:f.size, url, storagePath });
+      added++;
+    } else {
+      // Bulut şu an ulaşılamıyor: yalnızca bu cihazda saklanan yedek yol.
+      try{ await idbPut(key, { blob:f, name:f.name, type:f.type||guessMime(f.name) }); }
+      catch(e){ alert('"'+f.name+'" ne buluta ne de bu tarayıcıya kaydedilebildi.'); continue; }
+      items.push({ id:libId("r"), kind:"file", title:f.name.replace(/\.[^.]+$/, ""), fileKey:key, fileName:f.name, mime:f.type||guessMime(f.name), size:f.size, localOnly:true });
+      added++;
+      alert('"'+f.name+'" buluta yüklenemedi (bağlantı sorunu olabilir), bu yüzden yalnızca bu cihazda saklandı ve diğer cihazlarla paylaşılmayacak. Bağlantınız düzeldiğinde dosyayı silip yeniden eklemeniz önerilir.');
+    }
   }
   if(added) resSave(sec, unitId, items);
   if(libNav[sec].unitId===unitId) libRender(sec);
@@ -5754,9 +5854,42 @@ document.addEventListener("keydown", (e)=>{
 async function resOpen(sec, unitId, id, download){
   const it = resLoad(sec, unitId).find(x=>x.id===id); if(!it) return;
   if(it.kind==="link"){ window.open(it.url, "_blank", "noopener"); return; }
+
+  // Bulutta (Firebase Storage) saklanan dosya
+  if(it.url){
+    let blob = null;
+    try{ const r = await fetch(it.url); if(r.ok) blob = await r.blob(); }catch(e){ blob = null; }
+    if(blob){
+      if(!download){
+        const vk = libViewerKind(blob, it.fileName);
+        if(vk){ libReaderOpen(it.title, blob, vk, it.fileName); return; }
+      }
+      const objUrl = URL.createObjectURL(blob);
+      if(download){
+        const a = document.createElement("a"); a.href = objUrl; a.download = it.fileName;
+        document.body.appendChild(a); a.click(); a.remove();
+      } else {
+        const w = window.open(objUrl, "_blank");
+        if(!w) alert("Dosya açılamadı. “İndir” butonunu deneyin.");
+      }
+      setTimeout(()=>URL.revokeObjectURL(objUrl), 120000);
+    } else {
+      // İçeriği bu sekmede indiremedik (ör. ağ sorunu); dosyayı doğrudan bağlantısından aç.
+      if(download){
+        const a = document.createElement("a"); a.href = it.url; a.download = it.fileName; a.target = "_blank"; a.rel = "noopener";
+        document.body.appendChild(a); a.click(); a.remove();
+      } else {
+        const w = window.open(it.url, "_blank", "noopener");
+        if(!w) alert("Dosya açılamadı. Tarayıcı açılır pencereleri engelliyor olabilir.");
+      }
+    }
+    return;
+  }
+
+  // Eski/yedek yol: yalnızca bu cihazda (IndexedDB) saklanan dosya
   let rec = null;
   try{ rec = await idbGet(it.fileKey); }catch(e){ rec = null; }
-  if(!rec || !rec.blob){ alert("Dosya bulunamadı. Başka bir tarayıcıdan ya da yeni dosya sürümünden açıyorsanız önce yedeği yükleyin."); return; }
+  if(!rec || !rec.blob){ alert("Dosya bulunamadı. Bu dosya yalnızca eklendiği cihazda saklanmıştı ve şu an erişilemiyor."); return; }
   const blob = rec.blob.type ? rec.blob : new Blob([rec.blob], {type:guessMime(it.fileName)});
   if(!download){
     const vk = libViewerKind(blob, it.fileName);
@@ -5841,7 +5974,10 @@ function libWire(sec){
     else if(act==="res-delete"){
       const items = resLoad(sec, nav.unitId), it = items.find(x=>x.id===id); if(!it) return;
       if(!confirm('"'+it.title+'" kaynağı silinsin mi?')) return;
-      if(it.kind==="file"){ idbDelete(it.fileKey).catch(()=>{}); }
+      if(it.kind==="file"){
+        if(it.storagePath && fbStorage) fbStorage.ref(it.storagePath).delete().catch(()=>{});
+        if(it.fileKey) idbDelete(it.fileKey).catch(()=>{});
+      }
       resSave(sec, nav.unitId, items.filter(x=>x.id!==id)); libRender(sec);
     }
     else if(act==="backup"){ sinifBackup(t); }
