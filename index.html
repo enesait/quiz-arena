@@ -11,7 +11,6 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <style>
   :root{
     --team1: #3D74F4;
@@ -1460,23 +1459,23 @@ t)).default()}catch(e){warn(`JpxImage#getJsModule: ${e}`)}e(n)}static async#E(e,
    kaynakları VE giriş hesapları (patron/yönetici/öğretmen) artık bir cihaza değil buluta
    kaydediliyor; bir cihazda eklenen her şey, aynı sayfayı açan tüm cihazlarda anında görünür.
    ÖNEMLİ: Aşağıdaki değerler YER TUTUCUDUR — kendi Firebase projenizin bilgileriyle
-   değiştirmeniz gerekir (Firebase Console > Project settings > SDK setup and configuration). */
+   değiştirmeniz gerekir (Firebase Console > Project settings > SDK setup and configuration).
+   Not: Storage (dosya depolama) kullanılmıyor — Blaze/kart gerektirmesin diye dosyalar
+   doğrudan (base64 olarak) ücretsiz Realtime Database'e kaydediliyor; storageBucket alanı
+   bu yüzden gereksiz ama kalsa da zararı yok. */
 const firebaseConfig = {
-  apiKey: "BURAYA_KENDI_API_KEY_DEĞERİNİZİ_YAZIN",
-  authDomain: "BURAYA_KENDI_PROJENIZ.firebaseapp.com",
-  databaseURL: "https://BURAYA_KENDI_PROJENIZ-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "BURAYA_KENDI_PROJENIZ",
-  storageBucket: "BURAYA_KENDI_PROJENIZ.firebasestorage.app",
-  messagingSenderId: "BURAYA_KENDI_SENDER_ID",
-  appId: "BURAYA_KENDI_APP_ID",
+  apiKey: "AIzaSyC-ZKYwULkPCWvuQJVppS-splyc06Gh6tw",
+  authDomain: "dkab-sorx.firebaseapp.com",
+  databaseURL: "https://dkab-sorx-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "dkab-sorx",
+  messagingSenderId: "283261009621",
+  appId: "1:283261009621:web:884ef3d93d8f4946102c5c",
 };
 let firebaseHazir = false;
 let fbDb = null;
-let fbStorage = null;
 try{
   firebase.initializeApp(firebaseConfig);
   fbDb = firebase.database();
-  fbStorage = firebase.storage();
   // Realtime Database kuralları "auth != null" isteyebiliyor; uygulamanın kendi giriş
   // ekranından bağımsız olarak herkes için görünmez bir anonim oturum açıyoruz ki
   // okuma/yazma istekleri reddedilmesin.
@@ -4749,10 +4748,7 @@ function resSave(sec, unitId, arr){
 async function resPurgeUnit(sec, unitId){
   const items = resLoad(sec, unitId);
   for(const it of items){
-    if(it.kind==="file"){
-      if(it.storagePath && fbStorage){ try{ await fbStorage.ref(it.storagePath).delete(); }catch(e){} }
-      if(it.fileKey){ try{ await idbDelete(it.fileKey); }catch(e){} }
-    }
+    if(it.kind==="file" && it.fileKey){ try{ await idbDelete(it.fileKey); }catch(e){} }
   }
   if(resCache[sec]) delete resCache[sec][unitId];
   try{ localStorage.removeItem(resKey(sec, unitId)); }catch(e){}
@@ -4851,44 +4847,20 @@ function libRender(sec){
   body.innerHTML = html;
 }
 
-// Yükleme, zayıf bağlantıda süresiz beklemesin diye bir süre sınırı ile sarmalanır.
-function libUploadWithTimeout(sref, file, ms){
-  const task = sref.put(file, { contentType: file.type || guessMime(file.name) || undefined });
-  return new Promise((resolve, reject)=>{
-    const timer = setTimeout(()=>{ try{ task.cancel(); }catch(e){} reject(new Error("timeout")); }, ms);
-    task.then(()=>{ clearTimeout(timer); resolve(); }, err=>{ clearTimeout(timer); reject(err); });
-  });
-}
+// Dosyalar Firebase Storage (kart/Blaze gerektirir) yerine, base64'e çevrilip doğrudan
+// ücretsiz Realtime Database'e kaydediliyor. Bu yöntem küçük/orta boy dosyalar
+// (birkaç MB'a kadar pptx/pdf) için sorunsuz çalışır; çok büyük dosyalarda önce onay istenir.
+const LIB_DB_FILE_LIMIT = 7 * 1024 * 1024; // ~7MB üstü veritabanı için risklidir
 async function libAddFiles(sec, unitId, fileList){
   const items = resLoad(sec, unitId);
-  let added = 0, anyTimeout = false;
+  let added = 0;
   for(const f of Array.from(fileList)){
-    if(f.size > 200*1024*1024 && !confirm('"'+f.name+'" çok büyük bir dosya ('+fmtSize(f.size)+'). Yine de yüklensin mi?')) continue;
-    const key = libId("f");
-    let url = null, storagePath = null;
-    if(firebaseHazir && fbStorage){
-      try{
-        storagePath = "dkabSorXFiles/"+sec+"/"+unitId+"/"+key+"_"+f.name;
-        const sref = fbStorage.ref(storagePath);
-        await libUploadWithTimeout(sref, f, 25000);
-        url = await sref.getDownloadURL();
-      }catch(e){
-        if(e && e.message==="timeout") anyTimeout = true;
-        console.error("Buluta yükleme hatası:", e);
-        storagePath = null; url = null;
-      }
-    }
-    if(url){
-      items.push({ id:libId("r"), kind:"file", title:f.name.replace(/\.[^.]+$/, ""), fileName:f.name, mime:f.type||guessMime(f.name), size:f.size, url, storagePath });
-      added++;
-    } else {
-      // Bulut şu an ulaşılamıyor: yalnızca bu cihazda saklanan yedek yol.
-      try{ await idbPut(key, { blob:f, name:f.name, type:f.type||guessMime(f.name) }); }
-      catch(e){ alert('"'+f.name+'" ne buluta ne de bu tarayıcıya kaydedilebildi.'); continue; }
-      items.push({ id:libId("r"), kind:"file", title:f.name.replace(/\.[^.]+$/, ""), fileKey:key, fileName:f.name, mime:f.type||guessMime(f.name), size:f.size, localOnly:true });
-      added++;
-      alert('"'+f.name+'" buluta yüklenemedi ('+(anyTimeout ? "bağlantı çok yavaş olduğu için yükleme zaman aşımına uğradı" : "bağlantı sorunu olabilir")+'), bu yüzden yalnızca bu cihazda saklandı ve diğer cihazlarla paylaşılmayacak. Daha hızlı bir bağlantıya geçtiğinizde dosyayı silip yeniden eklemeniz önerilir.');
-    }
+    if(f.size > LIB_DB_FILE_LIMIT && !confirm('"'+f.name+'" büyük bir dosya ('+fmtSize(f.size)+'). Kartsız (ücretsiz) veritabanı yöntemi büyük dosyalarda yavaş çalışabilir ve depolama kotasını hızlı doldurabilir. Yine de eklensin mi?')) continue;
+    let dataUrl = null;
+    try{ dataUrl = await blobToDataUrl(f); }
+    catch(e){ alert('"'+f.name+'" okunamadı, eklenemedi.'); continue; }
+    items.push({ id:libId("r"), kind:"file", title:f.name.replace(/\.[^.]+$/, ""), fileName:f.name, mime:f.type||guessMime(f.name), size:f.size, dataUrl });
+    added++;
   }
   if(added) resSave(sec, unitId, items);
   if(libNav[sec].unitId===unitId) libRender(sec);
@@ -5931,34 +5903,24 @@ async function resOpen(sec, unitId, id, download){
   const it = resLoad(sec, unitId).find(x=>x.id===id); if(!it) return;
   if(it.kind==="link"){ window.open(it.url, "_blank", "noopener"); return; }
 
-  // Bulutta (Firebase Storage) saklanan dosya
-  if(it.url){
+  // Buluttaki (Realtime Database'e gömülü) dosya
+  if(it.dataUrl){
     let blob = null;
-    try{ const r = await fetch(it.url); if(r.ok) blob = await r.blob(); }catch(e){ blob = null; }
-    if(blob){
-      if(!download){
-        const vk = libViewerKind(blob, it.fileName);
-        if(vk){ libReaderOpen(it.title, blob, vk, it.fileName); return; }
-      }
-      const objUrl = URL.createObjectURL(blob);
-      if(download){
-        const a = document.createElement("a"); a.href = objUrl; a.download = it.fileName;
-        document.body.appendChild(a); a.click(); a.remove();
-      } else {
-        const w = window.open(objUrl, "_blank");
-        if(!w) alert("Dosya açılamadı. “İndir” butonunu deneyin.");
-      }
-      setTimeout(()=>URL.revokeObjectURL(objUrl), 120000);
-    } else {
-      // İçeriği bu sekmede indiremedik (ör. ağ sorunu); dosyayı doğrudan bağlantısından aç.
-      if(download){
-        const a = document.createElement("a"); a.href = it.url; a.download = it.fileName; a.target = "_blank"; a.rel = "noopener";
-        document.body.appendChild(a); a.click(); a.remove();
-      } else {
-        const w = window.open(it.url, "_blank", "noopener");
-        if(!w) alert("Dosya açılamadı. Tarayıcı açılır pencereleri engelliyor olabilir.");
-      }
+    try{ blob = dataUrlToBlob(it.dataUrl); }catch(e){ blob = null; }
+    if(!blob){ alert("Dosya okunamadı, veri bozulmuş olabilir."); return; }
+    if(!download){
+      const vk = libViewerKind(blob, it.fileName);
+      if(vk){ libReaderOpen(it.title, blob, vk, it.fileName); return; }
     }
+    const objUrl = URL.createObjectURL(blob);
+    if(download){
+      const a = document.createElement("a"); a.href = objUrl; a.download = it.fileName;
+      document.body.appendChild(a); a.click(); a.remove();
+    } else {
+      const w = window.open(objUrl, "_blank");
+      if(!w) alert("Dosya açılamadı. “İndir” butonunu deneyin.");
+    }
+    setTimeout(()=>URL.revokeObjectURL(objUrl), 120000);
     return;
   }
 
@@ -6070,10 +6032,7 @@ function libWire(sec){
     else if(act==="res-delete"){
       const items = resLoad(sec, nav.unitId), it = items.find(x=>x.id===id); if(!it) return;
       if(!confirm('"'+it.title+'" kaynağı silinsin mi?')) return;
-      if(it.kind==="file"){
-        if(it.storagePath && fbStorage) fbStorage.ref(it.storagePath).delete().catch(()=>{});
-        if(it.fileKey) idbDelete(it.fileKey).catch(()=>{});
-      }
+      if(it.kind==="file" && it.fileKey){ idbDelete(it.fileKey).catch(()=>{}); }
       resSave(sec, nav.unitId, items.filter(x=>x.id!==id)); libRender(sec);
     }
     else if(act==="backup"){ sinifBackup(t); }
