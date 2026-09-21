@@ -2009,6 +2009,36 @@ function shuffle(arr){
 /* ================= SORU BANKASI ALTYAPISI ================= */
 function qbGenId(){ return "q"+Date.now().toString(36)+Math.random().toString(36).slice(2,8); }
 function qbEscape(str){ return String(str==null?"":str).replace(/[&<>"']/g, ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch])); }
+// Soru bankaları (Genel Kültür sabit anahtarları VE SorX ünite bazlı "unitQ:..." anahtarları)
+// aynı yolla buluta senkronize edilir. QB_GAMES bu fonksiyonlardan SONRA tanımlansa da,
+// aşağıdaki eşleştirme yalnızca bulut verisi geldiğinde (asenkron) çalıştığı için sorun olmaz.
+const qbSyncedKeys = new Set();
+function qbAttachSync(storageKey, liveArr){
+  if(!firebaseHazir || qbSyncedKeys.has(storageKey)) return;
+  qbSyncedKeys.add(storageKey);
+  const ref = fbDb.ref("dkabSorXQB/"+storageKey);
+  ref.transaction(cur=>{
+    if(Array.isArray(cur) && cur.length) return; // dokunma, bulutta zaten veri var
+    return liveArr.length ? liveArr : undefined;
+  }).catch(e=>console.error("Soru bankası ilk veri oluşturma hatası ("+storageKey+"):", e));
+  ref.on("value", snap=>{
+    // liveArr, farklı zamanlarda farklı bağlamlara (genel banka veya değişik üniteler) ait
+    // olabilir; bu dinleyicinin ait olduğu anahtar artık o bağlamın GÜNCEL anahtarı değilse
+    // (öğretmen başka bir üniteye geçmiş demektir), gelen veriyi uygulamadan yok sayıyoruz —
+    // aksi halde eski ünitenin verisi yeni açılan ünitenin üstüne yazılabilir.
+    if(typeof QB_GAMES !== "undefined"){
+      let match = null;
+      for(const g in QB_GAMES){ if(QB_GAMES[g].arr === liveArr){ match = g; break; } }
+      if(match && QB_GAMES[match].storageKey !== storageKey) return;
+    }
+    const v = snap.val();
+    liveArr.splice(0, liveArr.length, ...(Array.isArray(v) ? v : []));
+    try{ localStorage.setItem(storageKey, JSON.stringify(liveArr)); }catch(e){}
+    if(typeof QB_GAMES !== "undefined"){
+      for(const g in QB_GAMES){ if(QB_GAMES[g].arr === liveArr){ try{ qbRenderPanel(g); }catch(e){} break; } }
+    }
+  }, e=>console.error("Soru bankası senkronizasyon hatası ("+storageKey+"):", e));
+}
 function qbLoadInto(liveArr, storageKey, defaultsArr){
   let loaded=null;
   try{ const raw=localStorage.getItem(storageKey); if(raw) loaded=JSON.parse(raw); }catch(e){ loaded=null; }
@@ -2017,12 +2047,17 @@ function qbLoadInto(liveArr, storageKey, defaultsArr){
     try{ localStorage.setItem(storageKey, JSON.stringify(loaded)); }catch(e){}
   }
   liveArr.splice(0, liveArr.length, ...loaded);
+  qbAttachSync(storageKey, liveArr);
 }
 function qbSave(storageKey, liveArr){
   try{
     localStorage.setItem(storageKey, JSON.stringify(liveArr));
   }catch(e){
     alert("Kaydetme başarısız oldu: tarayıcı depolama alanı dolu olabilir. Görselleri küçültmeyi veya sayısını azaltmayı deneyin.");
+  }
+  if(firebaseHazir){
+    const ref = fbDb.ref("dkabSorXQB/"+storageKey);
+    (liveArr && liveArr.length ? ref.set(liveArr) : ref.remove()).catch(e=>console.error("Soru bankası bulut kaydı başarısız ("+storageKey+"):", e));
   }
 }
 
@@ -2719,6 +2754,32 @@ function bkShowAnswer(){
 /* ================= 6) PLICKERS MODU (BETA) ================= */
 let plRoster = [];
 try{ plRoster = JSON.parse(localStorage.getItem("plRoster")||"[]"); }catch(e){ plRoster = []; }
+function plRosterSave(){
+  try{ localStorage.setItem("plRoster", JSON.stringify(plRoster)); }catch(e){}
+  if(firebaseHazir){
+    const ref = fbDb.ref("dkabSorXRoster");
+    (plRoster.length ? ref.set(plRoster) : ref.remove()).catch(e=>console.error("Sınıf listesi bulut kaydı başarısız:", e));
+  }
+}
+let plRosterSyncOn = false;
+function plRosterAttachSync(){
+  if(!firebaseHazir || plRosterSyncOn) return;
+  plRosterSyncOn = true;
+  const ref = fbDb.ref("dkabSorXRoster");
+  ref.transaction(cur=>{
+    if(Array.isArray(cur) && cur.length) return; // dokunma, bulutta zaten veri var
+    return plRoster.length ? plRoster : undefined;
+  }).catch(e=>console.error("Sınıf listesi ilk veri oluşturma hatası:", e));
+  ref.on("value", snap=>{
+    const v = snap.val();
+    plRoster = Array.isArray(v) ? v : [];
+    try{ localStorage.setItem("plRoster", JSON.stringify(plRoster)); }catch(e){}
+    const input = document.getElementById("plRosterInput");
+    if(input) input.value = plRoster.map(s=>s.name).join("\n");
+    try{ plRenderCards(); }catch(e){}
+    try{ plRenderResults(); }catch(e){}
+  }, e=>console.error("Sınıf listesi senkronizasyon hatası:", e));
+}
 let plAnswers = {};
 let plCalibOffset = 0;
 let plStream = null;
@@ -2758,7 +2819,7 @@ function plRenderCards(){
 document.getElementById("plGenerateBtn").addEventListener("click", ()=>{
   const lines = document.getElementById("plRosterInput").value.split("\n").map(s=>s.trim()).filter(Boolean);
   plRoster = lines.map((name,i)=>({id:"P"+(i+1), name}));
-  localStorage.setItem("plRoster", JSON.stringify(plRoster));
+  plRosterSave();
   plAnswers = {};
   plRenderCards();
   plRenderResults();
@@ -2767,7 +2828,7 @@ document.getElementById("plPrintBtn").addEventListener("click", ()=> window.prin
 document.getElementById("plClearBtn").addEventListener("click", ()=>{
   if(!confirm("Sınıf listesi ve tüm kartlar silinsin mi?")) return;
   plRoster = []; plAnswers = {};
-  localStorage.removeItem("plRoster");
+  plRosterSave();
   document.getElementById("plRosterInput").value="";
   plRenderCards();
   plRenderResults();
@@ -2776,6 +2837,7 @@ if(document.getElementById("plRosterInput") && plRoster.length){
   document.getElementById("plRosterInput").value = plRoster.map(s=>s.name).join("\n");
 }
 plRenderCards();
+plRosterAttachSync();
 
 document.getElementById("plRandomQBtn").addEventListener("click", ()=>{
   const plPool = TUG_QUESTIONS.filter(x=>x.o.length === 4);
@@ -4243,11 +4305,21 @@ const UNIT_GAMES = [
 function sinifDefaultClasses(){
   return [5,6,7,8].map(n=>({ id:"c"+n, name:n+". Sınıf", courses:[ { id:"c"+n+"-dkab", name:"Din Kültürü ve Ahlak Bilgisi", units:[] } ] }));
 }
+// Firebase boş dizi/nesneleri sildiği için buluttan gelen her ağacı okumadan önce
+// eksik dizileri tamamlıyoruz (LIB ağacındaki libNormalizeTree ile aynı mantık).
+function sinifNormalizeTree(d){
+  if(!d || !Array.isArray(d.classes)) d = { classes: sinifDefaultClasses(), deletedUnits: [] };
+  if(!Array.isArray(d.deletedUnits)) d.deletedUnits = [];
+  d.classes.forEach(c=>{
+    if(!Array.isArray(c.courses)) c.courses = [];
+    c.courses.forEach(co=>{ if(!Array.isArray(co.units)) co.units = []; });
+  });
+  return d;
+}
 function sinifLoad(){
   let data = null;
   try{ data = JSON.parse(localStorage.getItem(SINIF_KEY)); }catch(e){ data = null; }
-  if(!data || !Array.isArray(data.classes)) data = { classes: sinifDefaultClasses(), deletedUnits: [] };
-  if(!Array.isArray(data.deletedUnits)) data.deletedUnits = [];
+  data = sinifNormalizeTree(data);
   UNIT_PACKS.forEach(p=>{
     if(data.deletedUnits.includes(p.unitId)) return;
     const cl = data.classes.find(c=>c.id===p.classId); if(!cl) return;
@@ -4266,12 +4338,49 @@ function sinifSortClasses(arr){
   arr.sort((a,b)=>{ const x = num(a), y = num(b); return x === y ? pos.get(a) - pos.get(b) : (x < y ? -1 : 1); });
   return arr;
 }
-function sinifSave(){
-  sinifSortClasses(sinifData.classes);
-  try{ localStorage.setItem(SINIF_KEY, JSON.stringify(sinifData)); }
-  catch(e){ alert("Kaydetme başarısız oldu: tarayıcı depolama alanı dolu olabilir."); }
+// Sınıf/ders/ünite ağacında tek bir değişiklik yapar: önce anında ekranda gösterir,
+// sonra buluta arka planda (transaction ile, çakışmalara karşı korumalı) yazar.
+// LIB ağacındaki libTreeMutate ile birebir aynı desen.
+let sinifSyncOn = false;
+function sinifTreeMutate(mutateFn){
+  const optimistic = sinifNormalizeTree(JSON.parse(JSON.stringify(sinifData)));
+  mutateFn(optimistic);
+  sinifSortClasses(optimistic.classes);
+  sinifData = optimistic;
+  try{ localStorage.setItem(SINIF_KEY, JSON.stringify(sinifData)); }catch(e){}
+  sinifRender();
+  if(!firebaseHazir) return;
+  fbDb.ref("dkabSorXSinif/tree").transaction(cur=>{
+    const fresh = sinifNormalizeTree(cur ? JSON.parse(JSON.stringify(cur)) : null);
+    mutateFn(fresh);
+    sinifSortClasses(fresh.classes);
+    return fresh;
+  }, (error, committed, snapshot)=>{
+    if(error){ console.error("Bulut senkronizasyonu başarısız oldu (değişiklik şimdilik yalnızca bu cihazda):", error); return; }
+    if(committed && snapshot){
+      sinifData = sinifNormalizeTree(snapshot.val());
+      try{ localStorage.setItem(SINIF_KEY, JSON.stringify(sinifData)); }catch(e){}
+      sinifRender();
+    }
+  });
 }
-sinifSave();
+function sinifAttachSync(){
+  if(!firebaseHazir || sinifSyncOn) return;
+  sinifSyncOn = true;
+  const ref = fbDb.ref("dkabSorXSinif/tree");
+  ref.transaction(cur=>{
+    if(cur && Array.isArray(cur.classes)) return; // dokunma, mevcut veriyi koru
+    return sinifData;
+  }).catch(e=>console.error("Sınıf ağacı ilk veri oluşturma hatası:", e));
+  ref.on("value", snap=>{
+    const v = snap.val();
+    if(!v) return;
+    sinifData = sinifNormalizeTree(v);
+    try{ localStorage.setItem(SINIF_KEY, JSON.stringify(sinifData)); }catch(e){}
+    sinifRender();
+  }, e=>console.error("Sınıf ağacı senkronizasyon hatası:", e));
+}
+sinifAttachSync();
 function sinifId(prefix){ return prefix + Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
 
 function unitPathLabel(unitId){
@@ -4287,8 +4396,13 @@ function unitCount(unitId, game){
 }
 function unitTotal(unitId){ return UNIT_GAMES.reduce((s,g)=>s+unitCount(unitId,g.id), 0); }
 function unitPurge(unitId){
-  UNIT_GAMES.forEach(g=>{ try{ localStorage.removeItem("unitQ:"+unitId+":"+g.id); }catch(e){} });
-  if(!sinifData.deletedUnits.includes(unitId)) sinifData.deletedUnits.push(unitId);
+  UNIT_GAMES.forEach(g=>{
+    const key = "unitQ:"+unitId+":"+g.id;
+    try{ localStorage.removeItem(key); }catch(e){}
+    if(firebaseHazir){ fbDb.ref("dkabSorXQB/"+key).remove().catch(()=>{}); }
+  });
+  // NOT: sinifData.deletedUnits güncellemesi artık sinifTreeMutate içindeki
+  // silme işleyicisinde yapılıyor (bulutla senkron çakışmaması için).
 }
 
 /* ---- Etkinliklerin soru kaynağı: genel banka (null) veya bir ünite ---- */
@@ -4494,8 +4608,9 @@ function sinifRestore(file){
     try{
       Object.keys(p.data).forEach(k=>{ if(APP_STORAGE_KEYS.includes(k) || k.startsWith("unitQ:") || k.startsWith("res:")) localStorage.setItem(k, p.data[k]); });
     }catch(e){ alert("Yedek yüklenirken depolama alanı doldu."); }
-    // Ders Kitapları / Ders Sunumları ağaç yapısı ve kaynak listeleri buluta da yazılır ki
-    // geri yükleme, diğer cihazlardaki mevcut bulut verisinin üzerine yazılıp yeni durum olsun.
+    // Ders Kitapları / Ders Sunumları ağaç yapısı, SorX sınıf/ders/ünite yapısı, soru
+    // bankaları ve öğrenci listesi buluta da yazılır ki geri yükleme, diğer cihazlardaki
+    // mevcut bulut verisinin üzerine yazılıp yeni durum olsun.
     if(firebaseHazir){
       for(const sec of Object.keys(LIB)){
         const treeRaw = p.data[LIB[sec].key];
@@ -4504,6 +4619,14 @@ function sinifRestore(file){
       for(const k of Object.keys(p.data)){
         const m = k.match(/^res:(kitap|sunum):(.+)$/);
         if(m){ try{ await fbDb.ref("dkabSorXLib/"+m[1]+"/res/"+m[2]).set(JSON.parse(p.data[k])); }catch(e){} }
+      }
+      if(p.data[SINIF_KEY]){ try{ await fbDb.ref("dkabSorXSinif/tree").set(JSON.parse(p.data[SINIF_KEY])); }catch(e){} }
+      if(p.data["plRoster"]){ try{ await fbDb.ref("dkabSorXRoster").set(JSON.parse(p.data["plRoster"])); }catch(e){} }
+      const QB_FIXED_KEYS = ["mcQuestionsV1","tugQuestionsV1","millQuestionsV1","picQuestionsV1","scrWordsV1","bkItemsV1","wheelQuestionsV1","hpQuestionsV1","ordItemsV1"];
+      for(const k of Object.keys(p.data)){
+        if(k.startsWith("unitQ:") || QB_FIXED_KEYS.includes(k)){
+          try{ await fbDb.ref("dkabSorXQB/"+k).set(JSON.parse(p.data[k])); }catch(e){}
+        }
       }
     }
     if(p.files && typeof p.files==="object"){
@@ -4602,35 +4725,58 @@ function sinifRender(){
       else if(kind==="unit" && co) item = co.units.find(u=>u.id===id);
       if(!item) return;
       const name = prompt("Yeni ad:", item.name);
-      if(name && name.trim()){ item.name = name.trim(); sinifSave(); sinifRender(); }
+      if(!name || !name.trim()) return;
+      const newName = name.trim(), classId = sinifNav.classId, courseId = sinifNav.courseId, targetId = id, kindT = kind;
+      sinifTreeMutate(fresh=>{
+        let target = null;
+        if(kindT==="class") target = fresh.classes.find(c=>c.id===targetId);
+        else if(kindT==="course"){ const c = fresh.classes.find(x=>x.id===classId); target = c && c.courses.find(x=>x.id===targetId); }
+        else if(kindT==="unit"){ const c = fresh.classes.find(x=>x.id===classId); const u2 = c && c.courses.find(x=>x.id===courseId); target = u2 && u2.units.find(x=>x.id===targetId); }
+        if(target) target.name = newName;
+      });
     }
     else if(act==="delete"){
+      let purge = null;
       if(kind==="class"){
         const c = sinifData.classes.find(x=>x.id===id); if(!c) return;
         if(!confirm('"'+c.name+'" sınıfı, içindeki tüm dersler, üniteler ve sorular silinsin mi?')) return;
-        c.courses.forEach(x=>x.units.forEach(u=>unitPurge(u.id)));
-        sinifData.classes = sinifData.classes.filter(x=>x.id!==id);
+        purge = ()=>c.courses.forEach(x=>x.units.forEach(u=>unitPurge(u.id)));
       } else if(kind==="course" && cl){
         const c = cl.courses.find(x=>x.id===id); if(!c) return;
         if(!confirm('"'+c.name+'" dersi, içindeki tüm üniteler ve sorular silinsin mi?')) return;
-        c.units.forEach(u=>unitPurge(u.id));
-        cl.courses = cl.courses.filter(x=>x.id!==id);
+        purge = ()=>c.units.forEach(u=>unitPurge(u.id));
       } else if(kind==="unit" && co){
         const u = co.units.find(x=>x.id===id); if(!u) return;
         if(!confirm('"'+u.name+'" ünitesi ve tüm soruları silinsin mi?')) return;
-        unitPurge(u.id);
-        co.units = co.units.filter(x=>x.id!==id);
-      }
-      sinifSave(); sinifRender();
+        purge = ()=>unitPurge(u.id);
+      } else return;
+      purge();
+      const classId = sinifNav.classId, courseId = sinifNav.courseId, targetId = id, kindT = kind;
+      sinifTreeMutate(fresh=>{
+        if(kindT==="class"){
+          fresh.classes = fresh.classes.filter(x=>x.id!==targetId);
+        } else if(kindT==="course"){
+          const c = fresh.classes.find(x=>x.id===classId);
+          if(c){ const rem = c.courses.find(x=>x.id===targetId); if(rem) rem.units.forEach(u=>{ if(!fresh.deletedUnits.includes(u.id)) fresh.deletedUnits.push(u.id); }); c.courses = c.courses.filter(x=>x.id!==targetId); }
+        } else if(kindT==="unit"){
+          const c = fresh.classes.find(x=>x.id===classId); const u2 = c && c.courses.find(x=>x.id===courseId);
+          if(u2){ if(!fresh.deletedUnits.includes(targetId)) fresh.deletedUnits.push(targetId); u2.units = u2.units.filter(x=>x.id!==targetId); }
+        }
+      });
     }
     else if(act==="add"){
       const input = document.getElementById("sinifAddInput");
       const name = input ? input.value.trim() : "";
       if(!name){ if(input) input.focus(); return; }
-      if(kind==="class") sinifData.classes.push({ id:sinifId("c"), name, courses:[ { id:sinifId("k"), name:"Din Kültürü ve Ahlak Bilgisi", units:[] } ] });
-      else if(kind==="course" && cl) cl.courses.push({ id:sinifId("k"), name, units:[] });
-      else if(kind==="unit" && co) co.units.push({ id:sinifId("u"), name });
-      sinifSave(); sinifRender();
+      const classId = sinifNav.classId, courseId = sinifNav.courseId, kindT = kind;
+      const newId = kindT==="class" ? sinifId("c") : kindT==="course" ? sinifId("k") : sinifId("u");
+      const defaultCourseId = kindT==="class" ? sinifId("k") : null;
+      sinifTreeMutate(fresh=>{
+        if(kindT==="class"){ if(!fresh.classes.find(x=>x.id===newId)) fresh.classes.push({ id:newId, name, courses:[ { id:defaultCourseId, name:"Din Kültürü ve Ahlak Bilgisi", units:[] } ] }); }
+        else if(kindT==="course"){ const c = fresh.classes.find(x=>x.id===classId); if(c && !c.courses.find(x=>x.id===newId)) c.courses.push({ id:newId, name, units:[] }); }
+        else if(kindT==="unit"){ const c = fresh.classes.find(x=>x.id===classId); const co2 = c && c.courses.find(x=>x.id===courseId); if(co2 && !co2.units.find(x=>x.id===newId)) co2.units.push({ id:newId, name }); }
+      });
+      if(input) input.value = "";
     }
     else if(act==="play"){ unitOpen(t.dataset.game, false); }
     else if(act==="bank"){ unitOpen(t.dataset.game, true); }
