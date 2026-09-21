@@ -4630,30 +4630,63 @@ const libData = {}, libNav = {};
 const resCache = {}; // resCache[sec] = { [unitId]: [items] } — Firebase'ten anlık gelen kaynak listeleri
 const libSyncOn = {}; // sec -> true, gerçek zamanlı dinleyici kurulduysa
 function libId(prefix){ return prefix + Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+// Firebase, boş dizi/nesneleri sildiği için (courses/units yoksa alan hiç dönmeyebilir)
+// buluttan veya yerel depodan gelen her ağacı okumadan önce eksik dizileri tamamlıyoruz.
+function libNormalizeTree(d){
+  if(!d || !Array.isArray(d.classes)) return { classes: sinifDefaultClasses() };
+  d.classes.forEach(c=>{
+    if(!Array.isArray(c.courses)) c.courses = [];
+    c.courses.forEach(co=>{ if(!Array.isArray(co.units)) co.units = []; });
+  });
+  return d;
+}
 function libLoad(sec){
   let d = null;
   try{ d = JSON.parse(localStorage.getItem(LIB[sec].key)); }catch(e){ d = null; }
-  if(!d || !Array.isArray(d.classes)) d = { classes: sinifDefaultClasses() };
-  return d;
+  return libNormalizeTree(d);
 }
-function libSave(sec){
-  if(libData[sec]) sinifSortClasses(libData[sec].classes);
-  try{ localStorage.setItem(LIB[sec].key, JSON.stringify(libData[sec])); }
-  catch(e){ alert("Kaydetme başarısız oldu: tarayıcı depolama alanı dolu olabilir."); }
-  if(firebaseHazir){ fbDb.ref("dkabSorXLib/"+sec+"/tree").set(libData[sec]).catch(e=>console.error("Bulut kaydı başarısız:", e)); }
+// Sınıf/ders/ünite ağacında tek bir değişiklik (ekleme/yeniden adlandırma/silme) yapar.
+// Bulut varsa Firebase transaction ile "en güncel sunucu verisi üzerinde" değişikliği
+// uygular — böylece iki cihaz aynı anda farklı yerlere ekleme yapsa bile birbirinin
+// değişikliğini silmez (üzerine yazmaz).
+function libTreeMutate(sec, mutateFn){
+  if(firebaseHazir){
+    fbDb.ref("dkabSorXLib/"+sec+"/tree").transaction(cur=>{
+      const fresh = libNormalizeTree(cur ? JSON.parse(JSON.stringify(cur)) : null);
+      mutateFn(fresh);
+      sinifSortClasses(fresh.classes);
+      return fresh;
+    }, (error, committed, snapshot)=>{
+      if(error){ console.error("Değişiklik kaydedilemedi:", error); alert("Değişiklik kaydedilemedi, internet bağlantınızı kontrol edip tekrar deneyin."); return; }
+      if(committed && snapshot){
+        libData[sec] = libNormalizeTree(snapshot.val());
+        try{ localStorage.setItem(LIB[sec].key, JSON.stringify(libData[sec])); }catch(e){}
+      }
+      libRender(sec);
+    });
+  } else {
+    if(!libData[sec]) libData[sec] = { classes: sinifDefaultClasses() };
+    mutateFn(libData[sec]);
+    sinifSortClasses(libData[sec].classes);
+    try{ localStorage.setItem(LIB[sec].key, JSON.stringify(libData[sec])); }catch(e){}
+    libRender(sec);
+  }
 }
 function libAttachSync(sec){
   if(!firebaseHazir || libSyncOn[sec]) return;
   libSyncOn[sec] = true;
-  fbDb.ref("dkabSorXLib/"+sec+"/tree").on("value", snap=>{
+  const ref = fbDb.ref("dkabSorXLib/"+sec+"/tree");
+  // Bulutta bu bölüm için hiç veri yoksa (ilk kullanım), yalnızca o durumda varsayılan
+  // sınıfları oluştur. Veri zaten varsa transaction hiçbir şey yazmadan sonlanır.
+  ref.transaction(cur=>{
+    if(cur && Array.isArray(cur.classes)) return; // dokunma, mevcut veriyi koru
+    return { classes: sinifDefaultClasses() };
+  }).catch(e=>console.error("İlk veri oluşturma hatası:", e));
+  ref.on("value", snap=>{
     const v = snap.val();
-    if(v && Array.isArray(v.classes)){
-      libData[sec] = v;
-      try{ localStorage.setItem(LIB[sec].key, JSON.stringify(v)); }catch(e){}
-    } else if(!libData[sec] || !libData[sec].classes || !libData[sec].classes.length){
-      // Bulutta henüz veri yok: bu cihazın (varsa) mevcut yerel yapısını buluta taşı.
-      fbDb.ref("dkabSorXLib/"+sec+"/tree").set(libData[sec]).catch(()=>{});
-    }
+    if(!v) return; // henüz yazılmadı; birazdan yukarıdaki transaction tetikleyecek
+    libData[sec] = libNormalizeTree(v);
+    try{ localStorage.setItem(LIB[sec].key, JSON.stringify(libData[sec])); }catch(e){}
     libRender(sec);
   }, e=>console.error("Senkronizasyon hatası:", e));
   fbDb.ref("dkabSorXLib/"+sec+"/res").on("value", snap=>{
@@ -4677,7 +4710,10 @@ function resSave(sec, unitId, arr){
   resCache[sec][unitId] = arr;
   try{ localStorage.setItem(resKey(sec, unitId), JSON.stringify(arr)); }
   catch(e){ alert("Kaydetme başarısız oldu: tarayıcı depolama alanı dolu olabilir."); }
-  if(firebaseHazir){ fbDb.ref("dkabSorXLib/"+sec+"/res/"+unitId).set(arr).catch(e=>console.error("Bulut kaydı başarısız:", e)); }
+  if(firebaseHazir){
+    const p = fbDb.ref("dkabSorXLib/"+sec+"/res/"+unitId);
+    (arr && arr.length ? p.set(arr) : p.remove()).catch(e=>console.error("Bulut kaydı başarısız:", e));
+  }
 }
 async function resPurgeUnit(sec, unitId){
   const items = resLoad(sec, unitId);
@@ -5932,35 +5968,50 @@ function libWire(sec){
       else if(kind==="unit" && co) item = co.units.find(u=>u.id===id);
       if(!item) return;
       const name = prompt("Yeni ad:", item.name);
-      if(name && name.trim()){ item.name = name.trim(); libSave(sec); libRender(sec); }
+      if(!name || !name.trim()) return;
+      const newName = name.trim(), classId = nav.classId, courseId = nav.courseId, targetId = id, kindT = kind;
+      libTreeMutate(sec, fresh=>{
+        let target = null;
+        if(kindT==="class") target = fresh.classes.find(c=>c.id===targetId);
+        else if(kindT==="course"){ const c = fresh.classes.find(x=>x.id===classId); target = c && c.courses.find(x=>x.id===targetId); }
+        else if(kindT==="unit"){ const c = fresh.classes.find(x=>x.id===classId); const u2 = c && c.courses.find(x=>x.id===courseId); target = u2 && u2.units.find(x=>x.id===targetId); }
+        if(target) target.name = newName;
+      });
     }
     else if(act==="delete"){
+      let label = "", purge = null;
       if(kind==="class"){
         const c = data.classes.find(x=>x.id===id); if(!c) return;
         if(!confirm('"'+c.name+'" sınıfı, içindeki tüm dersler, üniteler ve kaynaklar silinsin mi?')) return;
-        c.courses.forEach(x=>x.units.forEach(u=>resPurgeUnit(sec, u.id)));
-        data.classes = data.classes.filter(x=>x.id!==id);
+        purge = ()=>c.courses.forEach(x=>x.units.forEach(u=>resPurgeUnit(sec, u.id)));
       } else if(kind==="course" && cl){
         const c = cl.courses.find(x=>x.id===id); if(!c) return;
         if(!confirm('"'+c.name+'" dersi, içindeki tüm üniteler ve kaynaklar silinsin mi?')) return;
-        c.units.forEach(u=>resPurgeUnit(sec, u.id));
-        cl.courses = cl.courses.filter(x=>x.id!==id);
+        purge = ()=>c.units.forEach(u=>resPurgeUnit(sec, u.id));
       } else if(kind==="unit" && co){
         const u = co.units.find(x=>x.id===id); if(!u) return;
         if(!confirm('"'+u.name+'" ünitesi ve tüm kaynakları silinsin mi?')) return;
-        resPurgeUnit(sec, u.id);
-        co.units = co.units.filter(x=>x.id!==id);
-      }
-      libSave(sec); libRender(sec);
+        purge = ()=>resPurgeUnit(sec, u.id);
+      } else return;
+      if(purge) purge();
+      const classId = nav.classId, courseId = nav.courseId, targetId = id, kindT = kind;
+      libTreeMutate(sec, fresh=>{
+        if(kindT==="class") fresh.classes = fresh.classes.filter(x=>x.id!==targetId);
+        else if(kindT==="course"){ const c = fresh.classes.find(x=>x.id===classId); if(c) c.courses = c.courses.filter(x=>x.id!==targetId); }
+        else if(kindT==="unit"){ const c = fresh.classes.find(x=>x.id===classId); const u2 = c && c.courses.find(x=>x.id===courseId); if(u2) u2.units = u2.units.filter(x=>x.id!==targetId); }
+      });
     }
     else if(act==="add"){
       const input = document.getElementById("libAddInput-"+sec);
       const name = input ? input.value.trim() : "";
       if(!name){ if(input) input.focus(); return; }
-      if(kind==="class") data.classes.push({ id:libId("c"), name, courses:[ { id:libId("k"), name:"Din Kültürü ve Ahlak Bilgisi", units:[] } ] });
-      else if(kind==="course" && cl) cl.courses.push({ id:libId("k"), name, units:[] });
-      else if(kind==="unit" && co) co.units.push({ id:libId("u"), name });
-      libSave(sec); libRender(sec);
+      const classId = nav.classId, courseId = nav.courseId, kindT = kind;
+      libTreeMutate(sec, fresh=>{
+        if(kindT==="class") fresh.classes.push({ id:libId("c"), name, courses:[ { id:libId("k"), name:"Din Kültürü ve Ahlak Bilgisi", units:[] } ] });
+        else if(kindT==="course"){ const c = fresh.classes.find(x=>x.id===classId); if(c) c.courses.push({ id:libId("k"), name, units:[] }); }
+        else if(kindT==="unit"){ const c = fresh.classes.find(x=>x.id===classId); const co2 = c && c.courses.find(x=>x.id===courseId); if(co2) co2.units.push({ id:libId("u"), name }); }
+      });
+      if(input) input.value = "";
     }
     else if(act==="pick-file"){ document.getElementById("libFile-"+sec).click(); }
     else if(act==="add-link"){ libAddLink(sec); }
