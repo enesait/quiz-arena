@@ -4,32 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dkab SorX</title>
-<script>
-/* GEÇİCİ HATA GÖSTERİCİ — sorun çözülünce kaldırılacak.
-   Sayfa yüklenirken veya herhangi bir tıklamada oluşan bir JS hatasını,
-   gizli konsol yerine doğrudan ekranda kırmızı bir kutuda gösterir. */
-(function(){
-  var box = null;
-  function show(msg){
-    if(!box){
-      box = document.createElement("div");
-      box.style.cssText = "position:fixed;left:0;right:0;top:0;z-index:999999;background:#b00020;color:#fff;font:12px/1.4 monospace;padding:10px;max-height:60vh;overflow:auto;white-space:pre-wrap;word-break:break-word;";
-      document.documentElement.appendChild(box);
-    }
-    var line = document.createElement("div");
-    line.style.cssText = "border-top:1px solid rgba(255,255,255,.3);padding-top:6px;margin-top:6px;";
-    line.textContent = msg;
-    box.appendChild(line);
-  }
-  window.addEventListener("error", function(e){
-    show("HATA: " + (e.message||e) + "\n" + (e.filename||"") + ":" + (e.lineno||"") + ":" + (e.colno||""));
-  });
-  window.addEventListener("unhandledrejection", function(e){
-    var r = e.reason;
-    show("PROMISE HATASI: " + (r && r.message ? r.message : r) + (r && r.stack ? "\n" + r.stack : ""));
-  });
-})();
-</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
