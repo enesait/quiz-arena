@@ -1483,6 +1483,24 @@ try{
   firebaseHazir = true;
 }catch(e){ console.error("Firebase başlatılamadı, veriler yalnızca bu cihazda saklanacak:", e); }
 
+/* ---- Acil kısıtlama anahtarı: patron açarsa, dosya açma/indirme/ekleme (maliyetli olan
+   kısım) geçici olarak kapanır; yarışma soruları (ucuz, metin ağırlıklı) etkilenmez. ---- */
+let filesDisabled = false;
+let maintSyncOn = false;
+function maintAttachSync(){
+  if(!firebaseHazir || maintSyncOn) return;
+  maintSyncOn = true;
+  fbDb.ref("dkabSorXMaint/filesDisabled").on("value", snap=>{
+    filesDisabled = !!snap.val();
+    if(document.getElementById("adminBody")) try{ adminRender(); }catch(e){}
+  }, e=>console.error("Bakım modu senkronizasyon hatası:", e));
+}
+function maintSetFilesDisabled(v){
+  filesDisabled = !!v;
+  if(firebaseHazir){ fbDb.ref("dkabSorXMaint/filesDisabled").set(filesDisabled).catch(e=>console.error("Bakım modu kaydı başarısız:", e)); }
+}
+maintAttachSync();
+
 /* ================= GİRİŞ VE YETKİ ================= */
 const AUTH_KEY = "authUsersV1", AUTH_SESSION = "authSessionV1", AUTH_PATRON_DEFAULT = "NUSMİDSA";
 const AUTH_ROLE_LABEL = { patron:"Patron", yonetici:"Yönetici", ogretmen:"Öğretmen" };
@@ -1650,6 +1668,11 @@ function adminRender(){
     '<div class="adm-card"><div class="adm-title">👑 Patron</div>'
     + '<div class="adm-help">Giriş için kullanıcı adı <b>Patron</b>. Şifrelerde büyük/küçük harf ayrımı yoktur. Şifre kutusunu değiştirip Kaydet’e basın.</div>'
     + admRow("patron", "👑", "Patron (siz)", authData.patron.pw, false) + '</div>'
+    + '<div class="adm-card"><div class="adm-title">🚦 Dosya erişimi</div>'
+    + '<div class="adm-help">Bulut kullanımı beklenmedik şekilde arttıysa, dosya açma/indirme/ekleme işlemlerini geçici olarak kapatabilirsiniz. Yarışma soruları bundan etkilenmez, oynanmaya devam eder.</div>'
+    + '<div class="adm-add"><button type="button" class="adm-btn' + (filesDisabled ? ' danger' : '') + '" data-adm="toggle-files">'
+    + (filesDisabled ? '🔴 Dosyalar şu an KAPALI — açmak için tıklayın' : '🟢 Dosyalar şu an açık — geçici kapatmak için tıklayın')
+    + '</button></div></div>'
     + '<div class="adm-card"><div class="adm-title">➕ Kullanıcı ekle</div>'
     + '<div class="adm-help">Kullanıcı eklenince şifre otomatik oluşur. İsterseniz sonradan değiştirebilirsiniz.</div>'
     + '<div class="adm-add"><input type="text" id="admNewName" placeholder="Kullanıcı adı" maxlength="30" autocomplete="off">'
@@ -1689,6 +1712,13 @@ function admSavePw(id){
   body.addEventListener("click", (e)=>{
     const b = e.target.closest("[data-adm]"); if(!b || Auth.role() !== "patron") return;
     const act = b.dataset.adm, id = b.dataset.id;
+    if(act === "toggle-files"){
+      const turningOff = !filesDisabled;
+      if(turningOff && !confirm("Dosya açma/indirme/ekleme herkes için geçici olarak kapatılsın mı? Yarışma soruları etkilenmez, siz tekrar açana kadar geçerli olur.")) return;
+      maintSetFilesDisabled(turningOff);
+      adminRender();
+      return;
+    }
     if(act === "save") admSavePw(id);
     else if(act === "gen"){
       const t = admFind(id); if(!t) return;
@@ -5000,6 +5030,7 @@ function libRender(sec){
 // üstündeki dosyalar doğrudan reddedilip kullanıcı sıkıştırmaya veya Bağlantı Ekle'ye yönlendirilir.
 const LIB_DB_FILE_LIMIT = 6 * 1024 * 1024;
 async function libAddFiles(sec, unitId, fileList){
+  if(filesDisabled){ alert("Dosya ekleme şu an patron tarafından geçici olarak kapatıldı. Lütfen daha sonra tekrar deneyin."); return; }
   const items = resLoad(sec, unitId);
   let added = 0;
   for(const f of Array.from(fileList)){
@@ -6051,6 +6082,7 @@ document.addEventListener("keydown", (e)=>{
 });
 
 async function resOpen(sec, unitId, id, download){
+  if(filesDisabled){ alert("Dosya açma/indirme şu an patron tarafından geçici olarak kapatıldı. Lütfen daha sonra tekrar deneyin."); return; }
   const it = resLoad(sec, unitId).find(x=>x.id===id); if(!it) return;
   if(it.kind==="link"){ window.open(it.url, "_blank", "noopener"); return; }
 
