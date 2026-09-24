@@ -259,6 +259,48 @@
   .bk-clue{ font-weight:700; font-size:1rem; line-height:1.4; margin-bottom:10px; padding:12px 14px; background:#F6F7FB; border:2px solid #E1E7EF; border-radius:12px; }
   .bk-clue-num{ font-family:'Space Grotesk'; font-weight:800; color:var(--violet-dark); margin-right:4px; }
 
+  /* ---------- akıllı tahta / büyük ekran: 4 oyun büyük görünsün ---------- */
+  @media (min-width:1200px){
+    #view-multiple .game-wrap, #view-scramble .game-wrap, #view-benkim .game-wrap{ zoom:1.4; }
+    #view-tugofwar .game-wrap{ zoom:1.2; }
+    #scrField, #bkField{ max-width:760px !important; }
+  }
+  @media (min-width:1600px){
+    #view-multiple .game-wrap, #view-scramble .game-wrap, #view-benkim .game-wrap{ zoom:1.75; }
+    #view-tugofwar .game-wrap{ zoom:1.4; }
+  }
+  @media (min-width:2200px){
+    #view-multiple .game-wrap, #view-scramble .game-wrap, #view-benkim .game-wrap{ zoom:2.4; }
+    #view-tugofwar .game-wrap{ zoom:1.9; }
+  }
+
+  /* ---------- BoomSoru: büyük soru + bombanın kimde olduğu ---------- */
+  #hpPanel .question{ font-size:clamp(1.3rem,3vw,2.2rem); line-height:1.35; min-height:2.6em; margin-bottom:16px; }
+  #hpPanel .opt{ font-size:clamp(1.05rem,2.2vw,1.5rem); padding:16px 14px; gap:12px; align-items:center; }
+  #hpPanel .opt .letter{ width:34px; height:34px; font-size:1.05rem; }
+  #hpPanel .waiting{ font-size:1.1rem; min-height:1.6em; }
+  #hpPanel .whl-cat-tag{ font-size:1rem; }
+  #hpPanel .options.stack{ gap:12px; }
+  .field .hp-stage{ flex-direction:column; align-items:stretch; flex-wrap:nowrap; }
+  .hp-stage .hp-left{ width:100%; }
+  .hp-stage .hp-right{ flex:none; width:100%; }
+  .hp-arena{ position:relative; width:100%; height:clamp(150px,24vw,220px); border-radius:18px; overflow:hidden; display:flex; }
+  .hp-zone{ flex:1; display:flex; align-items:flex-start; justify-content:center; padding-top:8px; font-family:'Space Grotesk'; font-weight:700; font-size:.95rem; }
+  .hp-zone.z1{ background:#EAF0FF; color:var(--team1-dark); }
+  .hp-zone.z2{ background:#FFEDEA; color:var(--team2-dark); }
+  .hp-mover{ position:absolute; top:54%; left:50%; width:clamp(100px,17vw,170px); transform:translate(-50%,-50%); z-index:2; transition:left .8s cubic-bezier(.55,-.2,.3,1.2); }
+  .hp-mover[data-pos="1"]{ left:17%; }
+  .hp-mover[data-pos="2"]{ left:83%; }
+  .hp-mover .hp-potato{ font-size:clamp(3.2rem,9vw,5.2rem); }
+  @media (min-width:900px){ #hpPanel .options.stack{ grid-template-columns:1fr 1fr; } }
+  .hp-potato-wrap.own1{ outline:6px solid var(--team1); outline-offset:3px; }
+  .hp-potato-wrap.own2{ outline:6px solid var(--team2); outline-offset:3px; }
+  .hp-potato-wrap.pass{ animation:hpPass .7s ease-out; }
+  @keyframes hpPass{ 0%{ transform:translateY(0); } 40%{ transform:translateY(-55px) scale(1.15); } 100%{ transform:translateY(0); } }
+  @media (min-width:1200px){ #view-hotpotato .game-wrap{ zoom:1.3; } }
+  @media (min-width:1600px){ #view-hotpotato .game-wrap{ zoom:1.5; } }
+  @media (min-width:2200px){ #view-hotpotato .game-wrap{ zoom:2; } }
+
   .sidebar > *{ flex-shrink:0; }
 
   /* ---------- mobil: hamburger + soldan açılan menü ---------- */
@@ -768,7 +810,7 @@
   @media (min-width:1200px){ .lr-sub{ bottom:calc(104px + env(safe-area-inset-bottom, 0px)); } }
   @media (min-width:1700px){ .lr-sub{ bottom:calc(118px + env(safe-area-inset-bottom, 0px)); } .lr-toast{ bottom:calc(250px + env(safe-area-inset-bottom, 0px)); } }
 
-  /* --- Sıcak Patates & Sıralama --- */
+  /* --- BoomSoru & Sıralama --- */
   .nav-item[data-view="hotpotato"] .nav-icon{ background:#FFE9D6; }
   .nav-item[data-view="ordering"] .nav-icon{ background: var(--blue-soft); }
   .hp-stage{ display:flex; gap:22px; flex-wrap:wrap; align-items:flex-start; justify-content:center; }
@@ -889,7 +931,7 @@
     <button class="nav-item" data-view="scramble"><span class="nav-icon">🔤</span><span>Karışık Kelimeler<small>Din Kültürü</small></span></button>
     <button class="nav-item" data-view="benkim"><span class="nav-icon">🕵️</span><span>Ben Kimim?<small>Din Kültürü</small></span></button>
     <button class="nav-item" data-view="wheel"><span class="nav-icon">🎡</span><span>Çarkıfelek<small>Din Kültürü</small></span></button>
-    <button class="nav-item" data-view="hotpotato"><span class="nav-icon">🥔</span><span>Sıcak Patates<small>Din Kültürü</small></span></button>
+    <button class="nav-item" data-view="hotpotato"><span class="nav-icon">💣</span><span>BoomSoru<small>Din Kültürü</small></span></button>
     <button class="nav-item" data-view="ordering"><span class="nav-icon">🔢</span><span>Sıralama<small>Din Kültürü</small></span></button>
     <button class="nav-item" data-view="questionbank"><span class="nav-icon">📝</span><span>Soruları Düzenle<small>Genel Kültür soruları</small></span></button>
     <div class="nav-item disabled"><span class="nav-icon">➕</span><span>Yakında</span></div>
@@ -1124,19 +1166,19 @@
       </div>
     </section>
 
-    <!-- SICAK PATATES -->
+    <!-- BOOMSORU -->
     <section id="view-hotpotato" class="view">
       <div class="game-wrap">
         <div class="game-topbar"><button class="home-link" data-view="home">🏠 Ana Sayfa</button><span></span></div>
-        <h1 class="game-title">🥔 Sıcak Patates</h1>
-        <div class="subtitle">Patates hangi takımdaysa o takım soruyu cevaplar. Doğru bilen patatesi rakibe atar, yanlış bilirse patates elinde kalır. Süre bitince patates patlar!</div>
+        <h1 class="game-title">💣 BoomSoru</h1>
+        <div class="subtitle">Bomba hangi takımdaysa o takım soruyu cevaplar. Doğru bilen bombayı rakibe atar, yanlış bilirse bomba elinde kalır. Süre bitince bomba patlar!</div>
 
         <div class="setup-bar" id="hpSetupBar">
           <span class="lbl">🏆 İlk kazanılacak tur:</span>
           <button class="preset" data-hpround="3">3</button>
           <button class="preset active" data-hpround="5">5</button>
           <button class="preset" data-hpround="7">7</button>
-          <span class="lbl">⏱ Patates süresi:</span>
+          <span class="lbl">⏱ Bomba süresi:</span>
           <button class="preset" data-hpdur="short">Kısa</button>
           <button class="preset active" data-hpdur="mid">Orta</button>
           <button class="preset" data-hpdur="long">Uzun</button>
@@ -1145,18 +1187,20 @@
 
         <div class="scoreboard">
           <div class="score-chip t1" id="hpChip1"><span>Mavi Takım</span><span class="num" id="hpScore1">0</span></div>
-          <div class="whl-turn" id="hpTurn"><span class="lbl">PATATES</span><span class="who" id="hpTurnName">—</span><span class="lbl" id="hpTurnLbl">İLK 5 TUR</span></div>
+          <div class="whl-turn" id="hpTurn"><span class="lbl">BOMBA</span><span class="who" id="hpTurnName">—</span><span class="lbl" id="hpTurnLbl">İLK 5 TUR</span></div>
           <div class="score-chip t2" id="hpChip2"><span>Kırmızı Takım</span><span class="num" id="hpScore2">0</span></div>
         </div>
 
         <div class="field">
           <div class="hp-stage">
             <div class="hp-left">
-              <div class="hp-potato-wrap lv0" id="hpPotatoWrap"><div class="hp-potato lv0" id="hpPotato">🥔</div></div>
+              <div class="hp-arena"><div class="hp-zone z1">🔵 Mavi Takım</div><div class="hp-zone z2">🔴 Kırmızı Takım</div>
+                <div class="hp-mover" id="hpMover" data-pos="0"><div class="hp-potato-wrap lv0" id="hpPotatoWrap"><div class="hp-potato lv0" id="hpPotato">💣</div></div></div>
+              </div>
               <button class="preset" id="hpSoundBtn" type="button">🔊 Ses açık</button>
             </div>
             <div class="hp-right">
-              <div class="panel t1" id="hpPanel"><div class="placeholder">Oyunu başlatınca patates ilk takıma geçer ve süre gizlice işlemeye başlar.</div></div>
+              <div class="panel t1" id="hpPanel"><div class="placeholder">Oyunu başlatınca bomba ilk takıma geçer ve süre gizlice işlemeye başlar.</div></div>
             </div>
           </div>
         </div>
@@ -1316,7 +1360,7 @@
           <button class="pl-tab" data-qbtab="scr">🔤 Karışık Kelimeler</button>
           <button class="pl-tab" data-qbtab="bk">🕵️ Ben Kimim?</button>
           <button class="pl-tab" data-qbtab="whl">🎡 Çarkıfelek</button>
-          <button class="pl-tab" data-qbtab="hp">🥔 Sıcak Patates</button>
+          <button class="pl-tab" data-qbtab="hp">💣 BoomSoru</button>
           <button class="pl-tab" data-qbtab="ord">🔢 Sıralama</button>
         </div>
 
@@ -1576,6 +1620,13 @@ function authResolve(sess){
 }
 try{ Auth.user = authResolve(JSON.parse(sessionStorage.getItem(AUTH_SESSION))); }catch(e){ Auth.user = null; }
 
+/* Dosya erişimi: genel anahtar kapalıysa herkes, ayrıca patron tek tek öğretmenleri de kapatabilir */
+function filesBlocked(){
+  if(filesDisabled) return true;
+  if(Auth.role() !== "ogretmen") return false;
+  const u = authData.users.find(x=>x.id === Auth.user.id);
+  return !!(u && u.filesOff);
+}
 function authAllowView(view){
   const r = Auth.role();
   if(!r) return view === "home";
@@ -1645,13 +1696,14 @@ document.addEventListener("click", (e)=>{
 }, true);
 
 /* ---- Yönetim sayfası (yalnızca patron) ---- */
-function admRow(id, icon, name, pw, canDelete){
+function admRow(id, icon, name, pw, canDelete, filesOff){
   const e = qbEscape;
   return '<div class="adm-row" data-id="' + e(id) + '"><div class="adm-name">' + icon + ' ' + e(name) + '</div><div class="adm-pwbox">'
     + '<input type="text" class="adm-pw" data-id="' + e(id) + '" value="' + e(pw) + '" spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="' + e(name) + ' şifresi">'
     + '<button type="button" class="adm-btn" data-adm="save" data-id="' + e(id) + '">Kaydet</button>'
     + '<button type="button" class="adm-btn" data-adm="gen" data-id="' + e(id) + '">🎲 Yeni</button>'
     + '<button type="button" class="adm-btn" data-adm="copy" data-id="' + e(id) + '" title="Kullanıcı adı ve şifreyi kopyala">📋</button>'
+    + (filesOff === undefined ? '' : '<button type="button" class="adm-btn' + (filesOff ? ' danger' : '') + '" data-adm="toggle-user-files" data-id="' + e(id) + '" title="Bu öğretmenin dosya açma/indirme/ekleme erişimini aç/kapat">' + (filesOff ? '🔒 Dosya: Kapalı' : '📂 Dosya: Açık') + '</button>')
     + (canDelete ? '<button type="button" class="adm-btn danger" data-adm="del" data-id="' + e(id) + '" title="Sil">🗑️</button>' : '')
     + '</div></div>';
 }
@@ -1662,14 +1714,14 @@ function adminRender(){
   const byName = (a, b)=>a.name.localeCompare(b.name, "tr");
   const list = (role)=>{
     const us = authData.users.filter(u=>u.role === role).sort(byName);
-    return us.length ? us.map(u=>admRow(u.id, AUTH_ROLE_ICON[role], u.name, u.pw, true)).join("") : '<div class="adm-empty">Henüz kullanıcı yok.</div>';
+    return us.length ? us.map(u=>admRow(u.id, AUTH_ROLE_ICON[role], u.name, u.pw, true, role === "ogretmen" ? !!u.filesOff : undefined)).join("") : '<div class="adm-empty">Henüz kullanıcı yok.</div>';
   };
   body.innerHTML =
     '<div class="adm-card"><div class="adm-title">👑 Patron</div>'
     + '<div class="adm-help">Giriş için kullanıcı adı <b>Patron</b>. Şifrelerde büyük/küçük harf ayrımı yoktur. Şifre kutusunu değiştirip Kaydet’e basın.</div>'
     + admRow("patron", "👑", "Patron (siz)", authData.patron.pw, false) + '</div>'
     + '<div class="adm-card"><div class="adm-title">🚦 Dosya erişimi</div>'
-    + '<div class="adm-help">Bulut kullanımı beklenmedik şekilde arttıysa, dosya açma/indirme/ekleme işlemlerini geçici olarak kapatabilirsiniz. Yarışma soruları bundan etkilenmez, oynanmaya devam eder.</div>'
+    + '<div class="adm-help">Bulut kullanımı beklenmedik şekilde arttıysa, dosya açma/indirme/ekleme işlemlerini geçici olarak kapatabilirsiniz. Yarışma soruları bundan etkilenmez, oynanmaya devam eder. Bir öğretmenin yanındaki “Dosya” düğmesiyle yalnızca o öğretmeni de kapatabilirsiniz.</div>'
     + '<div class="adm-add"><button type="button" class="adm-btn' + (filesDisabled ? ' danger' : '') + '" data-adm="toggle-files">'
     + (filesDisabled ? '🔴 Dosyalar şu an KAPALI — açmak için tıklayın' : '🟢 Dosyalar şu an açık — geçici kapatmak için tıklayın')
     + '</button></div></div>'
@@ -1717,6 +1769,12 @@ function admSavePw(id){
       if(turningOff && !confirm("Dosya açma/indirme/ekleme herkes için geçici olarak kapatılsın mı? Yarışma soruları etkilenmez, siz tekrar açana kadar geçerli olur.")) return;
       maintSetFilesDisabled(turningOff);
       adminRender();
+      return;
+    }
+    if(act === "toggle-user-files"){
+      const t = admFind(id); if(!t || id === "patron") return;
+      t.filesOff = !t.filesOff;
+      if(authSave()) adminRender();
       return;
     }
     if(act === "save") admSavePw(id);
@@ -3216,7 +3274,7 @@ function resetWheel(){
   whlUpdateBoard();
 }
 
-/* ================= 6b) SICAK PATATES ================= */
+/* ================= 6b) BOOMSORU ================= */
 const HP_QUESTIONS_DEFAULTS = [
   {q:"Kur'an-ı Kerim kaç sureden oluşur?", o:["99","104","114","124"], c:2},
   {q:"Kur'an-ı Kerim'in ilk suresi hangisidir?", o:["Bakara","Fatiha","İhlas","Nas"], c:1},
@@ -3246,28 +3304,60 @@ function hpCtx(){
   if(hpAudio && hpAudio.state === "suspended"){ try{ hpAudio.resume(); }catch(e){} }
   return hpAudio;
 }
-function hpBeep(freq, dur, vol){
+function hpNoise(c, sec, pow){
+  const len = Math.floor(c.sampleRate * sec), buf = c.createBuffer(1, len, c.sampleRate), d = buf.getChannelData(0);
+  for(let i=0;i<len;i++) d[i] = (Math.random()*2-1) * Math.pow(1 - i/len, pow);
+  const s = c.createBufferSource(); s.buffer = buf; return s;
+}
+function hpBeep(freq, dur, vol){          // saatli bomba "tik-tak"
   if(!hpSoundOn) return;
   const c = hpCtx(); if(!c) return;
   try{
-    const o = c.createOscillator(), g = c.createGain(), t0 = c.currentTime;
-    o.type = "square"; o.frequency.value = freq; o.connect(g); g.connect(c.destination);
-    g.gain.setValueAtTime(vol, t0); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
-    o.start(t0); o.stop(t0 + dur + 0.02);
+    const t0 = c.currentTime;
+    const n = hpNoise(c, 0.03, 3), f = c.createBiquadFilter(), g = c.createGain();
+    f.type = "bandpass"; f.frequency.value = freq * 2.2; f.Q.value = 4; g.gain.value = vol * 6;
+    n.connect(f); f.connect(g); g.connect(c.destination); n.start(t0);
+    const o = c.createOscillator(), g2 = c.createGain();
+    o.type = "sine"; o.frequency.value = freq * 0.9; o.connect(g2); g2.connect(c.destination);
+    g2.gain.setValueAtTime(vol * 3, t0); g2.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.07);
+    o.start(t0); o.stop(t0 + 0.09);
   }catch(e){}
 }
-function hpBoomSound(){
+function hpFuse(){                        // fitil cızırtısı
   if(!hpSoundOn) return;
   const c = hpCtx(); if(!c) return;
   try{
-    const len = Math.floor(c.sampleRate * 0.7), buf = c.createBuffer(1, len, c.sampleRate), d = buf.getChannelData(0);
-    for(let i=0;i<len;i++) d[i] = (Math.random()*2-1) * Math.pow(1 - i/len, 2);
-    const s = c.createBufferSource(), g = c.createGain(); s.buffer = buf; g.gain.value = 0.5; s.connect(g); g.connect(c.destination); s.start();
+    const n = hpNoise(c, 0.7, 0.5), f = c.createBiquadFilter(), g = c.createGain();
+    f.type = "highpass"; f.frequency.value = 3500; g.gain.value = 0.18;
+    n.connect(f); f.connect(g); g.connect(c.destination); n.start();
+  }catch(e){}
+}
+function hpWhoosh(){                      // bomba rakibe fırlarken
+  if(!hpSoundOn) return;
+  const c = hpCtx(); if(!c) return;
+  try{
+    const t0 = c.currentTime, n = hpNoise(c, 0.5, 1), f = c.createBiquadFilter(), g = c.createGain();
+    f.type = "bandpass"; f.Q.value = 2; f.frequency.setValueAtTime(400, t0); f.frequency.exponentialRampToValueAtTime(2200, t0 + 0.45);
+    g.gain.value = 0.35; n.connect(f); f.connect(g); g.connect(c.destination); n.start(t0);
+  }catch(e){}
+}
+function hpBoomSound(){                   // patlama: gürleme + gümbürtü
+  if(!hpSoundOn) return;
+  const c = hpCtx(); if(!c) return;
+  try{
+    const t0 = c.currentTime;
+    const n = hpNoise(c, 1.8, 1.6), lp = c.createBiquadFilter(), g = c.createGain();
+    lp.type = "lowpass"; lp.frequency.setValueAtTime(5000, t0); lp.frequency.exponentialRampToValueAtTime(120, t0 + 1.7);
+    g.gain.value = 0.7; n.connect(lp); lp.connect(g); g.connect(c.destination); n.start(t0);
+    const o = c.createOscillator(), g2 = c.createGain();
+    o.type = "sine"; o.frequency.setValueAtTime(150, t0); o.frequency.exponentialRampToValueAtTime(30, t0 + 0.8);
+    g2.gain.setValueAtTime(0.9, t0); g2.gain.exponentialRampToValueAtTime(0.0001, t0 + 1.0);
+    o.connect(g2); g2.connect(c.destination); o.start(t0); o.stop(t0 + 1.05);
   }catch(e){}
 }
 function hpSetLevel(l){
   const p = document.getElementById("hpPotato"), w = document.getElementById("hpPotatoWrap");
-  p.className = "hp-potato lv"+l; w.className = "hp-potato-wrap lv"+l;
+  p.className = "hp-potato lv"+l; w.className = "hp-potato-wrap lv"+l + (hpState!=="setup" ? (" own"+hpHolder) : "");
 }
 function hpUpdateBoard(){
   document.getElementById("hpScore1").textContent = hpRounds[1];
@@ -3276,6 +3366,9 @@ function hpUpdateBoard(){
   document.getElementById("hpChip2").classList.toggle("leading", hpRounds[2] > hpRounds[1]);
   const turn = document.getElementById("hpTurn");
   turn.classList.toggle("t1", hpHolder===1 && hpState!=="setup"); turn.classList.toggle("t2", hpHolder===2 && hpState!=="setup");
+  document.getElementById("hpMover").dataset.pos = hpState==="setup" ? 0 : hpHolder;
+  const hw = document.getElementById("hpPotatoWrap");
+  hw.classList.toggle("own1", hpHolder===1 && hpState!=="setup"); hw.classList.toggle("own2", hpHolder===2 && hpState!=="setup");
   document.getElementById("hpTurnName").textContent = hpState==="setup" ? "—" : (hpHolder===1 ? "🔵 Mavi Takımda" : "🔴 Kırmızı Takımda");
   document.getElementById("hpTurnLbl").textContent = hpState==="setup" ? ("İLK "+hpTarget+" TUR") : ("TUR "+hpRoundNo+" · İLK "+hpTarget+" TUR");
 }
@@ -3296,7 +3389,7 @@ document.getElementById("hpSoundBtn").addEventListener("click", ()=>{
 document.getElementById("hpStartBtn").addEventListener("click", hpStart);
 
 function hpStart(){
-  if(HP_QUESTIONS.length === 0){ alert("Soruları Düzenle bölümünde hiç soru yok. Önce Soruları Düzenle > Sıcak Patates bölümünden soru ekleyin."); return; }
+  if(HP_QUESTIONS.length === 0){ alert("Soruları Düzenle bölümünde hiç soru yok. Önce Soruları Düzenle > BoomSoru bölümünden soru ekleyin."); return; }
   hpCtx();
   hpTarget = parseInt(document.querySelector("#hpSetupBar [data-hpround].active").dataset.hpround, 10) || 5;
   hpDur = document.querySelector("#hpSetupBar [data-hpdur].active").dataset.hpdur || "mid";
@@ -3310,10 +3403,11 @@ function hpStartRound(){
   const r = HP_DURS[hpDur] || HP_DURS.mid;
   hpTotal = r[0] + Math.random() * (r[1] - r[0]);
   hpRemain = hpTotal; hpHolder = hpStarter; hpLevel = -1; hpBeepAcc = 0;
-  document.getElementById("hpPotato").textContent = "🥔";
+  document.getElementById("hpPotato").textContent = "💣";
   hpSetLevel(0); hpLevel = 0;
+  hpFuse();
   hpUpdateBoard();
-  hpNextQuestion("Tur " + hpRoundNo + " başladı. Patates " + (hpHolder===1 ? "🔵 Mavi" : "🔴 Kırmızı") + " Takımda!");
+  hpNextQuestion("Tur " + hpRoundNo + " başladı. Bomba " + (hpHolder===1 ? "🔵 Mavi" : "🔴 Kırmızı") + " Takımda!");
   hpLastTs = performance.now();
   hpTickId = setInterval(hpTick, 100);
 }
@@ -3326,7 +3420,7 @@ function hpNextQuestion(note){
   hpState = "question";
   const q = hpCurrent, team = hpHolder, panel = document.getElementById("hpPanel"), letters = ["A","B","C","D","E"];
   panel.className = "panel t" + team;
-  panel.innerHTML = `<div class="panel-head"><span>${team===1?"🔵":"🔴"} ${hpTeamName(team)}</span><span class="whl-cat-tag" style="background:#E58E0A">🥔 Patates sende!</span></div>`
+  panel.innerHTML = `<div class="panel-head"><span>${team===1?"🔵":"🔴"} ${hpTeamName(team)}</span><span class="whl-cat-tag" style="background:#E58E0A">💣 Bomba sende!</span></div>`
     + (note ? `<div class="whl-note">${qbEscape(note)}</div>` : "")
     + `<div class="question">${qbEscape(q.q)}</div><div class="options stack" id="hpOpts"></div><div class="waiting" id="hpWait">&nbsp;</div>`;
   const optsEl = document.getElementById("hpOpts");
@@ -3355,8 +3449,8 @@ function hpAnswer(idx){
   const q = hpCurrent, correct = (idx === q.c), team = hpHolder, other = team===1 ? 2 : 1;
   document.querySelectorAll("#hpOpts .opt").forEach((b,i)=>{ b.disabled = true; if(i===q.c) b.classList.add("correct"); else if(i===idx) b.classList.add("wrong"); });
   let msg;
-  if(correct){ hpHolder = other; msg = "Doğru! Patates " + (other===1 ? "🔵 Mavi" : "🔴 Kırmızı") + " Takıma geçti."; }
-  else { msg = "Yanlış! Patates " + (team===1 ? "🔵 Mavi" : "🔴 Kırmızı") + " Takımda kaldı."; }
+  if(correct){ hpWhoosh(); hpHolder = other; const pw=document.getElementById("hpPotatoWrap"); pw.classList.remove("pass"); void pw.offsetWidth; pw.classList.add("pass"); setTimeout(()=>pw.classList.remove("pass"),800); msg = "Doğru! Bomba " + (other===1 ? "🔵 Mavi" : "🔴 Kırmızı") + " Takıma geçti."; }
+  else { msg = "Yanlış! Bomba " + (team===1 ? "🔵 Mavi" : "🔴 Kırmızı") + " Takımda kaldı."; }
   document.getElementById("hpWait").textContent = msg;
   hpUpdateBoard();
   hpNextTimer = setTimeout(()=>{ if(hpState === "answered") hpNextQuestion(""); }, 1300);
@@ -3373,7 +3467,7 @@ function hpBoom(){
   hpUpdateBoard();
   const won = hpRounds[winner] >= hpTarget, panel = document.getElementById("hpPanel");
   panel.className = "panel t" + winner;
-  panel.innerHTML = `<div class="hp-msg">💥 Patates ${hpTeamName(loser)}'da patladı!<span class="hp-sub">Turu ${hpTeamName(winner)} kazandı. Durum: Mavi ${hpRounds[1]} – Kırmızı ${hpRounds[2]}</span>`
+  panel.innerHTML = `<div class="hp-msg">💥 Bomba ${hpTeamName(loser)}'da patladı!<span class="hp-sub">Turu ${hpTeamName(winner)} kazandı. Durum: Mavi ${hpRounds[1]} – Kırmızı ${hpRounds[2]}</span>`
     + `<button class="start-btn" id="hpNextBtn">${won ? "🏆 Sonucu Göster" : "▶ Sonraki Tur"}</button></div>`;
   document.getElementById("hpNextBtn").addEventListener("click", ()=>{
     if(won) hpEnd(winner);
@@ -3384,7 +3478,7 @@ function hpEnd(winner){
   hpState = "ended"; hpStop();
   document.getElementById("hpTrophy").textContent = "🏆";
   document.getElementById("hpWinTitle").textContent = hpTeamName(winner) + " Kazandı! 🎉";
-  document.getElementById("hpWinText").textContent = "Mavi " + hpRounds[1] + " – Kırmızı " + hpRounds[2] + " tur. Patates rakipte patladı!";
+  document.getElementById("hpWinText").textContent = "Mavi " + hpRounds[1] + " – Kırmızı " + hpRounds[2] + " tur. Bomba rakipte patladı!";
   document.getElementById("overlayHp").classList.add("show");
 }
 function hpReset(){
@@ -3392,11 +3486,11 @@ function hpReset(){
   document.getElementById("overlayHp").classList.remove("show");
   hpState = "setup"; hpRounds = {1:0,2:0}; hpRoundNo = 1; hpHolder = 1; hpCurrent = null; hpPool = [];
   document.getElementById("hpSetupBar").style.display = "flex";
-  document.getElementById("hpPotato").textContent = "🥔";
+  document.getElementById("hpPotato").textContent = "💣";
   hpSetLevel(0);
   const panel = document.getElementById("hpPanel");
   panel.className = "panel t1";
-  panel.innerHTML = '<div class="placeholder">Oyunu başlatınca patates ilk takıma geçer ve süre gizlice işlemeye başlar.</div>';
+  panel.innerHTML = '<div class="placeholder">Oyunu başlatınca bomba ilk takıma geçer ve süre gizlice işlemeye başlar.</div>';
   hpUpdateBoard();
 }
 
@@ -3600,7 +3694,7 @@ const QB_GAMES = {
   scr:  { arr: SCRAMBLE_WORDS, storageKey:"scrWordsV1", defaults: SCRAMBLE_WORDS_DEFAULTS, kind:"scr", noun:"Kelime", label:"Karışık Kelimeler" },
   bk:   { arr: BENKIM_ITEMS,   storageKey:"bkItemsV1",  defaults: BENKIM_ITEMS_DEFAULTS,   kind:"bk",  noun:"Kart",   label:"Ben Kimim?" },
   whl:  { arr: WHEEL_QUESTIONS, storageKey:"wheelQuestionsV1", defaults: WHEEL_QUESTIONS_DEFAULTS, hasEmoji:false, hasLevel:false, hasCat:true, hasLayout:true, label:"Çarkıfelek" },
-  hp:   { arr: HP_QUESTIONS, storageKey:"hpQuestionsV1", defaults: HP_QUESTIONS_DEFAULTS, hasEmoji:false, hasLevel:false, hasLayout:true, label:"Sıcak Patates" },
+  hp:   { arr: HP_QUESTIONS, storageKey:"hpQuestionsV1", defaults: HP_QUESTIONS_DEFAULTS, hasEmoji:false, hasLevel:false, hasLayout:true, label:"BoomSoru" },
   ord:  { arr: ORD_ITEMS,    storageKey:"ordItemsV1",    defaults: ORD_ITEMS_DEFAULTS,    kind:"ord", noun:"Sıralama", label:"Sıralama" }
 };
 const QB_BASE = {};
@@ -3948,7 +4042,7 @@ function qbResetDefaults(game){
 
 /* ================= 7b) HIZLI EKLE: bir kez yaz, seçili yarışmalara ekle ================= */
 const QB_QUICK_GAMES = ["mc","tug","mill","pic","whl","hp"];
-const QB_QUICK_ICONS = { mc:"✅", tug:"🪢", mill:"💰", pic:"🖼️", whl:"🎡", hp:"🥔" };
+const QB_QUICK_ICONS = { mc:"✅", tug:"🪢", mill:"💰", pic:"🖼️", whl:"🎡", hp:"💣" };
 const qbQuickState = { targets:{mc:true,tug:true,mill:true,pic:true,whl:true,hp:true}, cat:"quran", layout:"grid", text:"", result:"", forSource:null, picks:{}, view:[] };
 const UNIT_QUICK_BTN = '<button type="button" class="act-quick" data-act="quick">⚡ Hızlı Soru Ekle<small>Bir kez yazın, birden çok yarışmaya eklensin</small></button>';
 
@@ -4328,7 +4422,7 @@ const UNIT_GAMES = [
   {id:"scr",  icon:"🔤", name:"Karışık Kelimeler",  view:"scramble",    noun:"kelime"},
   {id:"bk",   icon:"🕵️", name:"Ben Kimim?",         view:"benkim",      noun:"kart"},
   {id:"whl",  icon:"🎡", name:"Çarkıfelek",         view:"wheel",       noun:"soru"},
-  {id:"hp",   icon:"🥔", name:"Sıcak Patates",      view:"hotpotato",   noun:"soru"},
+  {id:"hp",   icon:"💣", name:"BoomSoru",      view:"hotpotato",   noun:"soru"},
   {id:"ord",  icon:"🔢", name:"Sıralama",           view:"ordering",    noun:"sıralama"}
 ];
 
@@ -4898,9 +4992,60 @@ function libAttachSync(sec){
   fbDb.ref("dkabSorXLib/"+sec+"/res").on("value", snap=>{
     resCache[sec] = snap.val() || {};
     libRender(sec);
+    libMigrateBlobs();
   }, e=>console.error("Kaynak senkronizasyon hatası:", e));
 }
 Object.keys(LIB).forEach(sec=>{ libData[sec] = libLoad(sec); libNav[sec] = {classId:null, courseId:null, unitId:null}; libAttachSync(sec); });
+
+/* ---- Dosya içeriği ayrı düğümde: liste hafif kalır, içerik yalnızca "Aç"/"İndir"de inip cihazda önbelleğe alınır ---- */
+const blobMem = new Map();
+async function resBlobGet(sec, id){
+  if(blobMem.has(id)) return blobMem.get(id);
+  try{ const rec = await idbGet("rb:"+id); if(rec && rec.blob){ blobMem.set(id, rec.blob); return rec.blob; } }catch(e){}
+  if(!firebaseHazir) return null;
+  document.body.style.cursor = "progress";
+  try{
+    const snap = await fbDb.ref("dkabSorXLib/"+sec+"/blob/"+id).once("value");
+    const v = snap.val();
+    if(typeof v !== "string" || !v) return null;
+    const blob = dataUrlToBlob(v);
+    blobMem.set(id, blob);
+    try{ await idbPut("rb:"+id, { blob }); }catch(e){}
+    return blob;
+  } finally { document.body.style.cursor = ""; }
+}
+function resBlobRemove(sec, id){
+  blobMem.delete(id);
+  idbDelete("rb:"+id).catch(()=>{});
+  if(firebaseHazir) fbDb.ref("dkabSorXLib/"+sec+"/blob/"+id).remove().catch(()=>{});
+}
+/* Eski kayıtlar (dataUrl liste içinde) → bir kez taşınır. Yalnızca patron girişiyken çalışır. */
+let blobMigrating = false;
+async function libMigrateBlobs(){
+  if(blobMigrating || !firebaseHazir || !Auth.user || Auth.role() !== "patron") return;
+  const todo = [];
+  Object.keys(LIB).forEach(sec=>{
+    const rc = resCache[sec] || {};
+    Object.keys(rc).forEach(u=>{ const a = rc[u]; if(Array.isArray(a) && a.some(it=>it && it.dataUrl)) todo.push([sec, u]); });
+  });
+  if(!todo.length) return;
+  blobMigrating = true;
+  try{
+    for(const [sec, u] of todo){
+      const cur = resCache[sec][u]; if(!Array.isArray(cur)) continue;
+      const lean = [];
+      for(const it of cur){
+        if(it && it.dataUrl){
+          await fbDb.ref("dkabSorXLib/"+sec+"/blob/"+it.id).set(it.dataUrl);   // önce içerik
+          const c = Object.assign({}, it); delete c.dataUrl; c.hasBlob = true; lean.push(c);
+        } else lean.push(it);
+      }
+      await fbDb.ref("dkabSorXLib/"+sec+"/res/"+u).set(lean);                  // sonra hafif liste
+    }
+  }catch(e){ console.error("Dosya taşıma hatası:", e); }
+  blobMigrating = false;
+}
+setInterval(libMigrateBlobs, 20000);
 
 function resKey(sec, unitId){ return "res:"+sec+":"+unitId; }
 function resLoad(sec, unitId){
@@ -4925,6 +5070,7 @@ async function resPurgeUnit(sec, unitId){
   const items = resLoad(sec, unitId);
   for(const it of items){
     if(it.kind==="file" && it.fileKey){ try{ await idbDelete(it.fileKey); }catch(e){} }
+    if(it.kind==="file" && it.hasBlob){ resBlobRemove(sec, it.id); }
   }
   if(resCache[sec]) delete resCache[sec][unitId];
   try{ localStorage.removeItem(resKey(sec, unitId)); }catch(e){}
@@ -5030,7 +5176,7 @@ function libRender(sec){
 // üstündeki dosyalar doğrudan reddedilip kullanıcı sıkıştırmaya veya Bağlantı Ekle'ye yönlendirilir.
 const LIB_DB_FILE_LIMIT = 6 * 1024 * 1024;
 async function libAddFiles(sec, unitId, fileList){
-  if(filesDisabled){ alert("Dosya ekleme şu an patron tarafından geçici olarak kapatıldı. Lütfen daha sonra tekrar deneyin."); return; }
+  if(filesBlocked()){ alert("Dosya ekleme şu an patron tarafından geçici olarak kapatıldı. Lütfen daha sonra tekrar deneyin."); return; }
   const items = resLoad(sec, unitId);
   let added = 0;
   for(const f of Array.from(fileList)){
@@ -5041,7 +5187,14 @@ async function libAddFiles(sec, unitId, fileList){
     let dataUrl = null;
     try{ dataUrl = await blobToDataUrl(f); }
     catch(e){ alert('"'+f.name+'" okunamadı, eklenemedi.'); continue; }
-    items.push({ id:libId("r"), kind:"file", title:f.name.replace(/\.[^.]+$/, ""), fileName:f.name, mime:f.type||guessMime(f.name), size:f.size, dataUrl });
+    const rid = libId("r");
+    const item = { id:rid, kind:"file", title:f.name.replace(/\.[^.]+$/, ""), fileName:f.name, mime:f.type||guessMime(f.name), size:f.size };
+    if(firebaseHazir){
+      // İçerik ayrı düğüme yazılır; liste düğümü küçük kalır
+      try{ await fbDb.ref("dkabSorXLib/"+sec+"/blob/"+rid).set(dataUrl); item.hasBlob = true; blobMem.set(rid, f); }
+      catch(e){ console.error(e); alert('"'+f.name+'" buluta yüklenemedi, eklenmedi.'); continue; }
+    } else { item.dataUrl = dataUrl; }
+    items.push(item);
     added++;
   }
   if(added) resSave(sec, unitId, items);
@@ -6082,15 +6235,16 @@ document.addEventListener("keydown", (e)=>{
 });
 
 async function resOpen(sec, unitId, id, download){
-  if(filesDisabled){ alert("Dosya açma/indirme şu an patron tarafından geçici olarak kapatıldı. Lütfen daha sonra tekrar deneyin."); return; }
+  if(filesBlocked()){ alert("Dosya açma/indirme şu an patron tarafından geçici olarak kapatıldı. Lütfen daha sonra tekrar deneyin."); return; }
   const it = resLoad(sec, unitId).find(x=>x.id===id); if(!it) return;
   if(it.kind==="link"){ window.open(it.url, "_blank", "noopener"); return; }
 
   // Buluttaki (Realtime Database'e gömülü) dosya
-  if(it.dataUrl){
+  if(it.dataUrl || it.hasBlob){
     let blob = null;
-    try{ blob = dataUrlToBlob(it.dataUrl); }catch(e){ blob = null; }
-    if(!blob){ alert("Dosya okunamadı, veri bozulmuş olabilir."); return; }
+    if(it.dataUrl){ try{ blob = dataUrlToBlob(it.dataUrl); }catch(e){ blob = null; } }
+    else { try{ blob = await resBlobGet(sec, it.id); }catch(e){ blob = null; } }
+    if(!blob){ alert("Dosya açılamadı (indirilemedi veya bozuk). İnternet bağlantınızı kontrol edip tekrar deneyin."); return; }
     if(!download){
       const vk = libViewerKind(blob, it.fileName);
       if(vk){ libReaderOpen(it.title, blob, vk, it.fileName); return; }
@@ -6216,6 +6370,7 @@ function libWire(sec){
       const items = resLoad(sec, nav.unitId), it = items.find(x=>x.id===id); if(!it) return;
       if(!confirm('"'+it.title+'" kaynağı silinsin mi?')) return;
       if(it.kind==="file" && it.fileKey){ idbDelete(it.fileKey).catch(()=>{}); }
+      if(it.kind==="file" && it.hasBlob){ resBlobRemove(sec, it.id); }
       resSave(sec, nav.unitId, items.filter(x=>x.id!==id)); libRender(sec);
     }
     else if(act==="backup"){ sinifBackup(t); }
