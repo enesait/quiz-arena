@@ -5005,7 +5005,7 @@ async function resBlobGet(sec, id){
   if(!firebaseHazir) return null;
   document.body.style.cursor = "progress";
   try{
-    const snap = await fbDb.ref("dkabSorXLib/"+sec+"/blob/"+id).once("value");
+    const snap = await fbDb.ref("dkabSorXBlob/"+sec+"/"+id).once("value");
     const v = snap.val();
     if(typeof v !== "string" || !v) return null;
     const blob = dataUrlToBlob(v);
@@ -5017,7 +5017,7 @@ async function resBlobGet(sec, id){
 function resBlobRemove(sec, id){
   blobMem.delete(id);
   idbDelete("rb:"+id).catch(()=>{});
-  if(firebaseHazir) fbDb.ref("dkabSorXLib/"+sec+"/blob/"+id).remove().catch(()=>{});
+  if(firebaseHazir) fbDb.ref("dkabSorXBlob/"+sec+"/"+id).remove().catch(()=>{});
 }
 /* Eski kayıtlar (dataUrl liste içinde) → bir kez taşınır. Yalnızca patron girişiyken çalışır. */
 let blobMigrating = false;
@@ -5036,7 +5036,7 @@ async function libMigrateBlobs(){
       const lean = [];
       for(const it of cur){
         if(it && it.dataUrl){
-          await fbDb.ref("dkabSorXLib/"+sec+"/blob/"+it.id).set(it.dataUrl);   // önce içerik
+          await fbDb.ref("dkabSorXBlob/"+sec+"/"+it.id).set(it.dataUrl);   // önce içerik
           const c = Object.assign({}, it); delete c.dataUrl; c.hasBlob = true; lean.push(c);
         } else lean.push(it);
       }
@@ -5191,7 +5191,7 @@ async function libAddFiles(sec, unitId, fileList){
     const item = { id:rid, kind:"file", title:f.name.replace(/\.[^.]+$/, ""), fileName:f.name, mime:f.type||guessMime(f.name), size:f.size };
     if(firebaseHazir){
       // İçerik ayrı düğüme yazılır; liste düğümü küçük kalır
-      try{ await fbDb.ref("dkabSorXLib/"+sec+"/blob/"+rid).set(dataUrl); item.hasBlob = true; blobMem.set(rid, f); }
+      try{ await fbDb.ref("dkabSorXBlob/"+sec+"/"+rid).set(dataUrl); item.hasBlob = true; blobMem.set(rid, f); }
       catch(e){ console.error(e); alert('"'+f.name+'" buluta yüklenemedi, eklenmedi.'); continue; }
     } else { item.dataUrl = dataUrl; }
     items.push(item);
