@@ -2047,6 +2047,11 @@ function showView(view){
   if(!authAllowView(view)) view = "home";
   if(!unitLaunch && qbSource) qbUseSource(null);
   unitLaunch = false;
+  if(QB_VIEW_MAP[view]) qbEnsureSynced(QB_VIEW_MAP[view]);
+  if(view === "questionbank"){
+    const activeTab = document.querySelector("#qbTabs .pl-tab.active");
+    if(activeTab && activeTab.dataset.qbtab && activeTab.dataset.qbtab !== "quick") qbEnsureSynced(activeTab.dataset.qbtab);
+  }
   if(view !== "hotpotato"){ try{ hpReset(); }catch(e){} }
   if(view !== "ordering"){ try{ ordReset(); }catch(e){} }
   document.querySelectorAll(".view").forEach(v=> v.classList.toggle("active", v.id === "view-"+view));
@@ -2127,7 +2132,11 @@ function qbAttachSync(storageKey, liveArr){
     }
   }, e=>console.error("Soru bankası senkronizasyon hatası ("+storageKey+"):", e));
 }
-function qbLoadInto(liveArr, storageKey, defaultsArr){
+function qbLoadLocal(liveArr, storageKey, defaultsArr){
+  /* Yalnzca cihazdaki (localStorage) kopyay okur; buluta bant AMAZ.
+     Bulut senkronizasyonu, oyun gerekten alnca qbEnsureSynced() ile devreye girer.
+     Ama: sayfa alr almaz / niteler arasnda geilirken TM soru bankalarnn
+     (varsa iindeki resimlerin) bir kerede inmesini nlemek iin. */
   let loaded=null;
   try{ const raw=localStorage.getItem(storageKey); if(raw) loaded=JSON.parse(raw); }catch(e){ loaded=null; }
   if(!Array.isArray(loaded) || loaded.length===0){
@@ -2135,8 +2144,12 @@ function qbLoadInto(liveArr, storageKey, defaultsArr){
     try{ localStorage.setItem(storageKey, JSON.stringify(loaded)); }catch(e){}
   }
   liveArr.splice(0, liveArr.length, ...loaded);
-  qbAttachSync(storageKey, liveArr);
 }
+function qbEnsureSynced(g){
+  const cfg = QB_GAMES[g]; if(!cfg) return;
+  qbAttachSync(cfg.storageKey, cfg.arr);
+}
+const QB_VIEW_MAP = { multiple:"mc", tugofwar:"tug", millionaire:"mill", picture:"pic", scramble:"scr", benkim:"bk", wheel:"whl", hotpotato:"hp", ordering:"ord" };
 function qbSave(storageKey, liveArr){
   try{
     localStorage.setItem(storageKey, JSON.stringify(liveArr));
@@ -2165,7 +2178,7 @@ const MC_QUESTIONS_DEFAULTS = [
   {q:"Cuma namazından önce imamın cemaate yaptığı konuşmaya ne denir?", o:["Vaaz","Hutbe","Dua","Mevlit"], c:1}
 ];
 const MC_QUESTIONS = [];
-qbLoadInto(MC_QUESTIONS, "mcQuestionsV1", MC_QUESTIONS_DEFAULTS);
+qbLoadLocal(MC_QUESTIONS, "mcQuestionsV1", MC_QUESTIONS_DEFAULTS);
 let mcState = "setup", mcPool = [], mcCurrent = null, mcAsked = 0;
 
 document.getElementById("mcStartBtn").addEventListener("click", mcStart);
@@ -2262,7 +2275,7 @@ const TUG_QUESTIONS_DEFAULTS = [
   {q:"'İyiliği emretmek, kötülükten sakındırmak' İslam ahlakında hangi kavramla ifade edilir?", o:["Emr-i bi'l-maruf","Tevekkül","Rıza","Sabır"], c:0}
 ];
 const TUG_QUESTIONS = [];
-qbLoadInto(TUG_QUESTIONS, "tugQuestionsV1", TUG_QUESTIONS_DEFAULTS);
+qbLoadLocal(TUG_QUESTIONS, "tugQuestionsV1", TUG_QUESTIONS_DEFAULTS);
 const TUG_WIN_DISTANCE = 5, TUG_ANSWER_PAUSE = 650;
 let tugState="setup", tugPos=0, tugScore1=0, tugScore2=0, tugStreak1=0, tugStreak2=0;
 let tugTotalTime=90, tugTimeLeft=90, tugTimerId=null, tugPool1=[], tugPool2=[], tugCurrent1=null, tugCurrent2=null, tugLocked1=false, tugLocked2=false;
@@ -2405,7 +2418,7 @@ const MILL_QUESTIONS_DEFAULTS = [
   {level:12, q:"Hz. Muhammed kaç yaşında peygamber olmuştur?", o:["25","30","40","50"], c:2}
 ];
 const MILL_QUESTIONS = [];
-qbLoadInto(MILL_QUESTIONS, "millQuestionsV1", MILL_QUESTIONS_DEFAULTS);
+qbLoadLocal(MILL_QUESTIONS, "millQuestionsV1", MILL_QUESTIONS_DEFAULTS);
 let millLevelPools = {};
 function millPickForLevel(level){
   if(!millLevelPools[level] || millLevelPools[level].length===0){
@@ -2569,7 +2582,7 @@ const PIC_QUESTIONS_DEFAULTS = [
   {emoji:"⛲", q:"Görseldeki yapı camilerde hangi amaçla kullanılır?", o:["Abdest almak","Namaz kıldırmak","Ezan okumak","Vaaz vermek"], c:0}
 ];
 const PIC_QUESTIONS = [];
-qbLoadInto(PIC_QUESTIONS, "picQuestionsV1", PIC_QUESTIONS_DEFAULTS);
+qbLoadLocal(PIC_QUESTIONS, "picQuestionsV1", PIC_QUESTIONS_DEFAULTS);
 const PIC_WIN_SCORE=8, PIC_ANSWER_PAUSE=650;
 let picState="setup", picScore1=0, picScore2=0, picStreak1=0, picStreak2=0;
 let picTotalTime=90, picTimeLeft=90, picTimerId=null, picPool1=[], picPool2=[], picCurrent1=null, picCurrent2=null, picLocked1=false, picLocked2=false;
@@ -2705,7 +2718,7 @@ const SCRAMBLE_WORDS_DEFAULTS = [
   {w:"EMANET", h:"Saklamak üzere bırakılan şey"}
 ];
 const SCRAMBLE_WORDS = [];
-qbLoadInto(SCRAMBLE_WORDS, "scrWordsV1", SCRAMBLE_WORDS_DEFAULTS);
+qbLoadLocal(SCRAMBLE_WORDS, "scrWordsV1", SCRAMBLE_WORDS_DEFAULTS);
 let scrPool = [], scrCurrent = null;
 function scrRefill(){ if(SCRAMBLE_WORDS.length===0) return null; if(scrPool.length===0) scrPool.push(...shuffle(SCRAMBLE_WORDS)); return scrPool.pop(); }
 function scrambleWord(word){
@@ -2784,7 +2797,7 @@ const BENKIM_ITEMS_DEFAULTS = [
   {a:"Kur'an-ı Kerim", c:["Ben bir kişi değil, bir kitabım.","Allah tarafından Hz. Muhammed'e indirildim.","Arapça olarak indirildim.","114 sureden oluşurum."]}
 ];
 const BENKIM_ITEMS = [];
-qbLoadInto(BENKIM_ITEMS, "bkItemsV1", BENKIM_ITEMS_DEFAULTS);
+qbLoadLocal(BENKIM_ITEMS, "bkItemsV1", BENKIM_ITEMS_DEFAULTS);
 let bkPool=[], bkCurrent=null, bkClueIndex=0;
 function bkRefill(){ if(BENKIM_ITEMS.length===0) return null; if(bkPool.length===0) bkPool.push(...shuffle(BENKIM_ITEMS)); return bkPool.pop(); }
 document.getElementById("bkStartBtn").addEventListener("click", ()=>{
@@ -3089,7 +3102,7 @@ const WHEEL_QUESTIONS_DEFAULTS = [
   {cat:"kavram", q:"Allah'ın bir olduğuna inanmaya ne denir?", o:["Şirk","Tevhid","Nifak","Küfür"], c:1}
 ];
 const WHEEL_QUESTIONS = [];
-qbLoadInto(WHEEL_QUESTIONS, "wheelQuestionsV1", WHEEL_QUESTIONS_DEFAULTS);
+qbLoadLocal(WHEEL_QUESTIONS, "wheelQuestionsV1", WHEEL_QUESTIONS_DEFAULTS);
 const WHL_POINTS = 10, WHL_SPIN_MS = 4600;
 let whlState="setup", whlTeam=1, whlScore1=0, whlScore2=0, whlTarget=50, whlRot=0;
 let whlPools={}, whlCurrent=null, whlCurrentPts=WHL_POINTS, whlSpinTimer=null;
@@ -3292,7 +3305,7 @@ const HP_QUESTIONS_DEFAULTS = [
   {q:"Allah'ın bir olduğuna inanmaya ne denir?", o:["Şirk","Tevhid","Nifak","Küfür"], c:1}
 ];
 const HP_QUESTIONS = [];
-qbLoadInto(HP_QUESTIONS, "hpQuestionsV1", HP_QUESTIONS_DEFAULTS);
+qbLoadLocal(HP_QUESTIONS, "hpQuestionsV1", HP_QUESTIONS_DEFAULTS);
 const HP_DURS = { short:[20,35], mid:[35,55], long:[50,80] };
 let hpState = "setup", hpHolder = 1, hpRounds = {1:0,2:0}, hpTarget = 5, hpDur = "mid", hpRoundNo = 1, hpStarter = 1;
 let hpPool = [], hpCurrent = null, hpTotal = 40, hpRemain = 40, hpTickId = null, hpLastTs = 0, hpBeepAcc = 0, hpBeepFlip = false;
@@ -3503,7 +3516,7 @@ const ORD_ITEMS_DEFAULTS = [
   {q:"Beş vakit namazı gün içindeki sırasına göre dizin.", s:["Sabah","Öğle","İkindi","Akşam","Yatsı"]}
 ];
 const ORD_ITEMS = [];
-qbLoadInto(ORD_ITEMS, "ordItemsV1", ORD_ITEMS_DEFAULTS);
+qbLoadLocal(ORD_ITEMS, "ordItemsV1", ORD_ITEMS_DEFAULTS);
 const ORD_POINTS = 10;
 let ordState = "setup", ordTeam = 1, ordScore = {1:0,2:0}, ordTarget = 50, ordTime = 60, ordPool = [], ordCur = null, ordOrder = [], ordSel = -1;
 let ordTimerId = null, ordLeft = 0, ordStarter = 1, ordTurns = 0, ordRoundNo = 1, ordMsg = "";
@@ -3707,6 +3720,7 @@ document.querySelectorAll("#qbTabs .pl-tab").forEach(btn=>{
     document.querySelectorAll("#qbTabs .pl-tab").forEach(b=>b.classList.remove("active"));
     btn.classList.add("active");
     const tab = btn.dataset.qbtab;
+    if(tab !== "quick") qbEnsureSynced(tab);
     Object.keys(QB_GAMES).forEach(k=>{ document.getElementById("qbPanel-"+k).style.display = (k===tab) ? "block":"none"; });
     document.getElementById("qbPanel-quick").style.display = (tab==="quick") ? "block":"none";
     qbRenderPanel(tab);
@@ -4549,7 +4563,7 @@ function qbUseSource(unitId){
     const cfg = QB_GAMES[g];
     if(unitId){ cfg.storageKey = "unitQ:"+unitId+":"+g; cfg.defaults = (UNIT_DEFAULTS[unitId] && UNIT_DEFAULTS[unitId][g]) || []; }
     else { cfg.storageKey = QB_BASE[g].key; cfg.defaults = QB_BASE[g].defaults; }
-    qbLoadInto(cfg.arr, cfg.storageKey, cfg.defaults);
+    qbLoadLocal(cfg.arr, cfg.storageKey, cfg.defaults);
     qbEditingId[g] = null;
   });
   qbCatFilter = "all";
@@ -5005,7 +5019,7 @@ async function resBlobGet(sec, id){
   if(!firebaseHazir) return null;
   document.body.style.cursor = "progress";
   try{
-    const snap = await fbDb.ref("dkabSorXBlob/"+sec+"/"+id).once("value");
+    const snap = await fbDb.ref("dkabSorXLib/"+sec+"/blob/"+id).once("value");
     const v = snap.val();
     if(typeof v !== "string" || !v) return null;
     const blob = dataUrlToBlob(v);
@@ -5017,7 +5031,7 @@ async function resBlobGet(sec, id){
 function resBlobRemove(sec, id){
   blobMem.delete(id);
   idbDelete("rb:"+id).catch(()=>{});
-  if(firebaseHazir) fbDb.ref("dkabSorXBlob/"+sec+"/"+id).remove().catch(()=>{});
+  if(firebaseHazir) fbDb.ref("dkabSorXLib/"+sec+"/blob/"+id).remove().catch(()=>{});
 }
 /* Eski kayıtlar (dataUrl liste içinde) → bir kez taşınır. Yalnızca patron girişiyken çalışır. */
 let blobMigrating = false;
@@ -5036,7 +5050,7 @@ async function libMigrateBlobs(){
       const lean = [];
       for(const it of cur){
         if(it && it.dataUrl){
-          await fbDb.ref("dkabSorXBlob/"+sec+"/"+it.id).set(it.dataUrl);   // önce içerik
+          await fbDb.ref("dkabSorXLib/"+sec+"/blob/"+it.id).set(it.dataUrl);   // önce içerik
           const c = Object.assign({}, it); delete c.dataUrl; c.hasBlob = true; lean.push(c);
         } else lean.push(it);
       }
@@ -5191,7 +5205,7 @@ async function libAddFiles(sec, unitId, fileList){
     const item = { id:rid, kind:"file", title:f.name.replace(/\.[^.]+$/, ""), fileName:f.name, mime:f.type||guessMime(f.name), size:f.size };
     if(firebaseHazir){
       // İçerik ayrı düğüme yazılır; liste düğümü küçük kalır
-      try{ await fbDb.ref("dkabSorXBlob/"+sec+"/"+rid).set(dataUrl); item.hasBlob = true; blobMem.set(rid, f); }
+      try{ await fbDb.ref("dkabSorXLib/"+sec+"/blob/"+rid).set(dataUrl); item.hasBlob = true; blobMem.set(rid, f); }
       catch(e){ console.error(e); alert('"'+f.name+'" buluta yüklenemedi, eklenmedi.'); continue; }
     } else { item.dataUrl = dataUrl; }
     items.push(item);
