@@ -5019,8 +5019,18 @@ async function resBlobGet(sec, id){
   if(!firebaseHazir) return null;
   document.body.style.cursor = "progress";
   try{
-    const snap = await fbDb.ref("dkabSorXLib/"+sec+"/blob/"+id).once("value");
-    const v = snap.val();
+    let v = null;
+    try{
+      const snap = await fbDb.ref("dkabSorXLib/"+sec+"/blob/"+id).once("value");
+      v = snap.val();
+    }catch(e){}
+    if(typeof v !== "string" || !v){
+      /* Baz kayrlar eski/farkl bir yola (dkabSorXBlob) yazlm olabilir; oray da dene. */
+      try{
+        const snap2 = await fbDb.ref("dkabSorXBlob/"+sec+"/"+id).once("value");
+        v = snap2.val();
+      }catch(e){}
+    }
     if(typeof v !== "string" || !v) return null;
     const blob = dataUrlToBlob(v);
     blobMem.set(id, blob);
