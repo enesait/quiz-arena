@@ -1599,7 +1599,16 @@ let authData = authLoad();
 function authSave(){
   try{ localStorage.setItem(AUTH_KEY, JSON.stringify(authData)); }
   catch(e){ alert("Kaydetme başarısız oldu: tarayıcı depolama alanı dolu olabilir."); return false; }
-  if(firebaseHazir){ fbDb.ref("dkabSorXAuth/accounts").set(authData).catch(e=>console.error("Hesap bulut kaydı başarısız:", e)); }
+  if(firebaseHazir){
+    fbDb.ref("dkabSorXAuth/accounts").set(authData).catch(e=>{
+      console.error("Hesap bulut kaydı başarısız:", e);
+      // Buluta yazma başarısız olursa (örn. Firebase güvenlik kuralları izin vermiyorsa)
+      // değişiklik yalnızca bu cihazda kalır ve bir sonraki bulut senkronizasyonunda
+      // eski veriyle geri üzerine yazılıp "kayboluyormuş" gibi görünür. Bu yüzden
+      // sessizce geçmek yerine kullanıcıyı uyarıyoruz.
+      alert("Değişiklik BULUTA kaydedilemedi (izin hatası olabilir): " + (e && e.message ? e.message : e) + "\n\nBu değişiklik yalnızca bu cihazda kaldı; bulut senkronize olduğunda kaybolabilir. Firebase konsolunda Realtime Database kurallarını kontrol edin.");
+    });
+  }
   return true;
 }
 if(!localStorage.getItem(AUTH_KEY)) authSave();
@@ -1698,7 +1707,9 @@ document.addEventListener("click", (e)=>{
 /* ---- Yönetim sayfası (yalnızca patron) ---- */
 function admRow(id, icon, name, pw, canDelete, filesOff){
   const e = qbEscape;
-  return '<div class="adm-row" data-id="' + e(id) + '"><div class="adm-name">' + icon + ' ' + e(name) + '</div><div class="adm-pwbox">'
+  return '<div class="adm-row" data-id="' + e(id) + '"><div class="adm-name">' + icon + ' ' + e(name)
+    + (canDelete ? ' <button type="button" class="adm-btn" data-adm="rename" data-id="' + e(id) + '" title="Kullanıcı adını değiştir">✏️</button>' : '')
+    + '</div><div class="adm-pwbox">'
     + '<input type="text" class="adm-pw" data-id="' + e(id) + '" value="' + e(pw) + '" spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="' + e(name) + ' şifresi">'
     + '<button type="button" class="adm-btn" data-adm="save" data-id="' + e(id) + '">Kaydet</button>'
     + '<button type="button" class="adm-btn" data-adm="gen" data-id="' + e(id) + '">🎲 Yeni</button>'
@@ -1794,11 +1805,26 @@ function admSavePw(id){
       authData.users = authData.users.filter(u=>u.id !== id);
       if(authSave()) adminRender();
     }
+    else if(act === "rename") admRenamePrompt(id);
     else if(act === "add") admAdd();
     else if(act === "export") admExport();
     else if(act === "import-pick"){ const f = document.getElementById("admImportFile"); if(f){ f.value = ""; f.click(); } }
   });
 })();
+function admRenamePrompt(id){
+  const t = admFind(id); if(!t || id === "patron") return;
+  const name = prompt("Yeni kullanıcı adı:", t.name);
+  if(name == null) return;
+  const trimmed = name.trim().replace(/\s+/g, " ");
+  if(!trimmed) return;
+  if(authNameKey(trimmed) !== authNameKey(t.name)){
+    if(authNameKey(trimmed) === "patron" || authData.users.some(u=>u.id !== id && authNameKey(u.name) === authNameKey(trimmed))){
+      alert("Bu kullanıcı adı zaten var."); return;
+    }
+  }
+  t.name = trimmed;
+  if(authSave()) adminRender();
+}
 function admAdd(){
   const nEl = document.getElementById("admNewName"), rEl = document.getElementById("admNewRole"); if(!nEl || !rEl) return;
   const name = nEl.value.trim().replace(/\s+/g, " "), role = rEl.value;
