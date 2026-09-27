@@ -1570,7 +1570,8 @@ function authLoad(){
   let d = null;
   try{ d = JSON.parse(localStorage.getItem(AUTH_KEY)); }catch(e){ d = null; }
   if(!d || typeof d !== "object") d = {};
-  if(!d.patron || typeof d.patron.pw !== "string" || !d.patron.pw) d.patron = { pw: AUTH_PATRON_DEFAULT };
+  if(!d.patron || typeof d.patron.pw !== "string" || !d.patron.pw) d.patron = { pw: AUTH_PATRON_DEFAULT, name: "Patron" };
+  if(typeof d.patron.name !== "string" || !d.patron.name.trim()) d.patron.name = "Patron";
   d.users = Array.isArray(d.users) ? d.users.filter(u=>u && u.id && u.name && (u.role === "yonetici" || u.role === "ogretmen") && typeof u.pw === "string" && u.pw) : [];
   return d;
 }
@@ -1591,7 +1592,7 @@ function authAttachSync(){
     authData = v;
     authData.users = Array.isArray(authData.users) ? authData.users : [];
     try{ localStorage.setItem(AUTH_KEY, JSON.stringify(authData)); }catch(e){}
-    if(document.getElementById("adminUsersList")) adminRender();
+    if(document.getElementById("adminBody")) adminRender();
   }, e=>console.error("Hesap senkronizasyon hatası:", e));
 }
 
@@ -1611,7 +1612,7 @@ function authSave(){
   }
   return true;
 }
-if(!localStorage.getItem(AUTH_KEY)) authSave();
+if(!localStorage.getItem(AUTH_KEY)){ try{ localStorage.setItem(AUTH_KEY, JSON.stringify(authData)); }catch(e){} }
 authAttachSync();
 function authGenPw(){
   const chars = "ABCDEFGHJKLMNPRSTUVYZ23456789", buf = new Uint32Array(6); let out = "";
@@ -1623,7 +1624,7 @@ function authId(){ return "u" + Date.now().toString(36) + Math.random().toString
 
 function authResolve(sess){
   if(!sess) return null;
-  if(sess.role === "patron") return { id:"patron", name:"Patron", role:"patron" };
+  if(sess.role === "patron") return { id:"patron", name:(authData.patron && authData.patron.name) || "Patron", role:"patron" };
   const u = authData.users.find(x=>x.id === sess.id && x.role === sess.role);
   return u ? { id:u.id, name:u.name, role:u.role } : null;
 }
@@ -1665,7 +1666,7 @@ function authTryLogin(){
   let found = null;
   if(uname && pw){
     authData = authLoad();
-    if(uname === "patron"){ if(authNorm(authData.patron.pw) === pw) found = { id:"patron", name:"Patron", role:"patron" }; }
+    if(uname === authNameKey(authData.patron.name || "Patron")){ if(authNorm(authData.patron.pw) === pw) found = { id:"patron", name:authData.patron.name || "Patron", role:"patron" }; }
     else {
       const u = authData.users.find(x=>authNameKey(x.name) === uname && authNorm(x.pw) === pw);
       if(u) found = { id:u.id, name:u.name, role:u.role };
@@ -1705,10 +1706,11 @@ document.addEventListener("click", (e)=>{
 }, true);
 
 /* ---- Yönetim sayfası (yalnızca patron) ---- */
-function admRow(id, icon, name, pw, canDelete, filesOff){
+function admRow(id, icon, name, pw, canDelete, filesOff, canRename){
   const e = qbEscape;
+  if(canRename === undefined) canRename = canDelete;
   return '<div class="adm-row" data-id="' + e(id) + '"><div class="adm-name">' + icon + ' ' + e(name)
-    + (canDelete ? ' <button type="button" class="adm-btn" data-adm="rename" data-id="' + e(id) + '" title="Kullanıcı adını değiştir">✏️</button>' : '')
+    + (canRename ? ' <button type="button" class="adm-btn" data-adm="rename" data-id="' + e(id) + '" title="Kullanıcı adını değiştir">✏️</button>' : '')
     + '</div><div class="adm-pwbox">'
     + '<input type="text" class="adm-pw" data-id="' + e(id) + '" value="' + e(pw) + '" spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="' + e(name) + ' şifresi">'
     + '<button type="button" class="adm-btn" data-adm="save" data-id="' + e(id) + '">Kaydet</button>'
@@ -1729,8 +1731,8 @@ function adminRender(){
   };
   body.innerHTML =
     '<div class="adm-card"><div class="adm-title">👑 Patron</div>'
-    + '<div class="adm-help">Giriş için kullanıcı adı <b>Patron</b>. Şifrelerde büyük/küçük harf ayrımı yoktur. Şifre kutusunu değiştirip Kaydet’e basın.</div>'
-    + admRow("patron", "👑", "Patron (siz)", authData.patron.pw, false) + '</div>'
+    + '<div class="adm-help">Giriş için kullanıcı adı varsayılan olarak <b>Patron</b>’dur; ✏️ ile değiştirebilirsiniz. Şifrelerde büyük/küçük harf ayrımı yoktur. Şifre kutusunu değiştirip Kaydet’e basın.</div>'
+    + admRow("patron", "👑", (authData.patron.name || "Patron") + " (siz)", authData.patron.pw, false, undefined, true) + '</div>'
     + '<div class="adm-card"><div class="adm-title">🚦 Dosya erişimi</div>'
     + '<div class="adm-help">Bulut kullanımı beklenmedik şekilde arttıysa, dosya açma/indirme/ekleme işlemlerini geçici olarak kapatabilirsiniz. Yarışma soruları bundan etkilenmez, oynanmaya devam eder. Bir öğretmenin yanındaki “Dosya” düğmesiyle yalnızca o öğretmeni de kapatabilirsiniz.</div>'
     + '<div class="adm-add"><button type="button" class="adm-btn' + (filesDisabled ? ' danger' : '') + '" data-adm="toggle-files">'
@@ -1812,15 +1814,17 @@ function admSavePw(id){
   });
 })();
 function admRenamePrompt(id){
-  const t = admFind(id); if(!t || id === "patron") return;
-  const name = prompt("Yeni kullanıcı adı:", t.name);
+  const t = admFind(id); if(!t) return;
+  const isPatron = id === "patron";
+  const curName = isPatron ? (t.name || "Patron") : t.name;
+  const name = prompt("Yeni kullanıcı adı:", curName);
   if(name == null) return;
   const trimmed = name.trim().replace(/\s+/g, " ");
   if(!trimmed) return;
-  if(authNameKey(trimmed) !== authNameKey(t.name)){
-    if(authNameKey(trimmed) === "patron" || authData.users.some(u=>u.id !== id && authNameKey(u.name) === authNameKey(trimmed))){
-      alert("Bu kullanıcı adı zaten var."); return;
-    }
+  if(authNameKey(trimmed) !== authNameKey(curName)){
+    const clashesPatron = !isPatron && authNameKey(trimmed) === authNameKey(authData.patron.name || "Patron");
+    const clashesUser = authData.users.some(u=>u.id !== id && authNameKey(u.name) === authNameKey(trimmed));
+    if(clashesPatron || clashesUser){ alert("Bu kullanıcı adı zaten var."); return; }
   }
   t.name = trimmed;
   if(authSave()) adminRender();
@@ -1829,7 +1833,7 @@ function admAdd(){
   const nEl = document.getElementById("admNewName"), rEl = document.getElementById("admNewRole"); if(!nEl || !rEl) return;
   const name = nEl.value.trim().replace(/\s+/g, " "), role = rEl.value;
   if(!name){ nEl.focus(); return; }
-  if(authNameKey(name) === "patron" || authData.users.some(u=>authNameKey(u.name) === authNameKey(name))){ alert("Bu kullanıcı adı zaten var."); return; }
+  if(authNameKey(name) === authNameKey(authData.patron.name || "Patron") || authData.users.some(u=>authNameKey(u.name) === authNameKey(name))){ alert("Bu kullanıcı adı zaten var."); return; }
   authData.users.push({ id:authId(), name:name, role:role, pw:authGenPw() });
   if(authSave()) adminRender();
 }
@@ -1849,7 +1853,8 @@ function admImport(input){
       if(!d.patron || typeof d.patron.pw !== "string" || d.patron.pw.length < 4 || !Array.isArray(d.users)) throw new Error("bad");
       const users = d.users.filter(u=>u && u.id && u.name && (u.role === "yonetici" || u.role === "ogretmen") && typeof u.pw === "string" && u.pw.length >= 4);
       if(!confirm("Dosyadaki hesaplar (" + users.length + " kullanıcı ve patron şifresi) mevcut hesapların yerine geçecek. Devam edilsin mi?")) return;
-      authData = { patron:{ pw:d.patron.pw }, users:users };
+      const patronName = (typeof d.patron.name === "string" && d.patron.name.trim()) ? d.patron.name.trim() : "Patron";
+      authData = { patron:{ pw:d.patron.pw, name:patronName }, users:users };
       if(authSave()){ adminRender(); alert("Hesaplar içe aktarıldı."); }
     }catch(e){ alert("Bu dosya bir hesap yedeği gibi görünmüyor."); }
   };
