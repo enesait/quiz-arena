@@ -1558,6 +1558,7 @@ function authNameKey(s){ return String(s == null ? "" : s).trim().replace(/\s+/g
   const P = Storage.prototype, oSet = P.setItem, oRem = P.removeItem, oClr = P.clear;
   const deny = (self, key)=>{
     if(self !== window.localStorage || !Auth.user) return false;
+    if(key === AUTH_SESSION) return false; // oturum bilgisi (giriş açık kalsın) her zaman yazılabilir
     if(key === "*" || key === AUTH_KEY) return Auth.user.role !== "patron";
     return Auth.user.role === "ogretmen";
   };
@@ -1628,7 +1629,12 @@ function authResolve(sess){
   const u = authData.users.find(x=>x.id === sess.id && x.role === sess.role);
   return u ? { id:u.id, name:u.name, role:u.role } : null;
 }
-try{ Auth.user = authResolve(JSON.parse(sessionStorage.getItem(AUTH_SESSION))); }catch(e){ Auth.user = null; }
+try{
+  const raw = localStorage.getItem(AUTH_SESSION) || sessionStorage.getItem(AUTH_SESSION);
+  Auth.user = authResolve(JSON.parse(raw));
+  if(Auth.user){ try{ localStorage.setItem(AUTH_SESSION, raw); }catch(e){} }
+  try{ sessionStorage.removeItem(AUTH_SESSION); }catch(e){}
+}catch(e){ Auth.user = null; }
 
 /* Dosya erişimi: genel anahtar kapalıysa herkes, ayrıca patron tek tek öğretmenleri de kapatabilir */
 function filesBlocked(){
@@ -1707,8 +1713,15 @@ async function authTryLogin(){
   }
   authFails = 0; err.textContent = "";
   Auth.user = found;
-  try{ sessionStorage.setItem(AUTH_SESSION, JSON.stringify({ id:found.id, role:found.role })); }catch(e){}
+  try{ localStorage.setItem(AUTH_SESSION, JSON.stringify({ id:found.id, role:found.role })); }catch(e){}
   uEl.value = ""; pEl.value = "";
+  authApply();
+  if(typeof showView === "function") showView("home");
+}
+function authLogout(){
+  Auth.user = null;
+  try{ localStorage.removeItem(AUTH_SESSION); }catch(e){}
+  try{ sessionStorage.removeItem(AUTH_SESSION); }catch(e){}
   authApply();
   if(typeof showView === "function") showView("home");
 }
@@ -6196,11 +6209,18 @@ function libReaderDownload(){
 let zoomer = null, zgLast = 0;
 const zgRecent = ()=>performance.now() - zgLast < 450;
 function bindZoomGestures(stage, z){
-  const ptrs = new Map();
-  let pinch = null, pan = null;
+  const ptrs = new Map();               // pointerId -> {x, y, t}
+  let pinch = null, pan = null, duo = null;
+  // Akıllı tahtalar tek parmağı bazen birbirine çok yakın iki temas olarak bildirir ve "parmak kalktı" olayı
+  // zaman zaman hiç gelmez. Bu yüzden: (1) çok yakın iki temas çimdikleme sayılmaz, taşıma olarak işlenir,
+  // (2) çimdikleme yalnızca temaslar arası mesafe belirgin değişince başlar, (3) takılı kalan temaslar temizlenir.
+  const PINCH_MIN_DIST = 80, PINCH_START_DELTA = 15, STALE_PRIMARY_MS = 350, STALE_MS = 1500;
   const pts = ()=>Array.from(ptrs.values());
   const dist = ()=>{ const a = pts(); return Math.hypot(a[0].x-a[1].x, a[0].y-a[1].y) || 1; };
   const mid = ()=>{ const a = pts(); return {x:(a[0].x+a[1].x)/2, y:(a[0].y+a[1].y)/2}; };
+  const center = ()=>{ const a = pts(); if(!a.length) return null; let x = 0, y = 0; a.forEach(p=>{ x += p.x; y += p.y; }); return {x:x/a.length, y:y/a.length}; };
+  const canPan = ()=> z.mult() > 1.001 && inkSess && inkSess.tool === "hand";
+  const startPan = ()=>{ const c = center(); pan = c ? {x:c.x, y:c.y, sl:stage.scrollLeft, st:stage.scrollTop, on:false} : null; };
   const startPinch = ()=>{
     if(inkSess && inkSess.cancel) inkSess.cancel();
     pan = null;
@@ -6225,19 +6245,32 @@ function bindZoomGestures(stage, z){
     let nm = p.nm; if(nm < 1.08) nm = 1;         // 1×'e yakın bırakılırsa tek sayfaya oturur
     z.set(nm, {L:p.L + p.tx, T:p.T + p.ty});
   };
+  const resetAll = ()=>{                          // tüm parmaklar kalktı: takılı kalan her şeyi temizle
+    if(pinch) endPinch();
+    if(pan && pan.on) zgLast = performance.now();
+    ptrs.clear(); pan = null; duo = null;
+  };
   stage.addEventListener("pointerdown", (e)=>{
-    ptrs.set(e.pointerId, {x:e.clientX, y:e.clientY});
-    if(ptrs.size === 2){ startPinch(); return; }
+    const now = performance.now();
+    // takılı kalmış (uzun süredir hareket etmeyen) eski temasları at
+    ptrs.forEach((p, id)=>{ if(now - p.t > (e.isPrimary ? STALE_PRIMARY_MS : STALE_MS)) ptrs.delete(id); });
+    if(pinch && ptrs.size < 2) endPinch();
+    ptrs.set(e.pointerId, {x:e.clientX, y:e.clientY, t:now});
+    if(pinch) return;
+    duo = ptrs.size === 2 ? {d0:dist()} : null;
     if(ptrs.size > 2) return;
-    if(z.mult() > 1.001 && inkSess && inkSess.tool === "hand")
-      pan = {id:e.pointerId, x:e.clientX, y:e.clientY, sl:stage.scrollLeft, st:stage.scrollTop, on:false};
+    if(canPan()) startPan(); else pan = null;
   });
   stage.addEventListener("pointermove", (e)=>{
     const q = ptrs.get(e.pointerId); if(!q) return;
-    q.x = e.clientX; q.y = e.clientY;
+    q.x = e.clientX; q.y = e.clientY; q.t = performance.now();
     if(pinch && ptrs.size >= 2){ movePinch(); e.preventDefault(); return; }
-    if(pan && pan.id === e.pointerId){
-      const dx = e.clientX - pan.x, dy = e.clientY - pan.y;
+    if(!pinch && ptrs.size === 2 && duo){
+      const d = dist();
+      if(d >= PINCH_MIN_DIST && Math.abs(d - duo.d0) > PINCH_START_DELTA){ startPinch(); if(pinch){ movePinch(); e.preventDefault(); return; } }
+    }
+    if(pan){
+      const c = center(), dx = c.x - pan.x, dy = c.y - pan.y;
       if(!pan.on && Math.hypot(dx, dy) > 6){ pan.on = true; try{ stage.setPointerCapture(e.pointerId); }catch(_){} }
       if(pan.on){ stage.scrollLeft = pan.sl - dx; stage.scrollTop = pan.st - dy; }
     }
@@ -6246,10 +6279,25 @@ function bindZoomGestures(stage, z){
     if(!ptrs.has(e.pointerId)) return;
     ptrs.delete(e.pointerId);
     if(pinch && ptrs.size < 2) endPinch();
-    if(pan && pan.id === e.pointerId){ if(pan.on) zgLast = performance.now(); pan = null; }
+    if(ptrs.size < 2) duo = null;
+    if(ptrs.size === 0){ if(pan && pan.on) zgLast = performance.now(); pan = null; }
+    else if(pan){ const c = center(); pan.x = c.x; pan.y = c.y; pan.sl = stage.scrollLeft; pan.st = stage.scrollTop; }
   };
   stage.addEventListener("pointerup", up);
   stage.addEventListener("pointercancel", up);
+  // "Kalktı" olayı alan dışında ya da yeniden çizilen bir öğede gelirse de temas listesi temizlensin
+  function winUp(e){ if(stageGone()) return; up(e); }
+  function winTouchEnd(e){ if(stageGone()) return; if(e.touches.length === 0) resetAll(); }
+  function stageGone(){
+    if(stage.isConnected) return false;
+    window.removeEventListener("pointerup", winUp, true); window.removeEventListener("pointercancel", winUp, true);
+    window.removeEventListener("touchend", winTouchEnd, true); window.removeEventListener("touchcancel", winTouchEnd, true);
+    return true;
+  }
+  window.addEventListener("pointerup", winUp, true);
+  window.addEventListener("pointercancel", winUp, true);
+  window.addEventListener("touchend", winTouchEnd, true);
+  window.addEventListener("touchcancel", winTouchEnd, true);
   stage.addEventListener("wheel", (e)=>{
     if(!e.ctrlKey) return;                      // Ctrl + tekerlek / dokunmatik yüzey çimdiği
     e.preventDefault(); z.set(z.mult() * (e.deltaY < 0 ? 1.1 : 1/1.1));
