@@ -1658,23 +1658,49 @@ function authApply(){
 }
 
 let authFails = 0, authLockUntil = 0;
-function authTryLogin(){
+function authMatch(uname, pw){
+  if(!uname || !pw) return null;
+  if(uname === authNameKey(authData.patron.name || "Patron")){
+    return authNorm(authData.patron.pw) === pw ? { id:"patron", name:authData.patron.name || "Patron", role:"patron" } : null;
+  }
+  const u = authData.users.find(x=>authNameKey(x.name) === uname && authNorm(x.pw) === pw);
+  return u ? { id:u.id, name:u.name, role:u.role } : null;
+}
+// Hatalı girişte: bu cihazın hesap listesi eski olabilir (ör. iPhone'da bulut bağlantısı uykudayken)
+// → güncel listeyi buluttan bir kez çekip yeniden dener.
+async function authFetchCloud(){
+  if(!firebaseHazir) return false;
+  try{
+    const snap = await Promise.race([
+      fbDb.ref("dkabSorXAuth/accounts").once("value"),
+      new Promise((_, rej)=>setTimeout(()=>rej(new Error("timeout")), 6000))
+    ]);
+    const v = snap.val();
+    if(!v || typeof v !== "object" || !v.patron) return false;
+    v.users = Array.isArray(v.users) ? v.users : [];
+    authData = v;
+    try{ localStorage.setItem(AUTH_KEY, JSON.stringify(authData)); }catch(e){}
+    authData = authLoad();
+    return true;
+  }catch(e){ return false; }
+}
+let authBusy = false;
+async function authTryLogin(){
+  if(authBusy) return;
   const uEl = document.getElementById("authUser"), pEl = document.getElementById("authPass"), err = document.getElementById("authErr");
   const now = Date.now();
   if(now < authLockUntil){ err.textContent = "Çok fazla hatalı deneme. " + Math.ceil((authLockUntil - now) / 1000) + " sn bekleyin."; return; }
   const uname = authNameKey(uEl.value), pw = authNorm(pEl.value);
-  let found = null;
-  if(uname && pw){
-    authData = authLoad();
-    if(uname === authNameKey(authData.patron.name || "Patron")){ if(authNorm(authData.patron.pw) === pw) found = { id:"patron", name:authData.patron.name || "Patron", role:"patron" }; }
-    else {
-      const u = authData.users.find(x=>authNameKey(x.name) === uname && authNorm(x.pw) === pw);
-      if(u) found = { id:u.id, name:u.name, role:u.role };
-    }
+  authData = authLoad();
+  let found = authMatch(uname, pw);
+  if(!found && uname && pw){
+    authBusy = true; err.textContent = "Kontrol ediliyor…";
+    try{ if(await authFetchCloud()) found = authMatch(uname, pw); }
+    finally{ authBusy = false; }
   }
   if(!found){
     authFails++;
-    if(authFails >= 5){ authFails = 0; authLockUntil = now + 30000; err.textContent = "Çok fazla hatalı deneme. 30 sn bekleyin."; }
+    if(authFails >= 5){ authFails = 0; authLockUntil = Date.now() + 30000; err.textContent = "Çok fazla hatalı deneme. 30 sn bekleyin."; }
     else err.textContent = "Kullanıcı adı veya şifre hatalı.";
     pEl.select();
     return;
@@ -1685,10 +1711,6 @@ function authTryLogin(){
   uEl.value = ""; pEl.value = "";
   authApply();
   if(typeof showView === "function") showView("home");
-}
-function authLogout(){
-  try{ sessionStorage.removeItem(AUTH_SESSION); }catch(e){}
-  location.reload();
 }
 document.getElementById("authLoginBtn").addEventListener("click", authTryLogin);
 ["authUser","authPass"].forEach(id=>document.getElementById(id).addEventListener("keydown", (e)=>{ if(e.key === "Enter"){ e.preventDefault(); authTryLogin(); } }));
