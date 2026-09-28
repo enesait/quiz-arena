@@ -2160,6 +2160,7 @@ function qbEscape(str){ return String(str==null?"":str).replace(/[&<>"']/g, ch=>
 // aşağıdaki eşleştirme yalnızca bulut verisi geldiğinde (asenkron) çalıştığı için sorun olmaz.
 const qbSyncedKeys = new Set();
 function qbAttachSync(storageKey, liveArr){
+  if(String(storageKey).indexOf("evalQ:")===0) return;
   if(!firebaseHazir || qbSyncedKeys.has(storageKey)) return;
   qbSyncedKeys.add(storageKey);
   const ref = fbDb.ref("dkabSorXQB/"+storageKey);
@@ -2204,6 +2205,7 @@ function qbEnsureSynced(g){
 }
 const QB_VIEW_MAP = { multiple:"mc", tugofwar:"tug", millionaire:"mill", picture:"pic", scramble:"scr", benkim:"bk", wheel:"whl", hotpotato:"hp", ordering:"ord" };
 function qbSave(storageKey, liveArr){
+  if(String(storageKey).indexOf("evalQ:")===0) return;
   try{
     localStorage.setItem(storageKey, JSON.stringify(liveArr));
   }catch(e){
@@ -4503,7 +4505,10 @@ function sinifNormalizeTree(d){
   if(!Array.isArray(d.deletedUnits)) d.deletedUnits = [];
   d.classes.forEach(c=>{
     if(!Array.isArray(c.courses)) c.courses = [];
-    c.courses.forEach(co=>{ if(!Array.isArray(co.units)) co.units = []; });
+    c.courses.forEach(co=>{
+      if(!Array.isArray(co.units)) co.units = [];
+      co.units.forEach(u=>{ if(!Array.isArray(u.topics)) u.topics = []; });
+    });
   });
   return d;
 }
@@ -4575,8 +4580,13 @@ sinifAttachSync();
 function sinifId(prefix){ return prefix + Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
 
 function unitPathLabel(unitId){
-  for(const cl of sinifData.classes) for(const co of cl.courses) for(const un of co.units)
-    if(un.id===unitId) return cl.name+" › "+co.name+" › "+un.name;
+  let evalMode = false;
+  if(String(unitId).indexOf("eval~")===0){ evalMode = true; unitId = String(unitId).slice(5); }
+  for(const cl of sinifData.classes) for(const co of cl.courses) for(const un of co.units){
+    const base = cl.name+" › "+co.name+" › "+un.name;
+    if(un.id===unitId) return base + (evalMode ? " › Ünite Değerlendirme" : "");
+    for(const tp of (un.topics||[])) if(tp.id===unitId) return base+" › "+tp.name;
+  }
   return "";
 }
 function unitCount(unitId, game){
@@ -4586,6 +4596,43 @@ function unitCount(unitId, game){
   return n;
 }
 function unitTotal(unitId){ return UNIT_GAMES.reduce((s,g)=>s+unitCount(unitId,g.id), 0); }
+function unitPurgeDeep(u){ (u.topics||[]).forEach(tp=>unitPurge(tp.id)); unitPurge(u.id); }
+/* Ünite Değerlendirme: ünitenin tüm başlıklarındaki (ve varsa doğrudan üniteye eklenmiş) soruları birleştirir */
+function unitFetchQuestions(id, game){
+  const key = "unitQ:"+id+":"+game;
+  const local = ()=>{ try{ const a = JSON.parse(localStorage.getItem(key)); return Array.isArray(a) ? a : []; }catch(e){ return []; } };
+  if(!firebaseHazir) return Promise.resolve(local());
+  return fbDb.ref("dkabSorXQB/"+key).once("value")
+    .then(s=>{ const v = s.val(); return (Array.isArray(v) && v.length) ? v : local(); })
+    .catch(()=>local());
+}
+function qbUseEval(unitId, game, merged){
+  qbSource = "eval~"+unitId;
+  Object.keys(QB_GAMES).forEach(g=>{
+    const cfg = QB_GAMES[g];
+    cfg.storageKey = "evalQ:"+unitId+":"+g; cfg.defaults = [];
+    cfg.arr.splice(0, cfg.arr.length, ...(g===game ? merged : []));
+    qbEditingId[g] = null;
+  });
+  qbCatFilter = "all";
+  UNIT_GAMES.forEach(g=>unitResetGame(g.id));
+  unitCtxUpdate();
+}
+async function unitOpenEval(game){
+  const unitId = sinifNav.unitId; if(!unitId) return;
+  const g = UNIT_GAMES.find(x=>x.id===game); if(!g) return;
+  let un = null;
+  sinifData.classes.forEach(c=>c.courses.forEach(co=>co.units.forEach(u=>{ if(u.id===unitId) un = u; })));
+  if(!un) return;
+  const ids = [un.id].concat((un.topics||[]).map(tp=>tp.id));
+  const lists = await Promise.all(ids.map(id=>unitFetchQuestions(id, game)));
+  const merged = [].concat(...lists);
+  if(!merged.length){ alert("Bu ünitenin başlıklarında bu etkinlik için henüz soru yok."); return; }
+  unitBackTo = "classes";
+  qbUseEval(unitId, game, merged);
+  unitLaunch = true;
+  showView(g.view);
+}
 function unitPurge(unitId){
   UNIT_GAMES.forEach(g=>{
     const key = "unitQ:"+unitId+":"+g.id;
@@ -4661,14 +4708,17 @@ function sorxAddRender(){
   let cl = classes.find(c=>c.id===sorxAddSel.classId) || classes[0] || null;
   let co = cl ? ((cl.courses||[]).find(c=>c.id===sorxAddSel.courseId) || (cl.courses||[])[0] || null) : null;
   let un = co ? ((co.units||[]).find(u=>u.id===sorxAddSel.unitId) || (co.units||[])[0] || null) : null;
-  sorxAddSel = { classId: cl ? cl.id : null, courseId: co ? co.id : null, unitId: un ? un.id : null };
+  const topics = un ? (un.topics||[]) : [];
+  const tp = topics.length ? (topics.find(x=>x.id===sorxAddSel.topicId) || topics[0]) : null;
+  sorxAddSel = { classId: cl ? cl.id : null, courseId: co ? co.id : null, unitId: un ? un.id : null, topicId: tp ? tp.id : null };
   const opts = (arr, cur)=>arr.map(x=>'<option value="'+x.id+'"'+(x.id===cur?' selected':'')+'>'+qbEscape(x.name)+'</option>').join("");
   let html = '<div class="qb-form">'
     + '<label>Sınıf<select data-sa="class">'+opts(classes, sorxAddSel.classId)+'</select></label>'
     + '<label>Ders<select data-sa="course">'+(cl ? opts(cl.courses||[], sorxAddSel.courseId) : '')+'</select></label>'
     + '<label>Ünite<select data-sa="unit">'+(co ? opts(co.units||[], sorxAddSel.unitId) : '')+'</select></label>'
+    + (topics.length ? '<label>Başlık<select data-sa="topic">'+opts(topics, sorxAddSel.topicId)+'</select></label>' : '')
     + '</div>';
-  if(un) html += '<button type="button" class="start-btn" data-sa="open" style="margin:14px 0 0;">📝 Bu Ünitenin Sorularını Düzenle</button>';
+  if(un) html += '<button type="button" class="start-btn" data-sa="open" style="margin:14px 0 0;">'+(tp ? '📝 Bu Başlığın Sorularını Düzenle' : '📝 Bu Ünitenin Sorularını Düzenle')+'</button>';
   else html += '<div class="sinif-empty" style="margin-top:14px;">Bu derste henüz ünite yok. Önce SorX bölümünden ünite ekleyin.</div>';
   body.innerHTML = html;
 }
@@ -4678,16 +4728,17 @@ function sorxAddRender(){
     const t = e.target; if(!t || !t.dataset || !t.dataset.sa) return;
     if(t.dataset.sa === "class"){ sorxAddSel = { classId:t.value, courseId:null, unitId:null }; }
     else if(t.dataset.sa === "course"){ sorxAddSel.courseId = t.value; sorxAddSel.unitId = null; }
-    else if(t.dataset.sa === "unit"){ sorxAddSel.unitId = t.value; }
+    else if(t.dataset.sa === "unit"){ sorxAddSel.unitId = t.value; sorxAddSel.topicId = null; }
+    else if(t.dataset.sa === "topic"){ sorxAddSel.topicId = t.value; }
     sorxAddRender();
   });
   body.addEventListener("click", (e)=>{
     const b = e.target && e.target.closest ? e.target.closest('[data-sa="open"]') : null; if(!b) return;
-    if(sorxAddSel.unitId) sorxAddOpen(sorxAddSel.unitId);
+    if(sorxAddSel.unitId) sorxAddOpen(sorxAddSel.topicId || sorxAddSel.unitId);
   });
 })();
 function unitOpen(game, toBank){
-  const unitId = sinifNav.unitId; if(!unitId) return;
+  const unitId = sinifNav.topicId || sinifNav.unitId; if(!unitId) return;
   const g = UNIT_GAMES.find(x=>x.id===game);
   if(!toBank && unitCount(unitId, game)===0){ alert(Auth.readOnly() ? "Bu ünitede bu etkinlik için henüz soru yok." : "Bu ünitede bu etkinlik için henüz soru yok. Önce '📝 Sorular' bölümünden ekleyin."); return; }
   unitBackTo = "classes";
@@ -4833,11 +4884,14 @@ function sinifRestore(file){
 }
 
 /* ---- Arayüz ---- */
-function sinifCrumbs(cl, co, un, rootLabel){
+function sinifCrumbs(cl, co, un, rootLabel, tp){
   const parts = ['<button class="sinif-crumb '+(!cl?"cur":"")+'" data-act="crumb" data-level="root">'+(rootLabel||"🏫 SorX")+'</button>'];
   if(cl) parts.push('<button class="sinif-crumb '+(!co?"cur":"")+'" data-act="crumb" data-level="class">'+qbEscape(cl.name)+'</button>');
   if(co) parts.push('<button class="sinif-crumb '+(!un?"cur":"")+'" data-act="crumb" data-level="course">'+qbEscape(co.name)+'</button>');
-  if(un) parts.push('<span class="sinif-crumb cur">'+qbEscape(un.name)+'</span>');
+  if(un && tp){
+    parts.push('<button class="sinif-crumb" data-act="crumb" data-level="unit">'+qbEscape(un.name)+'</button>');
+    parts.push('<span class="sinif-crumb cur">'+qbEscape(tp.name)+'</span>');
+  } else if(un) parts.push('<span class="sinif-crumb cur">'+qbEscape(un.name)+'</span>');
   return '<div class="sinif-crumbs">'+parts.join('<span class="sinif-crumb-sep">›</span>')+'</div>';
 }
 function sinifCard(kind, id, title, meta, noActions){
@@ -4853,31 +4907,60 @@ function sinifCard(kind, id, title, meta, noActions){
 function sinifAddBar(kind, placeholder, label, inputId){
   return '<div class="sinif-add"><input type="text" id="'+(inputId||"sinifAddInput")+'" placeholder="'+placeholder+'"><button class="start-btn" data-act="add" data-kind="'+kind+'">➕ '+label+'</button></div>';
 }
+function sinifActGrid(srcId){
+  let html = '<div class="act-grid">', total = 0;
+  UNIT_GAMES.forEach(g=>{
+    const n = unitCount(srcId, g.id); total += n;
+    const hint = (g.id==="mill" && n>0 && n<12) ? '<div class="act-hint">12 basamak için en az 12 soru önerilir.</div>' : "";
+    html += '<div class="act-card"><div class="act-head"><span class="act-icon">'+g.icon+'</span><span>'+g.name+'</span></div>'
+      + '<div class="act-count">'+n+' '+g.noun+'</div>'+hint
+      + '<div class="act-buttons"><button class="act-play" data-act="play" data-game="'+g.id+'" '+(n===0?"disabled":"")+'>▶ Oyna</button>'
+      + '<button class="act-edit" data-act="bank" data-game="'+g.id+'">📝 Sorular</button></div></div>';
+  });
+  html += '</div>';
+  return { html, total };
+}
 function sinifRender(){
   const body = document.getElementById("sinifBody");
   const cl = sinifNav.classId ? sinifData.classes.find(c=>c.id===sinifNav.classId) : null;
   const co = (cl && sinifNav.courseId) ? cl.courses.find(c=>c.id===sinifNav.courseId) : null;
   const un = (co && sinifNav.unitId) ? co.units.find(u=>u.id===sinifNav.unitId) : null;
-  if(!cl) sinifNav = {classId:null, courseId:null, unitId:null};
-  else if(!co) sinifNav = {classId:cl.id, courseId:null, unitId:null};
-  else if(!un) sinifNav = {classId:cl.id, courseId:co.id, unitId:null};
-  let html = sinifCrumbs(cl, co, un);
-  if(un){
-    html += '<div class="sinif-section-title">🎮 Etkinlikler — '+qbEscape(un.name)+'</div>'+UNIT_QUICK_BTN+'<div class="act-grid">';
-    let total = 0;
-    UNIT_GAMES.forEach(g=>{
-      const n = unitCount(un.id, g.id); total += n;
-      const hint = (g.id==="mill" && n>0 && n<12) ? '<div class="act-hint">12 basamak için en az 12 soru önerilir.</div>' : "";
-      html += '<div class="act-card"><div class="act-head"><span class="act-icon">'+g.icon+'</span><span>'+g.name+'</span></div>'
-        + '<div class="act-count">'+n+' '+g.noun+'</div>'+hint
-        + '<div class="act-buttons"><button class="act-play" data-act="play" data-game="'+g.id+'" '+(n===0?"disabled":"")+'>▶ Oyna</button>'
-        + '<button class="act-edit" data-act="bank" data-game="'+g.id+'">📝 Sorular</button></div></div>';
-    });
-    html += '</div>';
-    if(total===0) html += '<div class="sinif-empty" style="margin-top:14px;">Bu ünitede henüz soru yok.'+(Auth.readOnly()?"":" Her etkinliğin “📝 Sorular” bölümünden soru ekleyebilirsiniz.")+'</div>';
+  const tp = (un && sinifNav.topicId) ? (un.topics||[]).find(x=>x.id===sinifNav.topicId) : null;
+  if(!cl) sinifNav = {classId:null, courseId:null, unitId:null, topicId:null};
+  else if(!co) sinifNav = {classId:cl.id, courseId:null, unitId:null, topicId:null};
+  else if(!un) sinifNav = {classId:cl.id, courseId:co.id, unitId:null, topicId:null};
+  else if(sinifNav.topicId && !tp) sinifNav = {classId:cl.id, courseId:co.id, unitId:un.id, topicId:null};
+  let html = sinifCrumbs(cl, co, un, null, tp);
+  if(un && tp){
+    html += '<div class="sinif-section-title">🎮 Etkinlikler — '+qbEscape(tp.name)+'</div>'+UNIT_QUICK_BTN;
+    const gr = sinifActGrid(tp.id);
+    html += gr.html;
+    if(gr.total===0) html += '<div class="sinif-empty" style="margin-top:14px;">Bu başlıkta henüz soru yok.'+(Auth.readOnly()?"":" Her etkinliğin “📝 Sorular” bölümünden soru ekleyebilirsiniz.")+'</div>';
+  } else if(un){
+    const topics = un.topics || [];
+    html += '<div class="sinif-section-title">🗂️ Başlıklar — '+qbEscape(un.name)+'</div>';
+    html += topics.length
+      ? '<div class="sinif-grid">'+topics.map(x=>{ const n = unitTotal(x.id); return sinifCard("topic", x.id, x.name, n>0 ? n+" soru" : ""); }).join("")+'</div>'
+      : '<div class="sinif-empty">Bu ünitede henüz başlık yok.'+(Auth.readOnly()?"":" Aşağıdan ekleyin.")+'</div>';
+    html += sinifAddBar("topic", "Yeni başlık adı (örn. 1.1. İnsanlara Rehber: Peygamber)", "Başlık Ekle");
+    if(topics.length){
+      const ids = [un.id].concat(topics.map(x=>x.id));
+      html += '<div class="sinif-section-title" style="margin-top:22px;">🏁 Ünite Değerlendirme</div>'
+        + '<div class="act-hint" style="margin-bottom:8px;">Bu ünitenin tüm başlıklarındaki sorular karışık gelir.</div><div class="act-grid">';
+      UNIT_GAMES.forEach(g=>{
+        const n = ids.reduce((s,id)=>s+unitCount(id, g.id), 0);
+        html += '<div class="act-card"><div class="act-head"><span class="act-icon">'+g.icon+'</span><span>'+g.name+'</span></div>'
+          + '<div class="act-count">'+(n>0 ? n+' '+g.noun : 'Başlıklardaki sorular birleşir')+'</div>'
+          + '<div class="act-buttons"><button class="act-play" data-act="eplay" data-game="'+g.id+'">▶ Oyna</button></div></div>';
+      });
+      html += '</div>';
+    } else if(unitTotal(un.id)>0){
+      const gr = sinifActGrid(un.id);
+      html += '<div class="sinif-section-title" style="margin-top:22px;">🎮 Etkinlikler — '+qbEscape(un.name)+'</div>'+UNIT_QUICK_BTN+gr.html;
+    }
   } else if(co){
     html += '<div class="sinif-section-title">📚 Üniteler</div>';
-    html += co.units.length ? '<div class="sinif-grid">'+co.units.map(u=>sinifCard("unit", u.id, u.name, "")).join("")+'</div>' : '<div class="sinif-empty">Bu derste henüz ünite yok.'+(Auth.readOnly()?"":" Aşağıdan ekleyin.")+'</div>';
+    html += co.units.length ? '<div class="sinif-grid">'+co.units.map(u=>sinifCard("unit", u.id, u.name, (u.topics&&u.topics.length) ? u.topics.length+" başlık" : "")).join("")+'</div>' : '<div class="sinif-empty">Bu derste henüz ünite yok.'+(Auth.readOnly()?"":" Aşağıdan ekleyin.")+'</div>';
     html += sinifAddBar("unit", "Yeni ünite adı (örn. 1. Ünite: Kul Olmak)", "Ünite Ekle");
   } else if(cl){
     html += '<div class="sinif-section-title">📖 Dersler</div>';
@@ -4900,13 +4983,15 @@ function sinifRender(){
     const cl = sinifNav.classId ? sinifData.classes.find(c=>c.id===sinifNav.classId) : null;
     const co = (cl && sinifNav.courseId) ? cl.courses.find(c=>c.id===sinifNav.courseId) : null;
     if(act==="open-class"){ sinifNav = {classId:id, courseId:null, unitId:null}; sinifRender(); }
-    else if(act==="open-course"){ sinifNav.courseId = id; sinifNav.unitId = null; sinifRender(); }
-    else if(act==="open-unit"){ sinifNav.unitId = id; sinifRender(); }
+    else if(act==="open-course"){ sinifNav.courseId = id; sinifNav.unitId = null; sinifNav.topicId = null; sinifRender(); }
+    else if(act==="open-unit"){ sinifNav.unitId = id; sinifNav.topicId = null; sinifRender(); }
+    else if(act==="open-topic"){ sinifNav.topicId = id; sinifRender(); }
     else if(act==="crumb"){
       const lv = t.dataset.level;
-      if(lv==="root") sinifNav = {classId:null, courseId:null, unitId:null};
-      else if(lv==="class") sinifNav = {classId:sinifNav.classId, courseId:null, unitId:null};
-      else if(lv==="course") sinifNav.unitId = null;
+      if(lv==="root") sinifNav = {classId:null, courseId:null, unitId:null, topicId:null};
+      else if(lv==="class") sinifNav = {classId:sinifNav.classId, courseId:null, unitId:null, topicId:null};
+      else if(lv==="course"){ sinifNav.unitId = null; sinifNav.topicId = null; }
+      else if(lv==="unit") sinifNav.topicId = null;
       sinifRender();
     }
     else if(act==="rename"){
@@ -4914,15 +4999,17 @@ function sinifRender(){
       if(kind==="class") item = sinifData.classes.find(c=>c.id===id);
       else if(kind==="course" && cl) item = cl.courses.find(c=>c.id===id);
       else if(kind==="unit" && co) item = co.units.find(u=>u.id===id);
+      else if(kind==="topic" && co){ const u0 = co.units.find(u=>u.id===sinifNav.unitId); item = u0 && (u0.topics||[]).find(x=>x.id===id); }
       if(!item) return;
       const name = prompt("Yeni ad:", item.name);
       if(!name || !name.trim()) return;
-      const newName = name.trim(), classId = sinifNav.classId, courseId = sinifNav.courseId, targetId = id, kindT = kind;
+      const newName = name.trim(), classId = sinifNav.classId, courseId = sinifNav.courseId, unitIdT = sinifNav.unitId, targetId = id, kindT = kind;
       sinifTreeMutate(fresh=>{
         let target = null;
         if(kindT==="class") target = fresh.classes.find(c=>c.id===targetId);
         else if(kindT==="course"){ const c = fresh.classes.find(x=>x.id===classId); target = c && c.courses.find(x=>x.id===targetId); }
         else if(kindT==="unit"){ const c = fresh.classes.find(x=>x.id===classId); const u2 = c && c.courses.find(x=>x.id===courseId); target = u2 && u2.units.find(x=>x.id===targetId); }
+        else if(kindT==="topic"){ const c = fresh.classes.find(x=>x.id===classId); const u2 = c && c.courses.find(x=>x.id===courseId); const u3 = u2 && u2.units.find(x=>x.id===unitIdT); target = u3 && (u3.topics||[]).find(x=>x.id===targetId); }
         if(target) target.name = newName;
       });
     }
@@ -4931,18 +5018,23 @@ function sinifRender(){
       if(kind==="class"){
         const c = sinifData.classes.find(x=>x.id===id); if(!c) return;
         if(!confirm('"'+c.name+'" sınıfı, içindeki tüm dersler, üniteler ve sorular silinsin mi?')) return;
-        purge = ()=>c.courses.forEach(x=>x.units.forEach(u=>unitPurge(u.id)));
+        purge = ()=>c.courses.forEach(x=>x.units.forEach(u=>unitPurgeDeep(u)));
       } else if(kind==="course" && cl){
         const c = cl.courses.find(x=>x.id===id); if(!c) return;
         if(!confirm('"'+c.name+'" dersi, içindeki tüm üniteler ve sorular silinsin mi?')) return;
-        purge = ()=>c.units.forEach(u=>unitPurge(u.id));
+        purge = ()=>c.units.forEach(u=>unitPurgeDeep(u));
       } else if(kind==="unit" && co){
         const u = co.units.find(x=>x.id===id); if(!u) return;
         if(!confirm('"'+u.name+'" ünitesi ve tüm soruları silinsin mi?')) return;
-        purge = ()=>unitPurge(u.id);
+        purge = ()=>unitPurgeDeep(u);
+      } else if(kind==="topic" && co){
+        const u0 = co.units.find(x=>x.id===sinifNav.unitId);
+        const tp0 = u0 && (u0.topics||[]).find(x=>x.id===id); if(!tp0) return;
+        if(!confirm('"'+tp0.name+'" başlığı ve tüm soruları silinsin mi?')) return;
+        purge = ()=>unitPurge(tp0.id);
       } else return;
       purge();
-      const classId = sinifNav.classId, courseId = sinifNav.courseId, targetId = id, kindT = kind;
+      const classId = sinifNav.classId, courseId = sinifNav.courseId, unitIdT = sinifNav.unitId, targetId = id, kindT = kind;
       sinifTreeMutate(fresh=>{
         if(kindT==="class"){
           fresh.classes = fresh.classes.filter(x=>x.id!==targetId);
@@ -4952,6 +5044,9 @@ function sinifRender(){
         } else if(kindT==="unit"){
           const c = fresh.classes.find(x=>x.id===classId); const u2 = c && c.courses.find(x=>x.id===courseId);
           if(u2){ if(!fresh.deletedUnits.includes(targetId)) fresh.deletedUnits.push(targetId); u2.units = u2.units.filter(x=>x.id!==targetId); }
+        } else if(kindT==="topic"){
+          const c = fresh.classes.find(x=>x.id===classId); const u2 = c && c.courses.find(x=>x.id===courseId); const u3 = u2 && u2.units.find(x=>x.id===unitIdT);
+          if(u3) u3.topics = (u3.topics||[]).filter(x=>x.id!==targetId);
         }
       });
     }
@@ -4959,17 +5054,19 @@ function sinifRender(){
       const input = document.getElementById("sinifAddInput");
       const name = input ? input.value.trim() : "";
       if(!name){ if(input) input.focus(); return; }
-      const classId = sinifNav.classId, courseId = sinifNav.courseId, kindT = kind;
-      const newId = kindT==="class" ? sinifId("c") : kindT==="course" ? sinifId("k") : sinifId("u");
+      const classId = sinifNav.classId, courseId = sinifNav.courseId, unitIdT = sinifNav.unitId, kindT = kind;
+      const newId = kindT==="class" ? sinifId("c") : kindT==="course" ? sinifId("k") : kindT==="topic" ? sinifId("t") : sinifId("u");
       const defaultCourseId = kindT==="class" ? sinifId("k") : null;
       sinifTreeMutate(fresh=>{
         if(kindT==="class"){ if(!fresh.classes.find(x=>x.id===newId)) fresh.classes.push({ id:newId, name, courses:[ { id:defaultCourseId, name:"Din Kültürü ve Ahlak Bilgisi", units:[] } ] }); }
         else if(kindT==="course"){ const c = fresh.classes.find(x=>x.id===classId); if(c && !c.courses.find(x=>x.id===newId)) c.courses.push({ id:newId, name, units:[] }); }
-        else if(kindT==="unit"){ const c = fresh.classes.find(x=>x.id===classId); const co2 = c && c.courses.find(x=>x.id===courseId); if(co2 && !co2.units.find(x=>x.id===newId)) co2.units.push({ id:newId, name }); }
+        else if(kindT==="unit"){ const c = fresh.classes.find(x=>x.id===classId); const co2 = c && c.courses.find(x=>x.id===courseId); if(co2 && !co2.units.find(x=>x.id===newId)) co2.units.push({ id:newId, name, topics:[] }); }
+        else if(kindT==="topic"){ const c = fresh.classes.find(x=>x.id===classId); const co2 = c && c.courses.find(x=>x.id===courseId); const u3 = co2 && co2.units.find(x=>x.id===unitIdT); if(u3){ if(!Array.isArray(u3.topics)) u3.topics = []; if(!u3.topics.find(x=>x.id===newId)) u3.topics.push({ id:newId, name }); } }
       });
       if(input) input.value = "";
     }
     else if(act==="play"){ unitOpen(t.dataset.game, false); }
+    else if(act==="eplay"){ t.disabled = true; unitOpenEval(t.dataset.game).catch(err=>console.error(err)).then(()=>{ t.disabled = false; }); }
     else if(act==="bank"){ unitOpen(t.dataset.game, true); }
     else if(act==="quick"){ unitOpen("quick", true); }
     else if(act==="backup"){ sinifBackup(t); }
