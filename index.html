@@ -704,7 +704,7 @@
   .lr-deck{ position:absolute; inset:0; display:flex; flex-direction:column; background:#0B1119; }
   .lr-stage{ flex:1; min-height:0; display:flex; align-items:center; justify-content:center; cursor:pointer; user-select:none; -webkit-user-select:none; -webkit-tap-highlight-color:transparent; touch-action:pan-y; }
   .lr-prog{ height:4px; background:#1F2B38; } .lr-prog i{ display:block; height:100%; width:0; background:var(--violet,#6C5CE7); transition:width .2s; }
-  .lr-deckbar{ display:flex; align-items:center; justify-content:center; gap:16px; padding:8px 12px calc(8px + env(safe-area-inset-bottom,0px)); background:#16202B; }
+  .lr-deckbar{ display:flex; align-items:center; justify-content:center; gap:12px; padding:6px 12px calc(6px + env(safe-area-inset-bottom,0px)); background:#16202B; }
   .lr-deckbar .lr-tb{ width:64px; background:#1F2B38; } .lr-deckbar .lr-tb:disabled{ opacity:.3; cursor:default; }
   .lr-count{ min-width:110px; height:52px; padding:0 16px; border:0; border-radius:14px; background:#1F2B38; color:#fff; font:700 1.2rem 'Space Grotesk',sans-serif; cursor:pointer; }
   .lr-sbox{ position:relative; flex:none; overflow:hidden; background:#fff; box-shadow:0 2px 12px rgba(0,0,0,.5);  }
@@ -718,15 +718,15 @@
   .lr-fallback-icon{ font-size:4rem; }
   .lr-fallback .lr-btn{ background:var(--violet); margin-top:12px; }
   @media (min-width:1200px){
-    .lr-bar{ padding:14px 22px; gap:16px; }
-    .lr-title{ font-size:1.6rem; }
-    .lr-btn{ min-height:66px; padding:0 30px; font-size:1.35rem; border-radius:16px; }
+    .lr-bar{ padding:10px 18px; gap:14px; }
+    .lr-title{ font-size:1.35rem; }
+    .lr-btn{ min-height:50px; padding:0 20px; font-size:1.1rem; border-radius:14px; }
     .lr-fallback{ font-size:1.5rem; max-width:900px; }
   }
   @media (min-width:1700px){
-    .lr-bar{ padding:18px 28px; }
-    .lr-title{ font-size:2rem; }
-    .lr-btn{ min-height:80px; padding:0 38px; font-size:1.7rem; }
+    .lr-bar{ padding:10px 20px; }
+    .lr-title{ font-size:1.5rem; }
+    .lr-btn{ min-height:54px; padding:0 22px; font-size:1.25rem; border-radius:14px; }
     .lr-fallback{ font-size:1.9rem; max-width:1100px; }
   }
   /* PDF okuyucu (gömülü PDF.js) */
@@ -780,19 +780,19 @@
     .lr-sw{ width:34px; height:34px; }
   }
   @media (min-width:1200px){
-    .lr-pageind{ min-height:66px; font-size:1.35rem; padding:0 22px; border-radius:18px; }
-    .lr-tb{ width:66px; height:66px; border-radius:16px; }
-    .lr-tb svg{ width:32px; height:32px; }
-    .lr-seg{ border-radius:22px; gap:6px; }
-    .lr-pdfctl{ gap:20px; }
-    .lr-sw{ width:50px; height:50px; }
+    .lr-pageind{ min-height:50px; font-size:1.1rem; padding:0 16px; border-radius:14px; }
+    .lr-tb{ width:50px; height:50px; border-radius:14px; }
+    .lr-tb svg{ width:24px; height:24px; }
+    .lr-seg{ border-radius:18px; gap:6px; }
+    .lr-pdfctl{ gap:16px; }
+    .lr-sw{ width:38px; height:38px; }
     .lr-sub{ gap:14px; padding:12px 18px; }
   }
   @media (min-width:1700px){
-    .lr-pageind{ min-height:80px; font-size:1.7rem; }
-    .lr-tb{ width:80px; height:80px; border-radius:20px; }
-    .lr-tb svg{ width:40px; height:40px; }
-    .lr-sw{ width:62px; height:62px; }
+    .lr-pageind{ min-height:54px; font-size:1.2rem; padding:0 16px; }
+    .lr-tb{ width:54px; height:54px; border-radius:14px; }
+    .lr-tb svg{ width:26px; height:26px; }
+    .lr-sw{ width:44px; height:44px; }
   }
 
   /* --- PDF: tek sayfa slayt gösterimi + PDF/sunum ortak kalem katmanı --- */
@@ -5902,8 +5902,16 @@ async function pptxOpen(blob, key){
       const sc = Math.min(window.devicePixelRatio || 1, 2, Math.sqrt(12e6/(bw*bh)));
       inkMake(box, Math.max(1, Math.round(bw*sc)), Math.max(1, Math.round(bh*sc)), {sess:ink, key:cur, w:deck.w, h:deck.h, u:deck.w/595});
     };
-    const show = i=>{
+    const show = async i=>{
       cur = Math.max(0, Math.min(N-1, i));
+      if(!deck.slides[cur]){
+        sl.style.width = deck.w+"px"; sl.style.height = deck.h+"px"; sl.style.background = "#fff";
+        sl.innerHTML = '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:700 1.1rem \'Manrope\',sans-serif;color:#8895a6;">Hazırlanıyor…</div>';
+        count.textContent = (cur+1)+" / "+N; prog.style.width = ((cur+1)/N*100)+"%";
+        prev.disabled = true; next.disabled = true;
+        await deck.ensure(cur);
+        if(cur !== i) return;   // bekleme sırasında kullanıcı başka slayta geçtiyse burada dur
+      }
       const s = deck.slides[cur];
       sl.style.width = deck.w+"px"; sl.style.height = deck.h+"px"; sl.style.background = s.bg; sl.innerHTML = s.html;
       count.textContent = (cur+1)+" / "+N; prog.style.width = ((cur+1)/N*100)+"%";
@@ -6144,11 +6152,17 @@ async function pptxRender(zip){
     return out;
   };
   const pres = await xml("ppt/presentation.xml"), pRel = await relsOf("ppt/presentation.xml"), sz = desc(pres, "sldSz")[0];
-  const deck = {w: +sz.getAttribute("cx")/PX, h: +sz.getAttribute("cy")/PX, slides: []};
-  for(const sp of desc(pres, "sldId").map(s=>pRel[s.getAttributeNS(NSR, "id")]).filter(Boolean)){
+  const sps0 = desc(pres, "sldId").map(s=>pRel[s.getAttributeNS(NSR, "id")]).filter(Boolean);
+  // Hızlı ön geçiş: yalnızca gizli (show="0") slaytları eler; görsel/tema işleme burada YAPILMAZ (yavaşlatan kısım budur).
+  const sps = [];
+  for(const sp of sps0){ try{ const S = await part(sp); if(S.d.documentElement.getAttribute("show")!=="0") sps.push(sp); }catch(e){ sps.push(sp); } }
+  const deck = {w: +sz.getAttribute("cx")/PX, h: +sz.getAttribute("cy")/PX, slides: new Array(sps.length).fill(null)};
+  // Tek bir slaytın (idx) tam işlenmesi: görsel taban64'e çevirme, tema/master/layout birleştirme burada olur.
+  const renderAt = async (i)=>{
+    if(deck.slides[i]) return deck.slides[i];
+    const sp = sps[i];
     try{
       const S = await part(sp);
-      if(S.d.documentElement.getAttribute("show")==="0") continue;
       const L = await part(Object.values(S.rel).find(t=>t.includes("slideLayouts/")));
       const M = await part(Object.values(L.rel).find(t=>t.includes("slideMasters/")));
       const T = await part(Object.values(M.rel).find(t=>t.includes("theme/")));
@@ -6164,9 +6178,13 @@ async function pptxRender(zip){
       const ID = {ox:0, oy:0, kx:1, ky:1}, flag = P=>P.d ? P.d.documentElement.getAttribute("showMasterSp") : null;
       const hideAll = flag(S)==="0", hideM = hideAll || flag(L)==="0";
       const html = (hideM || !tr[0] ? "" : await walk(tr[0], mk(M), ID, true)) + (hideAll || !tr[1] ? "" : await walk(tr[1], mk(L), ID, true)) + (tr[2] ? await walk(tr[2], mk(S), ID, false) : "");
-      deck.slides.push({bg: bg || "#fff", html});
-    }catch(e){ deck.slides.push({bg:"#fff", html:""}); }
-  }
+      deck.slides[i] = {bg: bg || "#fff", html};
+    }catch(e){ deck.slides[i] = {bg:"#fff", html:""}; }
+    return deck.slides[i];
+  };
+  deck.ensure = renderAt;
+  if(sps.length) await renderAt(0);   // ilk slayt hemen hazır: kullanıcı beklemeden görür
+  (async()=>{ for(let i=1; i<sps.length; i++){ await renderAt(i); } })();   // geri kalanı arka planda, sırayla
   return deck;
 }
 
@@ -6209,18 +6227,11 @@ function libReaderDownload(){
 let zoomer = null, zgLast = 0;
 const zgRecent = ()=>performance.now() - zgLast < 450;
 function bindZoomGestures(stage, z){
-  const ptrs = new Map();               // pointerId -> {x, y, t}
-  let pinch = null, pan = null, duo = null;
-  // Akıllı tahtalar tek parmağı bazen birbirine çok yakın iki temas olarak bildirir ve "parmak kalktı" olayı
-  // zaman zaman hiç gelmez. Bu yüzden: (1) çok yakın iki temas çimdikleme sayılmaz, taşıma olarak işlenir,
-  // (2) çimdikleme yalnızca temaslar arası mesafe belirgin değişince başlar, (3) takılı kalan temaslar temizlenir.
-  const PINCH_MIN_DIST = 80, PINCH_START_DELTA = 15, STALE_PRIMARY_MS = 350, STALE_MS = 1500;
+  const ptrs = new Map();
+  let pinch = null, pan = null;
   const pts = ()=>Array.from(ptrs.values());
   const dist = ()=>{ const a = pts(); return Math.hypot(a[0].x-a[1].x, a[0].y-a[1].y) || 1; };
   const mid = ()=>{ const a = pts(); return {x:(a[0].x+a[1].x)/2, y:(a[0].y+a[1].y)/2}; };
-  const center = ()=>{ const a = pts(); if(!a.length) return null; let x = 0, y = 0; a.forEach(p=>{ x += p.x; y += p.y; }); return {x:x/a.length, y:y/a.length}; };
-  const canPan = ()=> z.mult() > 1.001 && inkSess && inkSess.tool === "hand";
-  const startPan = ()=>{ const c = center(); pan = c ? {x:c.x, y:c.y, sl:stage.scrollLeft, st:stage.scrollTop, on:false} : null; };
   const startPinch = ()=>{
     if(inkSess && inkSess.cancel) inkSess.cancel();
     pan = null;
@@ -6245,32 +6256,19 @@ function bindZoomGestures(stage, z){
     let nm = p.nm; if(nm < 1.08) nm = 1;         // 1×'e yakın bırakılırsa tek sayfaya oturur
     z.set(nm, {L:p.L + p.tx, T:p.T + p.ty});
   };
-  const resetAll = ()=>{                          // tüm parmaklar kalktı: takılı kalan her şeyi temizle
-    if(pinch) endPinch();
-    if(pan && pan.on) zgLast = performance.now();
-    ptrs.clear(); pan = null; duo = null;
-  };
   stage.addEventListener("pointerdown", (e)=>{
-    const now = performance.now();
-    // takılı kalmış (uzun süredir hareket etmeyen) eski temasları at
-    ptrs.forEach((p, id)=>{ if(now - p.t > (e.isPrimary ? STALE_PRIMARY_MS : STALE_MS)) ptrs.delete(id); });
-    if(pinch && ptrs.size < 2) endPinch();
-    ptrs.set(e.pointerId, {x:e.clientX, y:e.clientY, t:now});
-    if(pinch) return;
-    duo = ptrs.size === 2 ? {d0:dist()} : null;
+    ptrs.set(e.pointerId, {x:e.clientX, y:e.clientY});
+    if(ptrs.size === 2){ startPinch(); return; }
     if(ptrs.size > 2) return;
-    if(canPan()) startPan(); else pan = null;
+    if(z.mult() > 1.001 && inkSess && inkSess.tool === "hand")
+      pan = {id:e.pointerId, x:e.clientX, y:e.clientY, sl:stage.scrollLeft, st:stage.scrollTop, on:false};
   });
   stage.addEventListener("pointermove", (e)=>{
     const q = ptrs.get(e.pointerId); if(!q) return;
-    q.x = e.clientX; q.y = e.clientY; q.t = performance.now();
+    q.x = e.clientX; q.y = e.clientY;
     if(pinch && ptrs.size >= 2){ movePinch(); e.preventDefault(); return; }
-    if(!pinch && ptrs.size === 2 && duo){
-      const d = dist();
-      if(d >= PINCH_MIN_DIST && Math.abs(d - duo.d0) > PINCH_START_DELTA){ startPinch(); if(pinch){ movePinch(); e.preventDefault(); return; } }
-    }
-    if(pan){
-      const c = center(), dx = c.x - pan.x, dy = c.y - pan.y;
+    if(pan && pan.id === e.pointerId){
+      const dx = e.clientX - pan.x, dy = e.clientY - pan.y;
       if(!pan.on && Math.hypot(dx, dy) > 6){ pan.on = true; try{ stage.setPointerCapture(e.pointerId); }catch(_){} }
       if(pan.on){ stage.scrollLeft = pan.sl - dx; stage.scrollTop = pan.st - dy; }
     }
@@ -6279,25 +6277,10 @@ function bindZoomGestures(stage, z){
     if(!ptrs.has(e.pointerId)) return;
     ptrs.delete(e.pointerId);
     if(pinch && ptrs.size < 2) endPinch();
-    if(ptrs.size < 2) duo = null;
-    if(ptrs.size === 0){ if(pan && pan.on) zgLast = performance.now(); pan = null; }
-    else if(pan){ const c = center(); pan.x = c.x; pan.y = c.y; pan.sl = stage.scrollLeft; pan.st = stage.scrollTop; }
+    if(pan && pan.id === e.pointerId){ if(pan.on) zgLast = performance.now(); pan = null; }
   };
   stage.addEventListener("pointerup", up);
   stage.addEventListener("pointercancel", up);
-  // "Kalktı" olayı alan dışında ya da yeniden çizilen bir öğede gelirse de temas listesi temizlensin
-  function winUp(e){ if(stageGone()) return; up(e); }
-  function winTouchEnd(e){ if(stageGone()) return; if(e.touches.length === 0) resetAll(); }
-  function stageGone(){
-    if(stage.isConnected) return false;
-    window.removeEventListener("pointerup", winUp, true); window.removeEventListener("pointercancel", winUp, true);
-    window.removeEventListener("touchend", winTouchEnd, true); window.removeEventListener("touchcancel", winTouchEnd, true);
-    return true;
-  }
-  window.addEventListener("pointerup", winUp, true);
-  window.addEventListener("pointercancel", winUp, true);
-  window.addEventListener("touchend", winTouchEnd, true);
-  window.addEventListener("touchcancel", winTouchEnd, true);
   stage.addEventListener("wheel", (e)=>{
     if(!e.ctrlKey) return;                      // Ctrl + tekerlek / dokunmatik yüzey çimdiği
     e.preventDefault(); z.set(z.mult() * (e.deltaY < 0 ? 1.1 : 1/1.1));
