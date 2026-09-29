@@ -2217,17 +2217,70 @@ function qbEnsureSynced(g){
   qbAttachSync(cfg.storageKey, cfg.arr);
 }
 const QB_VIEW_MAP = { multiple:"mc", tugofwar:"tug", millionaire:"mill", picture:"pic", scramble:"scr", benkim:"bk", wheel:"whl", hotpotato:"hp", ordering:"ord" };
+/* ---- Bulut soru sayısı dizini: dkabSorXQBN/<anahtar> = soru sayısı (yalnızca küçük sayılar).
+   Başka cihazda sınıf/ünite ekranı "kaç soru var"ı ve "Oyna" düğmesinin açık olup olmadığını
+   soruların kendisini indirmeden bu dizinden bilir. ---- */
+var qbCloudCounts = {}, qbCountsOn = false, qbBackfilled = false, qbFailAt = 0;
+function qbCloudFailAlert(){
+  const now = Date.now(); if(now - qbFailAt < 10000) return; qbFailAt = now;
+  alert("⚠️ Sorular bu cihaza kaydedildi ama buluta yazılamadı; diğer cihazlarda görünmez. İnternet bağlantısını kontrol edip tekrar deneyin.");
+}
 function qbSave(storageKey, liveArr){
-  if(String(storageKey).indexOf("evalQ:")===0) return;
+  if(String(storageKey).indexOf("evalQ:")===0) return Promise.resolve(true);
   try{
     localStorage.setItem(storageKey, JSON.stringify(liveArr));
   }catch(e){
     alert("Kaydetme başarısız oldu: tarayıcı depolama alanı dolu olabilir. Görselleri küçültmeyi veya sayısını azaltmayı deneyin.");
   }
-  if(firebaseHazir){
-    const ref = fbDb.ref("dkabSorXQB/"+storageKey);
-    (liveArr && liveArr.length ? ref.set(liveArr) : ref.remove()).catch(e=>console.error("Soru bankası bulut kaydı başarısız ("+storageKey+"):", e));
-  }
+  if(!firebaseHazir) return Promise.resolve(true);
+  const n = liveArr ? liveArr.length : 0;
+  if(n) qbCloudCounts[storageKey] = n; else delete qbCloudCounts[storageKey];
+  const ref = fbDb.ref("dkabSorXQB/"+storageKey), cref = fbDb.ref("dkabSorXQBN/"+storageKey);
+  return (n ? ref.set(liveArr) : ref.remove())
+    .then(()=>{
+      // Sayı dizini yazılamazsa (ör. veritabanı kuralı izin vermiyorsa) sorular yine de kaydedilmiş sayılır
+      (n ? cref.set(n) : cref.remove()).catch(e=>console.error("Soru sayısı dizini yazılamadı (dkabSorXQBN kuralını kontrol edin):", e));
+      return true;
+    }, e=>{ console.error("Soru bankası bulut kaydı başarısız ("+storageKey+"):", e); qbCloudFailAlert(); return false; });
+}
+function qbCountsAttach(){
+  if(!firebaseHazir || qbCountsOn) return; qbCountsOn = true;
+  fbDb.ref("dkabSorXQBN").on("value", snap=>{
+    qbCloudCounts = snap.val() || {};
+    qbBackfillOnce();
+    try{
+      const v = document.getElementById("view-classes");
+      if(v && v.classList.contains("active") && typeof sinifRender === "function") sinifRender();
+    }catch(e){}
+  }, e=>console.error("Soru sayısı senkronizasyon hatası:", e));
+}
+/* Eski sürümde eklenmiş (dizini olmayan) ünite sorularını, bu cihazda varsa buluta da yükler ve sayısını yazar */
+function qbBackfillOnce(){
+  if(qbBackfilled) return; qbBackfilled = true;
+  try{
+    for(let i = 0; i < localStorage.length; i++){
+      const k = localStorage.key(i);
+      if(!k || k.indexOf("unitQ:") !== 0 || qbCloudCounts[k] !== undefined) continue;
+      let a = null; try{ a = JSON.parse(localStorage.getItem(k)); }catch(e){}
+      if(!Array.isArray(a) || !a.length) continue;
+      fbDb.ref("dkabSorXQB/"+k).transaction(cur=> (Array.isArray(cur) && cur.length) ? undefined : a)
+        .then(res=>{ const v = res.snapshot.val(); if(Array.isArray(v) && v.length) return fbDb.ref("dkabSorXQBN/"+k).set(v.length); })
+        .catch(()=>{});
+    }
+  }catch(e){}
+}
+/* Bir anahtarın bulut kopyasını (varsa) bu cihaza indirir; en fazla 4 sn bekler */
+function qbPrefetch(key){
+  if(!firebaseHazir) return Promise.resolve();
+  const f = fbDb.ref("dkabSorXQB/"+key).once("value").then(s=>{
+    const v = s.val();
+    if(Array.isArray(v) && v.length){ try{ localStorage.setItem(key, JSON.stringify(v)); }catch(e){} }
+  }).catch(()=>{});
+  return Promise.race([f, new Promise(res=>setTimeout(res, 4000))]);
+}
+if(firebaseHazir){
+  try{ firebase.auth().onAuthStateChanged(u=>{ if(u) qbCountsAttach(); }); }catch(e){ qbCountsAttach(); }
+  setTimeout(qbCountsAttach, 4000);
 }
 
 /* ================= 0) ÇOKTAN SEÇMELİ ================= */
@@ -4283,18 +4336,46 @@ function qbQuickApply(items, opts){
       if(cfg.hasLayout && (qbQuickState.layout==="stack" || qbForceStack())) nq.layout = "stack";
       cfg.arr.push(nq);
     });
-    if(fresh.length) qbSave(cfg.storageKey, cfg.arr);
-    results.push({ game:g, label:cfg.label, added:fresh.length, skipped:skipped });
+    const cloud = fresh.length ? qbSave(cfg.storageKey, cfg.arr) : Promise.resolve(true);
+    results.push({ game:g, label:cfg.label, added:fresh.length, skipped:skipped, cloud:cloud });
   });
   return results;
 }
 
-function qbQuickCommit(items, opts){
+/* Ekleme öncesi seçili yarışmaların bulut kopyasını indirir: başka cihazdaki sorular korunur */
+function qbHydrateTargets(){
+  if(!firebaseHazir) return Promise.resolve(true);
+  const jobs = QB_QUICK_GAMES.filter(g=>qbQuickState.targets[g]).map(g=>{
+    const cfg = QB_GAMES[g];
+    return fbDb.ref("dkabSorXQB/"+cfg.storageKey).once("value").then(snap=>{
+      const v = snap.val();
+      if(Array.isArray(v) && v.length){
+        cfg.arr.splice(0, cfg.arr.length, ...v);
+        try{ localStorage.setItem(cfg.storageKey, JSON.stringify(v)); }catch(e){}
+      }
+    });
+  });
+  return Promise.race([Promise.all(jobs).then(()=>true), new Promise(res=>setTimeout(()=>res(false), 8000))]).catch(()=>false);
+}
+let qbQuickBusy = false;
+async function qbQuickCommit(items, opts){
+  if(qbQuickBusy) return false;
   if(!QB_QUICK_GAMES.some(g=>qbQuickState.targets[g])){ alert("En az bir yarışma seçin."); return false; }
-  const res = qbQuickApply(items, opts);
-  const lines = res.map(x=>`<li>${QB_QUICK_ICONS[x.game]} ${qbEscape(x.label)}: <b>${x.added}</b> eklendi${x.skipped ? ` • ${x.skipped} tanesi zaten vardı, atlandı` : ""}</li>`).join("");
-  qbQuickState.result = `<div class="qbq-result"><div class="qbq-result-title">✅ Eklendi</div><ul>${lines}</ul></div>`;
-  return true;
+  qbQuickBusy = true;
+  try{
+    if(!(await qbHydrateTargets())){
+      alert("Buluttaki mevcut sorulara ulaşılamadı. Diğer cihazlardaki soruların üzerine yazmamak için ekleme yapılmadı. İnternet bağlantınızı kontrol edip tekrar deneyin.");
+      return false;
+    }
+    const res = qbQuickApply(items, opts);
+    const acks = await Promise.all(res.map(x=>Promise.race([x.cloud, new Promise(r=>setTimeout(()=>r(null), 8000))])));
+    const lines = res.map(x=>`<li>${QB_QUICK_ICONS[x.game]} ${qbEscape(x.label)}: <b>${x.added}</b> eklendi${x.skipped ? ` • ${x.skipped} tanesi zaten vardı, atlandı` : ""}</li>`).join("");
+    const note = !firebaseHazir ? "" : acks.some(a=>a===false) ? `<div class="qbq-warn">⚠️ Bu cihaza kaydedildi ama buluta yazılamadı; diğer cihazlarda görünmez.</div>`
+      : acks.some(a=>a===null) ? `<div class="qbq-warn">⏳ Buluta yazma henüz onaylanmadı; bağlantı varken sayfayı kapatmayın.</div>`
+      : `<div class="qbq-ok">☁️ Buluta kaydedildi — tüm cihazlarda görünür.</div>`;
+    qbQuickState.result = `<div class="qbq-result"><div class="qbq-result-title">✅ Eklendi</div><ul>${lines}</ul>${note}</div>`;
+    return true;
+  } finally { qbQuickBusy = false; }
 }
 
 function qbQuickButtonState(){
@@ -4401,18 +4482,21 @@ function qbQuickRender(){
     if(!checked){ alert("Doğru şıkkı işaretleyin."); return; }
     if(Number(checked.value) >= opts.length){ alert("Doğru cevap olarak E şıkkını işaretlediniz ama E şıkkı boş."); return; }
     const level = Number(form.querySelector(".qbq-level").value) || 0;
-    if(qbQuickCommit([{ q:q, o:opts, c:Number(checked.value) }], { level:level })) qbQuickRender();
+    qbQuickCommit([{ q:q, o:opts, c:Number(checked.value) }], { level:level }).then(ok=>{ if(ok) qbQuickRender(); });
   });
   panel.addEventListener("click", (e)=>{
     const btn = (e.target && e.target.closest) ? e.target.closest("#qbqBulkBtn") : null; if(!btn) return;
     const r = qbQuickRead(qbQuickState.text);
     if(!r.items.length) return;
     if(r.items.some(it=>!(it.c >= 0 && it.c < it.o.length))){ alert("Önce her sorunun doğru şıkkını işaretleyin."); return; }
-    if(qbQuickCommit(r.items, {})){
-      qbQuickState.picks = {};
-      qbQuickState.text = r.errors.map(x=>x.raw).join("\n");
-      qbQuickRender();
-    }
+    btn.disabled = true; btn.textContent = "⏳ Kaydediliyor…";
+    qbQuickCommit(r.items, {}).then(ok=>{
+      if(ok){
+        qbQuickState.picks = {};
+        qbQuickState.text = r.errors.map(x=>x.raw).join("\n");
+        qbQuickRender();
+      } else { qbQuickButtonState(); }
+    });
   });
 })();
 
@@ -4614,7 +4698,9 @@ function unitPathLabel(unitId){
 }
 function unitCount(unitId, game){
   let n = 0;
-  try{ const raw = localStorage.getItem("unitQ:"+unitId+":"+game); if(raw){ const a = JSON.parse(raw); if(Array.isArray(a)) n = a.length; } }catch(e){}
+  const ukey = "unitQ:"+unitId+":"+game;
+  try{ const raw = localStorage.getItem(ukey); if(raw){ const a = JSON.parse(raw); if(Array.isArray(a)) n = a.length; } }catch(e){}
+  if(typeof qbCloudCounts !== "undefined" && qbCloudCounts[ukey] !== undefined) n = qbCloudCounts[ukey];   // buluttaki sayı (başka cihazdan eklenenler dahil)
   if(n===0) n = ((UNIT_DEFAULTS[unitId]||{})[game]||[]).length;
   return n;
 }
@@ -4660,7 +4746,7 @@ function unitPurge(unitId){
   UNIT_GAMES.forEach(g=>{
     const key = "unitQ:"+unitId+":"+g.id;
     try{ localStorage.removeItem(key); }catch(e){}
-    if(firebaseHazir){ fbDb.ref("dkabSorXQB/"+key).remove().catch(()=>{}); }
+    if(firebaseHazir){ fbDb.ref("dkabSorXQB/"+key).remove().catch(()=>{}); fbDb.ref("dkabSorXQBN/"+key).remove().catch(()=>{}); delete qbCloudCounts[key]; }
   });
   // NOT: sinifData.deletedUnits güncellemesi artık sinifTreeMutate içindeki
   // silme işleyicisinde yapılıyor (bulutla senkron çakışmaması için).
@@ -4760,9 +4846,10 @@ function sorxAddRender(){
     if(sorxAddSel.unitId) sorxAddOpen(sorxAddSel.topicId || sorxAddSel.unitId);
   });
 })();
-function unitOpen(game, toBank){
+async function unitOpen(game, toBank){
   const unitId = sinifNav.topicId || sinifNav.unitId; if(!unitId) return;
   const g = UNIT_GAMES.find(x=>x.id===game);
+  await qbPrefetch("unitQ:"+unitId+":"+game);      // başka cihazdan eklenen soruları önce indir
   if(!toBank && unitCount(unitId, game)===0){ alert(Auth.readOnly() ? "Bu ünitede bu etkinlik için henüz soru yok." : "Bu ünitede bu etkinlik için henüz soru yok. Önce '📝 Sorular' bölümünden ekleyin."); return; }
   unitBackTo = "classes";
   qbUseSource(unitId);
@@ -4890,7 +4977,7 @@ function sinifRestore(file){
       const QB_FIXED_KEYS = ["mcQuestionsV1","tugQuestionsV1","millQuestionsV1","picQuestionsV1","scrWordsV1","bkItemsV1","wheelQuestionsV1","hpQuestionsV1","ordItemsV1"];
       for(const k of Object.keys(p.data)){
         if(k.startsWith("unitQ:") || QB_FIXED_KEYS.includes(k)){
-          try{ await fbDb.ref("dkabSorXQB/"+k).set(JSON.parse(p.data[k])); }catch(e){}
+          try{ const arr0 = JSON.parse(p.data[k]); await fbDb.ref("dkabSorXQB/"+k).set(arr0); if(Array.isArray(arr0) && arr0.length) await fbDb.ref("dkabSorXQBN/"+k).set(arr0.length); }catch(e){}
         }
       }
     }
