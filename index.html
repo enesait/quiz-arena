@@ -6696,93 +6696,113 @@ unitCtxUpdate();
 qbRenderPanel("tug");
 </script>
 <script>
-/* ================= GERİ TUŞU (telefon / tarayıcı) =================
-   Geri tuşu: açık pencere > menü içi seviye (sınıf›ders›ünite›başlık) > önceki menü > ana sayfa.
-   Ana sayfadayken geri tuşuna basılırsa çıkış için onay istenir. */
+/* ================= GERİ TUŞU (telefon / tarayıcı) — v2 =================
+   Her ekran/menü geçişi, kullanıcının dokunuşu sırasında gerçek bir geçmiş kaydı olarak eklenir
+   (Chrome dokunuşsuz eklenen kayıtları geri tuşunda atlıyor). Geri tuşu = bir önceki kaydın ekranına dön.
+   En altta ana sayfadayken geri tuşu çıkış onayı ister. */
 (function(){
-  var stack = [], goingBack = false, leaving = false;
-  var origShow = window.showView;
-  function activeView(){
-    var a = document.querySelector(".view.active");
-    return a ? a.id.replace("view-", "") : "home";
+  var CTX_VIEWS = ["multiple","tugofwar","millionaire","picture","scramble","benkim","wheel","hotpotato","ordering","questionbank"];
+  var armed = false, restoring = false, ignore = 0, leaving = false, curKey = "";
+  function clone(o){ return o ? JSON.parse(JSON.stringify(o)) : o; }
+  function activeView(){ var a = document.querySelector(".view.active"); return a ? a.id.replace("view-", "") : "home"; }
+  function snap(){
+    var v = activeView(), s = { view: v };
+    if(v === "classes") s.nav = clone(sinifNav);
+    else if((v === "kitap" || v === "sunum") && libNav[v]) s.nav = clone(libNav[v]);
+    if(CTX_VIEWS.indexOf(v) >= 0) s.u = qbSource || null;   // ünite bağlamıyla açılan oyun/soru ekranı
+    return s;
   }
-  window.showView = function(view){
-    var before = activeView();
-    origShow.apply(this, arguments);
-    var after = activeView();
-    if(after === "home") stack.length = 0;
-    else if(!goingBack && after !== before){ stack.push(before); if(stack.length > 30) stack.shift(); }
-  };
+  function keyOf(s){ return JSON.stringify(s); }
+  function userActive(){ try{ return navigator.userActivation ? navigator.userActivation.isActive : true; }catch(e){ return true; } }
 
+  function track(){
+    if(restoring || !armed) return;
+    var s = snap(), k = keyOf(s);
+    if(k === curKey) return;
+    var cur = history.state;
+    // Ünite oyunundan "Üniteye dön" ile çıkıldıysa: yeni kayıt eklemek yerine oyundan önceki kayda dön (geri tuşuyla aynı sonuç)
+    if(cur && cur.sx && cur.s && cur.s.u && cur.p === k){
+      curKey = k; ignore++; history.back(); setTimeout(function(){ ignore = 0; }, 500); return;
+    }
+    var st = { sx:1, s:s, p:curKey };
+    if(userActive()) history.pushState(st, ""); else history.replaceState(st, "");
+    curKey = k;
+  }
+  function wrap(name){
+    var o = window[name]; if(typeof o !== "function") return;
+    window[name] = function(){ var r = o.apply(this, arguments); track(); return r; };
+  }
+  wrap("showView"); wrap("sinifRender"); wrap("libRender");
+
+  function layerOpen(){
+    var sb = document.querySelector(".sidebar");
+    if(sb && sb.classList.contains("open")) return true;
+    var cm = document.getElementById("contactOverlay");
+    if(cm && cm.classList.contains("show")) return true;
+    return document.querySelectorAll(".overlay.show").length > 0;
+  }
   function closeLayer(){
     var sb = document.querySelector(".sidebar");
-    if(sb && sb.classList.contains("open")){ closeSidebar(); return true; }
+    if(sb && sb.classList.contains("open")){ closeSidebar(); return; }
     var cm = document.getElementById("contactOverlay");
-    if(cm && cm.classList.contains("show")){ cmClose(); return true; }
-    var ov = document.querySelectorAll(".overlay.show");
-    if(ov.length){
-      var top = ov[ov.length - 1];
-      if(top.id === "overlayPause"){ document.getElementById("gcResumeBtn").click(); }
-      else if(top.id === "overlayFinish"){ document.getElementById("gcFinBtn").click(); }
-      else top.classList.remove("show");
-      return true;
-    }
-    return false;
+    if(cm && cm.classList.contains("show")){ cmClose(); return; }
+    var ov = document.querySelectorAll(".overlay.show"), top = ov[ov.length - 1];
+    if(!top) return;
+    if(top.id === "overlayPause") document.getElementById("gcResumeBtn").click();
+    else if(top.id === "overlayFinish") document.getElementById("gcFinBtn").click();
+    else top.classList.remove("show");
   }
-  function levelUp(view){
-    if(view === "classes" && typeof sinifNav !== "undefined"){
-      var n = sinifNav;
-      if(n.topicId) n.topicId = null;
-      else if(n.unitId) n.unitId = null;
-      else if(n.courseId) n.courseId = null;
-      else if(n.classId) n.classId = null;
-      else return false;
-      sinifRender(); return true;
-    }
-    if((view === "kitap" || view === "sunum") && typeof libNav !== "undefined" && libNav[view]){
-      var l = libNav[view];
-      if(l.unitId) l.unitId = null;
-      else if(l.courseId) l.courseId = null;
-      else if(l.classId) l.classId = null;
-      else return false;
-      libRender(view); return true;
-    }
-    return false;
+  function cancelPop(){                       // geri gidişi iptal et: az önce çıkılan kayda geri dön
+    ignore++;
+    history.forward();
+    setTimeout(function(){ ignore = 0; }, 500);
   }
-  function goTo(view){
-    goingBack = true;
+  function restore(st){
+    var s = st.s;
+    restoring = true;
     try{
-      if(view === "classes") sinifKeepNav = true;   // ünite/ders konumu korunsun
-      window.showView(view);
-    } finally { goingBack = false; }
-  }
-  /* true: uygulama içinde bir adım geri gidildi; false: geri gidilecek yer yok (ana sayfa) */
-  function handleBack(){
-    if(closeLayer()) return true;
-    var cur = activeView();
-    if(levelUp(cur)) return true;
-    if(stack.length){ goTo(stack.pop()); return true; }
-    if(cur !== "home"){ goTo("home"); return true; }
-    return false;
+      if(s.view === "classes"){ sinifNav = clone(s.nav) || sinifNav; sinifKeepNav = true; }
+      showView(s.view);
+      if((s.view === "kitap" || s.view === "sunum") && s.nav){ libNav[s.view] = clone(s.nav); libRender(s.view); }
+    } finally { restoring = false; }
+    var now = snap(); curKey = keyOf(now);
+    if(curKey !== keyOf(s)) history.replaceState({ sx:1, s:now }, "");   // yetki vb. nedeniyle ekran değiştiyse kaydı düzelt
   }
   function exitApp(){
     leaving = true;
     try{ if(navigator.app && navigator.app.exitApp){ navigator.app.exitApp(); return; } }catch(e){}
     history.back();
-    setTimeout(function(){ try{ window.close(); }catch(e){} }, 150);
+    setTimeout(function(){ try{ window.close(); }catch(e){} }, 200);
   }
 
-  if(!(history.state && (history.state.sxBase || history.state.sxApp))){
-    history.replaceState({ sxBase:true }, "");
-    history.pushState({ sxApp:true }, "");
-  }
   window.addEventListener("popstate", function(e){
     if(leaving) return;
-    if(e.state && e.state.sxApp) return;            // ileri gidildi, işlem yok
-    if(handleBack()){ history.pushState({ sxApp:true }, ""); return; }
-    if(confirm("Uygulamadan çıkmak istiyor musunuz?")) exitApp();
-    else history.pushState({ sxApp:true }, "");
+    if(ignore > 0){ ignore--; return; }
+    if(layerOpen()){ closeLayer(); cancelPop(); return; }          // önce açık pencere/menü kapanır
+    var st = e.state;
+    if(!st || st.sxBase){                                            // en alta gelindi: çıkış onayı
+      if(confirm("Uygulamadan çıkmak istiyor musunuz?")) exitApp(); else cancelPop();
+      return;
+    }
+    if(st.sx){
+      if(st.s.u){ history.back(); return; }                         // ünite oyunu artık geçerli değil: bir önceki kayda geç
+      restore(st);
+    }
   });
+
+  function arm(){
+    if(armed) return;
+    armed = true;
+    if(history.state && history.state.sx) return;
+    var s = snap(); curKey = keyOf(s);
+    history.pushState({ sx:1, s:s }, "");                            // ilk dokunuşta (gerçek kullanıcı hareketiyle) ana kayıt
+  }
+  if(history.state && history.state.sx){                             // sayfa yenilendi: alttaki kayıtlar duruyor
+    armed = true; curKey = keyOf(snap()); history.replaceState({ sx:1, s:snap() }, "");
+  } else {
+    history.replaceState({ sxBase:true }, "");
+    ["click","touchend","pointerup","keydown"].forEach(function(t){ document.addEventListener(t, arm, { capture:true, once:false }); });
+  }
 })();
 </script>
 </body>
