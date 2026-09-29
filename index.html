@@ -4199,7 +4199,17 @@ function qbQuickParseFree(text){
         const last = cur.opts[cur.opts.length - 1];
         const numbered = /^\d{1,3}\s*[.)]\s+\S/.test(t);
         const boundary = hasA[idx] && /[.?!:]["”')]?$/.test(last) && /^[A-ZÇĞİÖŞÜ0-9"“(]/.test(t);
-        if(numbered || cur.gap || boundary) flush();
+        // Boş satır/numara yoksa: bu satırdan sonra (en fazla 4 satır içinde, araya şık girmeden) yeni bir "A)" geliyorsa bu satır yeni sorunun başlangıcıdır.
+        let stemAhead = false;
+        if(/^[A-ZÇĞİÖŞÜ0-9"“(]/.test(t) && !/^\(?[A-F]\s*[.)]\s*\S/.test(t)){
+          for(let j = idx + 1; j < Math.min(lines.length, idx + 5); j++){
+            const s2 = lines[j].replace(/\s+/g," ").trim();
+            if(!s2) break;
+            if(/^\(?A\s*[.)]\s*\S/.test(s2)){ stemAhead = true; break; }
+            if(/^\(?[B-F]\s*[.)]\s*\S/.test(s2)) break;
+          }
+        }
+        if(numbered || cur.gap || boundary || stemAhead) flush();
       }
     }
     if(!cur.raw.length) cur.line = idx + 1;
@@ -6597,6 +6607,96 @@ Object.keys(LIB).forEach(libWire);
 unitCtxUpdate();
 
 qbRenderPanel("tug");
+</script>
+<script>
+/* ================= GERİ TUŞU (telefon / tarayıcı) =================
+   Geri tuşu: açık pencere > menü içi seviye (sınıf›ders›ünite›başlık) > önceki menü > ana sayfa.
+   Ana sayfadayken geri tuşuna basılırsa çıkış için onay istenir. */
+(function(){
+  var stack = [], goingBack = false, leaving = false;
+  var origShow = window.showView;
+  function activeView(){
+    var a = document.querySelector(".view.active");
+    return a ? a.id.replace("view-", "") : "home";
+  }
+  window.showView = function(view){
+    var before = activeView();
+    origShow.apply(this, arguments);
+    var after = activeView();
+    if(after === "home") stack.length = 0;
+    else if(!goingBack && after !== before){ stack.push(before); if(stack.length > 30) stack.shift(); }
+  };
+
+  function closeLayer(){
+    var sb = document.querySelector(".sidebar");
+    if(sb && sb.classList.contains("open")){ closeSidebar(); return true; }
+    var cm = document.getElementById("contactOverlay");
+    if(cm && cm.classList.contains("show")){ cmClose(); return true; }
+    var ov = document.querySelectorAll(".overlay.show");
+    if(ov.length){
+      var top = ov[ov.length - 1];
+      if(top.id === "overlayPause"){ document.getElementById("gcResumeBtn").click(); }
+      else if(top.id === "overlayFinish"){ document.getElementById("gcFinBtn").click(); }
+      else top.classList.remove("show");
+      return true;
+    }
+    return false;
+  }
+  function levelUp(view){
+    if(view === "classes" && typeof sinifNav !== "undefined"){
+      var n = sinifNav;
+      if(n.topicId) n.topicId = null;
+      else if(n.unitId) n.unitId = null;
+      else if(n.courseId) n.courseId = null;
+      else if(n.classId) n.classId = null;
+      else return false;
+      sinifRender(); return true;
+    }
+    if((view === "kitap" || view === "sunum") && typeof libNav !== "undefined" && libNav[view]){
+      var l = libNav[view];
+      if(l.unitId) l.unitId = null;
+      else if(l.courseId) l.courseId = null;
+      else if(l.classId) l.classId = null;
+      else return false;
+      libRender(view); return true;
+    }
+    return false;
+  }
+  function goTo(view){
+    goingBack = true;
+    try{
+      if(view === "classes") sinifKeepNav = true;   // ünite/ders konumu korunsun
+      window.showView(view);
+    } finally { goingBack = false; }
+  }
+  /* true: uygulama içinde bir adım geri gidildi; false: geri gidilecek yer yok (ana sayfa) */
+  function handleBack(){
+    if(closeLayer()) return true;
+    var cur = activeView();
+    if(levelUp(cur)) return true;
+    if(stack.length){ goTo(stack.pop()); return true; }
+    if(cur !== "home"){ goTo("home"); return true; }
+    return false;
+  }
+  function exitApp(){
+    leaving = true;
+    try{ if(navigator.app && navigator.app.exitApp){ navigator.app.exitApp(); return; } }catch(e){}
+    history.back();
+    setTimeout(function(){ try{ window.close(); }catch(e){} }, 150);
+  }
+
+  if(!(history.state && (history.state.sxBase || history.state.sxApp))){
+    history.replaceState({ sxBase:true }, "");
+    history.pushState({ sxApp:true }, "");
+  }
+  window.addEventListener("popstate", function(e){
+    if(leaving) return;
+    if(e.state && e.state.sxApp) return;            // ileri gidildi, işlem yok
+    if(handleBack()){ history.pushState({ sxApp:true }, ""); return; }
+    if(confirm("Uygulamadan çıkmak istiyor musunuz?")) exitApp();
+    else history.pushState({ sxApp:true }, "");
+  });
+})();
 </script>
 </body>
 </html>
