@@ -759,6 +759,12 @@
   @keyframes lrQrPulse{ 0%,100%{ box-shadow:0 0 0 4px rgba(108,92,231,.28); } 50%{ box-shadow:0 0 0 9px rgba(108,92,231,.1); } }
   @media (min-width:1200px){ .lr-qr::after{ font-size:1.25rem; padding:8px 18px; } }
   @media (min-width:1700px){ .lr-qr::after{ font-size:1.6rem; padding:10px 22px; } }
+  .lr-pan{ position:absolute; right:14px; bottom:calc(96px + env(safe-area-inset-bottom,0px)); z-index:5; display:none; grid-template-columns:repeat(3,58px); grid-template-rows:repeat(3,58px); gap:6px; padding:8px; border-radius:22px; background:rgba(22,32,43,.72); box-shadow:0 8px 28px rgba(0,0,0,.45); touch-action:none; user-select:none; -webkit-user-select:none; }
+  #libReader.lrzoomed .lr-pan{ display:grid; }
+  .lr-pb{ border:0; border-radius:14px; background:#2B3E54; color:#fff; font:800 1.4rem 'Manrope',sans-serif; display:grid; place-items:center; cursor:pointer; touch-action:none; -webkit-tap-highlight-color:transparent; padding:0; }
+  .lr-pb:active{ background:#4A6C97; }
+  .lr-pb.up{ grid-column:2; grid-row:1; } .lr-pb.lf{ grid-column:1; grid-row:2; } .lr-pb.fit{ grid-column:2; grid-row:2; font-size:1.2rem; background:#3A2F7A; } .lr-pb.rt{ grid-column:3; grid-row:2; } .lr-pb.dn{ grid-column:2; grid-row:3; }
+  @media (min-width:1200px){ .lr-pan{ right:22px; bottom:calc(120px + env(safe-area-inset-bottom,0px)); grid-template-columns:repeat(3,74px); grid-template-rows:repeat(3,74px); gap:8px; padding:10px; } .lr-pb{ font-size:1.9rem; } .lr-pb.fit{ font-size:1.6rem; } }
   .lr-toast{ position:absolute; left:50%; bottom:calc(150px + env(safe-area-inset-bottom, 0px)); transform:translateX(-50%) translateY(8px); z-index:6; max-width:88vw; padding:12px 20px; border-radius:14px; background:rgba(22,32,43,.96); color:#fff; font:700 1rem 'Manrope',sans-serif; text-align:center; box-shadow:0 8px 28px rgba(0,0,0,.55), inset 0 0 0 1px rgba(255,255,255,.1); opacity:0; pointer-events:none; transition:opacity .2s, transform .2s; }
   .lr-toast.show{ opacity:1; transform:translateX(-50%); }
   .lr-tb.busy{ background:rgba(108,92,231,.45); color:#fff; animation:lrBusy 1s ease-in-out infinite; }
@@ -810,6 +816,24 @@
   @media (min-width:1200px){ .lr-sub{ bottom:calc(104px + env(safe-area-inset-bottom, 0px)); } }
   @media (min-width:1700px){ .lr-sub{ bottom:calc(118px + env(safe-area-inset-bottom, 0px)); } .lr-toast{ bottom:calc(250px + env(safe-area-inset-bottom, 0px)); } }
 
+  /* --- Okuyucu: üst çubuk ve alt sayfa çubuğu küçültüldü (tahtada sunum alanı büyüsün) --- */
+  .lr-bar{ padding:3px 10px; gap:8px; }
+  .lr-title{ font-size:1rem; flex-basis:140px; }
+  .lr-btn{ min-height:36px; padding:0 14px; font-size:.95rem; border-radius:11px; }
+  .lr-pageind{ min-height:36px; padding:0 12px; font-size:.95rem; border-radius:11px; }
+  .lr-pdfctl{ gap:8px; }
+  .lr-seg{ padding:3px; gap:3px; border-radius:14px; }
+  .lr-tb{ width:36px; height:36px; border-radius:11px; }
+  .lr-tb svg{ width:20px; height:20px; }
+  .lr-sw{ width:32px; height:32px; }
+  .lr-prog{ height:3px; }
+  .lr-deckbar{ gap:10px; padding:3px 12px calc(3px + env(safe-area-inset-bottom,0px)); }
+  .lr-deckbar .lr-tb{ width:54px; height:34px; }
+  .lr-count{ min-width:96px; height:34px; padding:0 14px; border-radius:11px; font-size:1rem; }
+  .lr-sub{ bottom:calc(52px + env(safe-area-inset-bottom,0px)); padding:6px 10px; gap:8px; }
+  .lr-pan{ bottom:calc(64px + env(safe-area-inset-bottom,0px)); }
+  .lr-toast{ bottom:calc(72px + env(safe-area-inset-bottom,0px)); }
+
   /* --- BoomSoru & Sıralama --- */
   .nav-item[data-view="hotpotato"] .nav-icon{ background:#FFE9D6; }
   .nav-item[data-view="ordering"] .nav-icon{ background: var(--blue-soft); }
@@ -828,7 +852,7 @@
   .pen-stage{ position:relative; width:100%; aspect-ratio:16/9; border-radius:16px; overflow:hidden; margin:8px 0 12px; user-select:none;
     background:linear-gradient(#8FD0F2 0%, #CFECFB 36%, #58B85F 36%, #2E9647 100%); }
   .pen-stage::after{ content:""; position:absolute; left:0; right:0; top:36%; height:3px; background:rgba(255,255,255,.55); }
-  .pen-goal{ position:absolute; left:14%; right:14%; top:6%; height:52%; z-index:1; border:5px solid #fff; border-bottom:none; border-radius:6px 6px 0 0;
+  .pen-goal{ position:absolute; left:4%; right:4%; top:6%; height:52%; z-index:1; border:5px solid #fff; border-bottom:none; border-radius:6px 6px 0 0;
     background:repeating-linear-gradient(0deg, rgba(255,255,255,.26) 0 2px, transparent 2px 14px), repeating-linear-gradient(90deg, rgba(255,255,255,.26) 0 2px, transparent 2px 14px), rgba(16,44,28,.22); }
   .pen-goal.net{ animation:penNet .5s ease-out; }
   @keyframes penNet{ 0%{ transform:scale(1); } 35%{ transform:scale(1.03,1.05); } 100%{ transform:scale(1); } }
@@ -846,8 +870,9 @@
   .pen-zone.hit-bad{ background:rgba(251,91,75,.52); border-style:solid; border-color:var(--bad); }
   .pen-spot{ position:absolute; left:50%; top:90%; width:14px; height:6px; border-radius:50%; background:rgba(255,255,255,.85); transform:translate(-50%,-50%); }
   .pen-keeper, .pen-ball, .pen-player{ position:absolute; z-index:3; pointer-events:none; transform:translate(-50%,-50%); line-height:1; }
-  .pen-keeper{ font-size:clamp(1.5rem,5vw,2.5rem); width:1.6em; height:1.6em; border-radius:50%; background:#FFD23F; box-shadow:0 3px 0 rgba(0,0,0,.2);
+  .pen-keeper{ font-size:clamp(1.5rem,5vw,2.5rem); width:2.1em; height:2.1em; background:none; filter:drop-shadow(0 3px 0 rgba(0,0,0,.22));
     display:flex; align-items:center; justify-content:center; transition:left .35s ease-out, top .35s ease-out, transform .35s ease-out; }
+  .pen-keeper svg{ width:100%; height:100%; display:block; }
   .pen-ball{ font-size:clamp(1.4rem,4.6vw,2.4rem); transition:left .55s cubic-bezier(.2,.7,.3,1), top .55s cubic-bezier(.2,.7,.3,1), font-size .55s; }
   .pen-ball.fly{ font-size:clamp(1rem,3.2vw,1.7rem); animation:penSpin .55s linear; }
   @keyframes penSpin{ from{ transform:translate(-50%,-50%) rotate(0); } to{ transform:translate(-50%,-50%) rotate(540deg); } }
@@ -1535,6 +1560,13 @@
   </div>
   <div class="lr-body" id="lrBody"></div>
   <div class="lr-toast" id="lrToast" role="status"></div>
+  <div class="lr-pan" id="lrPan" role="group" aria-label="Sayfayı kaydır">
+    <button type="button" class="lr-pb up" data-d="u" aria-label="Yukarı">▲</button>
+    <button type="button" class="lr-pb lf" data-d="l" aria-label="Sola">◀</button>
+    <button type="button" class="lr-pb fit" data-d="fit" aria-label="Sığdır">⤢</button>
+    <button type="button" class="lr-pb rt" data-d="r" aria-label="Sağa">▶</button>
+    <button type="button" class="lr-pb dn" data-d="d" aria-label="Aşağı">▼</button>
+  </div>
   <div class="lr-sub" id="lrSub">
     <div class="lr-colors" id="lrColors">
       <button class="lr-sw on" type="button" data-color="#E5484D" style="background:#E5484D" aria-label="Kırmızı"></button>
@@ -3988,7 +4020,7 @@ function penUpdateBoard(){
   let lbl = "HER TAKIM " + penN + " ATIŞ";
   if(on){
     const cur = penKicks[penTeam].length + 1;
-    lbl = (penKicks[1].length >= penN && penKicks[2].length >= penN) ? "ALTIN ATIŞ" : ("ATIŞ " + cur + " / " + penN);
+    lbl = (penKicks[1].length >= penN && penKicks[2].length >= penN) ? "SERİ ATIŞ" : ("ATIŞ " + cur + " / " + penN);
   }
   document.getElementById("penTurnLbl").textContent = lbl;
   const hist = document.getElementById("penHist");
@@ -4030,7 +4062,7 @@ function penStart(){
   const kp = document.getElementById("penPanel");
   kp.className = "panel t" + penTeam;
   kp.innerHTML = `<div class="pen-kick"><div class="pen-kick-ball">⚽</div><div class="pen-kick-title">MAÇ BAŞLIYOR!</div><div class="pen-kick-sub">🔵 Mavi Takım  ⚔️  Kırmızı Takım 🔴</div><div class="pen-kick-sub">İlk atışı ${penTeamName(penTeam)} kullanacak</div></div>`;
-  SFX.play("pen_start"); penLater(()=>{ SFX.play("pen_crowd"); }, 500);
+  SFX.play("pen_start");
   penLater(()=>{ if(penState === "kickoff") penNext(); }, 2000);
 }
 function penDraw(){
@@ -4039,11 +4071,10 @@ function penDraw(){
 }
 function penNext(){
   penCur = penDraw(); penState = "aiming";
-  SFX.play("pen_crowd"); SFX.duck("pen_crowd", 1, 0.6);
   penUpdateBoard(); penRender();
 }
 function penZonePos(n){
-  return n === 2 ? [{x:32,y:32},{x:68,y:32}] : [{x:32,y:19},{x:68,y:19},{x:32,y:45},{x:68,y:45}];
+  return n === 2 ? [{x:27,y:32},{x:73,y:32}] : [{x:27,y:19},{x:73,y:19},{x:27,y:45},{x:73,y:45}];
 }
 function penRender(){
   const it = penCur, t = penTeam, tf = it.o.length === 2, panel = document.getElementById("penPanel");
@@ -4052,7 +4083,7 @@ function penRender(){
   panel.innerHTML = `<div class="panel-head"><span>${t===1?"🔵":"🔴"} ${penTeamName(t)} penaltı atıyor</span><span class="whl-cat-tag" style="background:${tf?"#E58E0A":"#3B7DDD"}">${tf?"Doğru / Yanlış":"Çoktan Seçmeli"}</span></div>`
     + `<div class="question">${qbEscape(it.q)}</div>`
     + `<div class="pen-stage" id="penStage"><div class="pen-goal" id="penGoal"><div class="pen-zones${tf?" tf":""}" id="penZones">${zones}</div></div>`
-    + `<div class="pen-spot"></div><div class="pen-keeper" id="penKeeper" style="left:50%;top:${tf?32:40}%">🧤</div>`
+    + `<div class="pen-spot"></div><div class="pen-keeper" id="penKeeper" style="left:50%;top:${tf?32:40}%"><svg viewBox="0 0 64 64" aria-hidden="true"><line x1="28" y1="50" x2="26" y2="60" stroke="#F2C9A0" stroke-width="5" stroke-linecap="round"/><line x1="36" y1="50" x2="38" y2="60" stroke="#F2C9A0" stroke-width="5" stroke-linecap="round"/><rect x="22" y="44" width="20" height="9" rx="2" fill="#23272F"/><rect x="22" y="22" width="20" height="25" rx="6" fill="#FF7A00"/><line x1="24" y1="26" x2="9" y2="13" stroke="#FF7A00" stroke-width="6" stroke-linecap="round"/><line x1="40" y1="26" x2="55" y2="13" stroke="#FF7A00" stroke-width="6" stroke-linecap="round"/><circle cx="7" cy="11" r="6.5" fill="#4CD964" stroke="#fff" stroke-width="2"/><circle cx="57" cy="11" r="6.5" fill="#4CD964" stroke="#fff" stroke-width="2"/><circle cx="32" cy="14" r="7.5" fill="#F2C9A0"/><path d="M24.5 13 A7.5 7.5 0 0 1 39.5 13 Q32 9 24.5 13Z" fill="#3A2A1E"/></svg></div>`
     + `<div class="pen-player" id="penPlayer">🏃</div><div class="pen-ball" id="penBall" style="left:50%;top:86%">⚽</div></div>`
     + `<div class="ord-hint" id="penHint">${tf ? "İfade doğruysa sol, yanlışsa sağ köşeye vurun." : "Doğru cevabın olduğu köşeye vurun!"}</div><div id="penResult"></div>`;
   panel.querySelectorAll(".pen-zone").forEach(z=>z.addEventListener("click", ()=>penShoot(parseInt(z.dataset.i, 10))));
@@ -4069,7 +4100,7 @@ function penShoot(i){
   document.querySelectorAll("#penZones .pen-zone").forEach(z=>{ z.disabled = true; });
   const hint = document.getElementById("penHint"); if(hint) hint.style.display = "none";
   const ball = document.getElementById("penBall"), keeper = document.getElementById("penKeeper"), player = document.getElementById("penPlayer");
-  player.classList.add("kick"); SFX.duck("pen_crowd", 0.3, 0.2); SFX.play("kick");
+  player.classList.add("kick");
   penLater(()=>{ ball.style.left = pos[i].x + "%"; ball.style.top = pos[i].y + "%"; ball.classList.add("fly"); }, 120);
   penLater(()=>{
     keeper.style.left = pos[kz].x + "%"; keeper.style.top = pos[kz].y + "%";
@@ -4091,10 +4122,8 @@ function penResolve(i, ok){
   const ans = tf ? qbEscape(it.o[it.c]) : (QB_LETTERS[it.c] + ") " + qbEscape(it.o[it.c]));
   let html = `<div class="pen-banner ${ok?"ok":"bad"}">${ok ? "⚽ GOOOL!" : "🧤 Kaleci kurtardı!"}</div>`;
   if(!ok) html += `<div class="pen-ans">Doğru cevap: <b>${ans}</b></div>`;
-  const w = penWinner();
-  html += `<div class="ord-actions"><button class="start-btn" id="penNextBtn">${w ? "🏁 Sonucu Göster" : "➡️ Sıradaki Atış"}</button></div>`;
   const res = document.getElementById("penResult"); res.innerHTML = html;
-  document.getElementById("penNextBtn").addEventListener("click", penAfterShot);
+  penLater(penAfterShot, ok ? 2200 : 3500);   // sonuç görününce otomatik: maç bittiyse sonuç, değilse karşı takım
 }
 function penAfterShot(){
   if(penState !== "result") return;
@@ -4105,15 +4134,15 @@ function penAfterShot(){
 }
 function penEnd(winner){
   penState = "ended"; penClearTimers();
-  SFX.stop("pen_crowd", 0.8); SFX.play("pen_end");
+  SFX.play("pen_end");
   document.getElementById("penTrophy").textContent = "🏆";
   document.getElementById("penWinTitle").textContent = penTeamName(winner) + " Kazandı! 🎉";
-  document.getElementById("penWinText").textContent = "Mavi " + penGoals[1] + " – Kırmızı " + penGoals[2] + " gol." + (penSuddenDeath() && penKicks[1].length > penN ? " Maç altın atışla belirlendi." : "");
+  document.getElementById("penWinText").textContent = "Mavi " + penGoals[1] + " – Kırmızı " + penGoals[2] + " gol." + (penSuddenDeath() && penKicks[1].length > penN ? " Maç seri atışlarla belirlendi." : "");
   document.getElementById("overlayPen").classList.add("show");
 }
 function penReset(){
   penClearTimers();
-  ["pen_start","pen_crowd","pen_goal","pen_save","pen_end"].forEach(id=>SFX.stop(id, 0.1));
+  ["pen_start","pen_goal","pen_save","pen_end"].forEach(id=>SFX.stop(id, 0.1));
   document.getElementById("overlayPen").classList.remove("show");
   penState = "setup"; penGoals = {1:0,2:0}; penKicks = {1:[],2:[]}; penTeam = 1; penCur = null; penPool = [];
   document.getElementById("penSetupBar").style.display = "flex";
@@ -4133,9 +4162,8 @@ function penFormToggle(sel){
 /* ================= SES MOTORU (düdük, taraftar, çark, halat + cihazdan ses yükleme) ================= */
 const SFX_SLOTS = [
   {id:"pen_start", game:"⚽ Penaltı", label:"Maç başlangıç düdüğü", loop:false},
-  {id:"pen_crowd", game:"⚽ Penaltı", label:"Taraftar sesi (soru çözülürken)", loop:true},
-  {id:"pen_goal",  game:"⚽ Penaltı", label:"Gol sevinci", loop:false},
-  {id:"pen_save",  game:"⚽ Penaltı", label:"Kaleci kurtardı", loop:false},
+  {id:"pen_goal",  game:"⚽ Penaltı", label:"Gol olunca (GOOOL)", loop:false},
+  {id:"pen_save",  game:"⚽ Penaltı", label:"Gol kaçınca (Aaaa)", loop:false},
   {id:"pen_end",   game:"⚽ Penaltı", label:"Maç sonu düdüğü", loop:false},
   {id:"whl_spin",  game:"🎡 Çarkıfelek", label:"Çark dönerken", loop:true},
   {id:"tug_loop",  game:"🪢 Halat Çekme", label:"Heyecan sesi (oyun boyunca)", loop:true},
@@ -4312,6 +4340,24 @@ const SFX = {
     src.connect(bp); bp.connect(g); g.connect(h.master); src.start(t0); src.stop(t0 + dur + 0.3);
     h.stops.push(()=>{ try{ src.stop(); }catch(e){} });
   },
+  voice(h, t0, o){                     // basit ünlü (formant) sentezi: "goool", "aaaa" gibi sesler
+    const c = this.ctx, dur = o.dur;
+    const osc = c.createOscillator(); osc.type = "sawtooth";
+    o.f0.forEach((k,i)=>{ if(i === 0) osc.frequency.setValueAtTime(k[1], t0 + k[0]); else osc.frequency.linearRampToValueAtTime(k[1], t0 + k[0]); });
+    const lfo = c.createOscillator(), lg = c.createGain(); lfo.frequency.value = o.vibHz || 5.5; lg.gain.value = o.vib || 5;
+    lfo.connect(lg); lg.connect(osc.frequency);
+    const amp = c.createGain(); amp.gain.setValueAtTime(0.0001, t0);
+    o.amp.forEach(k=>amp.gain.linearRampToValueAtTime(Math.max(k[1], 0.0001), t0 + k[0]));
+    [0,1,2].forEach(n=>{
+      const bp = c.createBiquadFilter(); bp.type = "bandpass"; bp.Q.value = [5,6,7][n];
+      const g = c.createGain(); g.gain.value = [1.6,1.0,0.5][n];
+      o.forms.forEach((k,i)=>{ if(i === 0) bp.frequency.setValueAtTime(k[1+n], t0 + k[0]); else bp.frequency.linearRampToValueAtTime(k[1+n], t0 + k[0]); });
+      osc.connect(bp); bp.connect(g); g.connect(amp);
+    });
+    amp.connect(h.master);
+    osc.start(t0); lfo.start(t0); osc.stop(t0 + dur + 0.05); lfo.stop(t0 + dur + 0.05);
+    h.stops.push(()=>{ try{ osc.stop(); lfo.stop(); }catch(e){} });
+  },
   click(h, t, f, vol){                 // çark "tık"ı
     const c = this.ctx;
     const src = c.createBufferSource(); src.buffer = this.noiseBuf(0.03, "white");
@@ -4327,11 +4373,20 @@ const SFX = {
       o.type = "sine"; o.frequency.setValueAtTime(140, t); o.frequency.exponentialRampToValueAtTime(42, t + 0.16);
       g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.22);
       o.connect(g); g.connect(h.master); o.start(t); o.stop(t + 0.25);
-    } else {
-      const src = c.createBufferSource(); src.buffer = this.noiseBuf(0.14, "white");
-      const bp = c.createBiquadFilter(); bp.type = "bandpass"; bp.frequency.value = kind === "hat" ? 7000 : 1800; bp.Q.value = 0.8;
-      const g = c.createGain(); g.gain.setValueAtTime(vol*(kind === "hat" ? 0.4 : 1), t); g.gain.exponentialRampToValueAtTime(0.0001, t + (kind === "hat" ? 0.05 : 0.13));
-      src.connect(bp); bp.connect(g); g.connect(h.master); src.start(t); src.stop(t + 0.15);
+    } else if(kind === "hat"){           // cızırtısız: kısa, yumuşak "tık" (gürültü yok)
+      const o = c.createOscillator(), g = c.createGain();
+      o.type = "sine"; o.frequency.setValueAtTime(1500, t); o.frequency.exponentialRampToValueAtTime(900, t + 0.04);
+      g.gain.setValueAtTime(vol*0.45, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.05);
+      o.connect(g); g.connect(h.master); o.start(t); o.stop(t + 0.06);
+    } else {                             // trampet: ağırlıklı tonal gövde + çok hafif, filtrelenmiş vuruş
+      const o = c.createOscillator(), og = c.createGain();
+      o.type = "triangle"; o.frequency.setValueAtTime(230, t); o.frequency.exponentialRampToValueAtTime(130, t + 0.1);
+      og.gain.setValueAtTime(vol*0.9, t); og.gain.exponentialRampToValueAtTime(0.0001, t + 0.14);
+      o.connect(og); og.connect(h.master); o.start(t); o.stop(t + 0.16);
+      const src = c.createBufferSource(); src.buffer = this.noiseBuf(0.06, "brown");
+      const lp = c.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 2200; lp.Q.value = 0.5;
+      const g = c.createGain(); g.gain.setValueAtTime(vol*0.35, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.06);
+      src.connect(lp); lp.connect(g); g.connect(h.master); src.start(t); src.stop(t + 0.07);
     }
   },
   synth(id, h, opts){
@@ -4352,13 +4407,24 @@ const SFX = {
         h.timer = setTimeout(tick, 1800 + Math.random()*2200);
       };
       tick(); h.stops.push(()=>clearTimeout(h.timer));
-    } else if(id === "pen_goal"){
-      this.swell(h, t, 2.6, 0.55, 500, 1400);
-      this.swell(h, t + 0.1, 2.2, 0.3, 900, 2200);
-      [523, 659, 784, 1047].forEach((f,i)=>this.osc(h, "triangle", f, t + i*0.1, t + i*0.1 + 0.28, 0.1));
-    } else if(id === "pen_save"){
-      this.swell(h, t, 1.4, 0.35, 900, 260);
-      this.osc(h, "sawtooth", 260, t, t + 0.5, 0.05); this.osc(h, "sawtooth", 175, t + 0.2, t + 0.9, 0.05);
+    } else if(id === "pen_goal"){         // "GOOOOOL!" (spiker gibi) + hafif tribün
+      const sh = (mul, del, a)=>this.voice(h, t + del, {dur:2.05, vib:7, vibHz:6,
+        f0:[[0,150*mul],[0.28,225*mul],[0.55,250*mul],[1.55,235*mul],[1.95,165*mul]],
+        forms:[[0,400,700,2600],[0.16,490,840,2700],[1.55,490,840,2700],[1.72,360,1300,2500]],
+        amp:[[0.05,a],[0.3,a],[1.6,a*0.95],[1.78,a*0.4],[2.0,0.0001]]});
+      const n = c.createBufferSource(); n.buffer = this.noiseBuf(0.05, "white");     // "g" patlaması
+      const gb = c.createBiquadFilter(); gb.type = "bandpass"; gb.frequency.value = 1400; gb.Q.value = 0.9;
+      const gg = c.createGain(); gg.gain.setValueAtTime(0.35, t); gg.gain.exponentialRampToValueAtTime(0.0001, t + 0.05);
+      n.connect(gb); gb.connect(gg); gg.connect(h.master); n.start(t); n.stop(t + 0.06);
+      sh(1, 0.03, 0.55); sh(1.06, 0.05, 0.3); sh(0.94, 0.07, 0.3);
+      this.swell(h, t + 0.15, 2.4, 0.22, 500, 1200);
+    } else if(id === "pen_save"){         // "Aaaaaa..." (hayal kırıklığı) + hafif tribün
+      const sh = (mul, del, a)=>this.voice(h, t + del, {dur:1.6, vib:4, vibHz:5,
+        f0:[[0,250*mul],[0.18,260*mul],[0.9,195*mul],[1.5,135*mul]],
+        forms:[[0,730,1090,2440],[0.9,690,1040,2400],[1.5,600,980,2350]],
+        amp:[[0.08,a],[0.95,a*0.85],[1.5,0.0001]]});
+      sh(1, 0.02, 0.55); sh(1.1, 0.06, 0.3); sh(0.9, 0.09, 0.3);
+      this.swell(h, t, 1.5, 0.2, 800, 260);
     } else if(id === "whl_spin"){
       const D = (opts.dur || 4600)/1000, N = opts.ticks || 46;
       for(let k=1;k<=N;k++){
@@ -4366,9 +4432,8 @@ const SFX = {
         this.click(h, tk, 1700 + (k%2)*260, 0.5);
       }
     } else if(id === "tug_loop"){
-      const bed = this.crowdBed(h, 0.07); void bed;
       h.beat = 0; h.boost = false; h.next = t;
-      const drone = this.osc(h, "sawtooth", 55, t, t + 3600, 0.035);
+      const drone = this.osc(h, "sine", 55, t, t + 3600, 0.06);   // yumuşak bas (testere dalgası ve gürültü zemini kaldırıldı)
       const step = ()=>{
         if(h.stopped) return;
         const bpm = h.boost ? 176 : 128, q = 60/bpm, now = c.currentTime;
@@ -4398,7 +4463,6 @@ const SFX = {
     const on = (id, ok)=>{ if(this.active[id] && !ok) this.stop(id, 0.3); };
     on("tug_loop", typeof tugState !== "undefined" && tugState === "playing");
     on("whl_spin", typeof whlState !== "undefined" && whlState === "spinning");
-    on("pen_crowd", typeof penState !== "undefined" && (penState === "kickoff" || penState === "aiming" || penState === "shot" || penState === "result"));
     const c = this.ctx; if(!c) return;
     const paused = (typeof gamePaused !== "undefined" && gamePaused);
     if(paused && c.state === "running"){ try{ c.suspend(); }catch(e){} }
@@ -7013,7 +7077,7 @@ function libReaderClose(silent){
   zoomer = null;
   pdfClose();
   const rd = document.getElementById("libReader");
-  rd.classList.remove("show"); rd.classList.remove("pdfmode"); rd.classList.remove("pptxmode"); rd.classList.remove("inkmode"); rd.classList.remove("inkpen");
+  rd.classList.remove("show"); rd.classList.remove("pdfmode"); rd.classList.remove("pptxmode"); rd.classList.remove("inkmode"); rd.classList.remove("inkpen"); rd.classList.remove("lrzoomed");
   document.getElementById("lrBody").innerHTML = "";
   document.body.style.overflow = "";
   if(libReaderUrl){ const u = libReaderUrl; setTimeout(()=>URL.revokeObjectURL(u), 120000); libReaderUrl = null; }
@@ -7026,8 +7090,9 @@ function libReaderDownload(){
 /* ---- Yakınlaştırma hareketleri (PDF ve sunum ortak): iki parmakla büyüt/küçült + taşı, yakınken tek parmakla sürükle, Ctrl+tekerlek ---- */
 let zoomer = null, zgLast = 0, zgSane = false;
 const zgRecent = ()=>performance.now() - zgLast < 450;
+const ZG_PINCH = false;   // İki parmakla büyütme KAPALI (tahtalardaki sahte dokunuşlar sorun çıkarıyordu). true yapılırsa yeniden açılır.
 function bindZoomGestures(stage, z){
-  const ptrs = new Map();
+  const ptrs = new Map(), cands = new Map();
   let pinch = null, pan = null;
   const now = ()=>performance.now();
   const pts = ()=>Array.from(ptrs.values());
@@ -7036,7 +7101,7 @@ function bindZoomGestures(stage, z){
   const PINCH_DEAD = 24, PINCH_BASE = 160, PINCH_POW = 0.8;   // ölü bölge (px), ölçek tabanı (px), yumuşatma
   const cleanBox = (bx)=>{ if(bx){ bx.style.transform = ""; bx.style.transformOrigin = ""; } };
   const dropPinch = ()=>{ if(pinch){ cleanBox(pinch.box); pinch = null; } };
-  const reset = ()=>{ dropPinch(); pan = null; ptrs.clear(); };     // takılı kalan dokunuşları temizler
+  const reset = ()=>{ dropPinch(); pan = null; ptrs.clear(); cands.clear(); };     // takılı kalan dokunuşları temizler
   stage._zgReset = reset;
   const startPinch = ()=>{
     if(inkSess && inkSess.cancel) inkSess.cancel();
@@ -7068,8 +7133,20 @@ function bindZoomGestures(stage, z){
     let nm = p.nm; if(nm < 1.08) nm = 1;         // 1×'e yakın bırakılırsa tek sayfaya oturur
     z.set(nm, {L:p.L + p.tx, T:p.T + p.ty});
   };
+  const canPan = ()=> z.mult() > 1.001 && inkSess && inkSess.tool === "hand";
   stage.addEventListener("pointerdown", (e)=>{
     const t = now(), isTouch = (e.pointerType === "touch");
+    if(!ZG_PINCH){
+      // Tek parmakla taşıma. Avuç, kol ya da sahte ikinci nokta yakınlaştırma başlatmaz ve taşımayı bozmaz:
+      // ekrandaki noktalardan ilk kıpırdayan (6 px'ten fazla) parmak sayfayı taşır, diğerleri yok sayılır.
+      if(isTouch && e.isPrimary && zgSane){ cands.clear(); pan = null; }
+      if(isTouch && !e.isPrimary) zgSane = true;
+      if(pan && t - pan.t > 2500) pan = null;                                  // bayat taşıma kaydı
+      cands.forEach((v, id)=>{ if(t - v.t > 3000) cands.delete(id); });        // bayat dokunuşlar
+      if(cands.size >= 5 || !canPan()) return;
+      cands.set(e.pointerId, {x:e.clientX, y:e.clientY, sl:stage.scrollLeft, st:stage.scrollTop, t:t});
+      return;
+    }
     if(isTouch && !e.isPrimary) zgSane = true;   // sürücü ikinci parmağı "birincil değil" olarak bildiriyorsa güvenilir
     // Yeni bir hareket başlıyor: mouse/kalem ya da (güvenilir sürücüde) birincil dokunuş geldiyse eski kayıtlar bayattır
     if(!isTouch || (e.isPrimary && zgSane)){ dropPinch(); pan = null; ptrs.clear(); }
@@ -7086,6 +7163,23 @@ function bindZoomGestures(stage, z){
       pan = {id:e.pointerId, x:e.clientX, y:e.clientY, sl:stage.scrollLeft, st:stage.scrollTop, on:false};
   });
   stage.addEventListener("pointermove", (e)=>{
+    if(!ZG_PINCH){
+      const c = cands.get(e.pointerId); if(!c) return;
+      const t = now(); c.t = t;
+      if(pan && pan.id !== e.pointerId) return;
+      if(!pan){
+        if(Math.hypot(e.clientX - c.x, e.clientY - c.y) <= 6) return;         // titreme / avuç: taşıma sayılmaz
+        pan = {id:e.pointerId, t:t};
+        c.x = e.clientX; c.y = e.clientY; c.sl = stage.scrollLeft; c.st = stage.scrollTop;
+        try{ stage.setPointerCapture(e.pointerId); }catch(_){}
+        return;
+      }
+      pan.t = t;
+      stage.scrollLeft = c.sl - (e.clientX - c.x);
+      stage.scrollTop = c.st - (e.clientY - c.y);
+      e.preventDefault();
+      return;
+    }
     const q = ptrs.get(e.pointerId); if(!q) return;
     q.x = e.clientX; q.y = e.clientY; q.t = now();
     if(pinch && ptrs.size >= 2){ movePinch(); e.preventDefault(); return; }
@@ -7096,6 +7190,11 @@ function bindZoomGestures(stage, z){
     }
   });
   const up = (e)=>{
+    if(!ZG_PINCH){
+      cands.delete(e.pointerId);
+      if(pan && pan.id === e.pointerId){ zgLast = now(); pan = null; }
+      return;
+    }
     if(!ptrs.has(e.pointerId)) return;
     ptrs.delete(e.pointerId);
     if(pinch && ptrs.size < 2) endPinch();
@@ -7105,11 +7204,35 @@ function bindZoomGestures(stage, z){
   stage.addEventListener("pointerup", up);
   stage.addEventListener("pointercancel", up);
   stage.addEventListener("lostpointercapture", up);
+  const rdr = document.getElementById("libReader");
+  const zsync = ()=>{ if(rdr) rdr.classList.toggle("lrzoomed", stage.classList.contains("zoomed")); };
+  try{ new MutationObserver(zsync).observe(stage, {attributes:true, attributeFilter:["class"]}); }catch(_){}
+  zsync();
   stage.addEventListener("wheel", (e)=>{
     if(!e.ctrlKey) return;                      // Ctrl + tekerlek / dokunmatik yüzey çimdiği
     e.preventDefault(); z.set(z.mult() * (e.deltaY < 0 ? 1.1 : 1/1.1));
   }, {passive:false});
 }
+/* Büyütülmüş sayfayı ok düğmeleriyle kaydırma (basılı tutunca sürekli kayar) */
+(function lrPanInit(){
+  const pad = document.getElementById("lrPan"); if(!pad) return;
+  let timer = 0, rep = 0;
+  const stop = ()=>{ clearTimeout(timer); clearInterval(rep); timer = 0; rep = 0; };
+  const step = (d, f)=>{
+    const st = zoomer && zoomer.stage; if(!st) return;
+    if(d === "fit"){ if(st._zgReset) st._zgReset(); zoomer.set(1); return; }
+    const dx = d === "l" ? -1 : d === "r" ? 1 : 0, dy = d === "u" ? -1 : d === "d" ? 1 : 0;
+    st.scrollBy({left:dx*st.clientWidth*f, top:dy*st.clientHeight*f, behavior:(f > 0.2 ? "smooth" : "auto")});
+  };
+  pad.addEventListener("pointerdown", (e)=>{
+    const b = e.target.closest(".lr-pb"); if(!b) return;
+    e.preventDefault(); stop();
+    const d = b.dataset.d; step(d, 0.35);
+    if(d !== "fit") timer = setTimeout(()=>{ rep = setInterval(()=>step(d, 0.07), 60); }, 450);
+  });
+  ["pointerup","pointercancel","pointerleave","lostpointercapture"].forEach(ev=>pad.addEventListener(ev, stop));
+  document.addEventListener("pointerup", stop, true);
+})();
 /* Parmak alan dışında kalkarsa ya da sekme değişirse takılı dokunuş kalmasın (bir kez bağlanır) */
 ["pointerup","pointercancel"].forEach(ev=>document.addEventListener(ev, (e)=>{
   const st = zoomer && zoomer.stage; if(st && st._zgUp) st._zgUp(e);
