@@ -885,6 +885,9 @@
   .pen-keeper.dive .pk-arc{ animation:pkArc .5s ease-in-out forwards; }
   @keyframes pkArc{ 0%{ transform:translateY(0); } 45%{ transform:translateY(var(--hump,-14%)); } 100%{ transform:translateY(0); } }
   .pen-ball{ font-size:clamp(1.4rem,4.6vw,2.4rem); transition:left .55s cubic-bezier(.2,.7,.3,1), top .55s cubic-bezier(.2,.7,.3,1), font-size .55s; }
+  .pen-ball{ z-index:5; }
+  .pen-ball.caught{ animation:penCatch .3s ease-out; }
+  @keyframes penCatch{ 0%{ transform:translate(-50%,-50%) scale(1); } 40%{ transform:translate(-50%,-50%) scale(1.35); } 100%{ transform:translate(-50%,-50%) scale(1); } }
   .pen-ball.fly{ font-size:clamp(1rem,3.2vw,1.7rem); animation:penSpin .55s linear; }
   @keyframes penSpin{ from{ transform:translate(-50%,-50%) rotate(0); } to{ transform:translate(-50%,-50%) rotate(540deg); } }
   .pen-player{ left:38%; top:90%; font-size:clamp(1.6rem,5vw,2.6rem); }
@@ -897,6 +900,7 @@
   @media (prefers-reduced-motion:reduce){
     .pen-ball, .pen-keeper{ transition-duration:.01s; }
     .pk-arc, .pen-keeper.dive .pk-arc{ animation:none !important; }
+    .pen-ball.caught{ animation:none; }
     .pen-ball.fly, .pen-player.kick, .pen-goal.net{ animation:none; }
   }
   /* ---- Penaltı: akıllı tahta için büyük sahne ---- */
@@ -4139,6 +4143,7 @@ function penShoot(i){
     keeper.style.setProperty("--hump", hi ? "-8%" : "-16%");
     keeper.style.left = p.x + "%"; keeper.style.top = p.y + "%";
   }, 200);
+  if(!ok) penLater(()=>{ ball.classList.add("caught"); }, 680);
   penLater(()=>penResolve(i, ok), 950);
 }
 function penResolve(i, ok){
@@ -7668,16 +7673,45 @@ qbRenderPanel("tug");
     setTimeout(function(){ try{ window.close(); }catch(e){} }, 150);
   }
 
-  if(!(history.state && (history.state.sxBase || history.state.sxApp))){
-    history.replaceState({ sxBase:true }, "");
+  /* Ana sayfada geri: uygulamanın kendi onay penceresi; "Evet" oturumu kapatıp şifre ekranına döner */
+  function exitBox(){
+    var o = document.getElementById("overlayExit");
+    if(o) return o;
+    o = document.createElement("div"); o.className = "overlay"; o.id = "overlayExit"; o.style.zIndex = "9000";
+    o.innerHTML = '<div class="win-card"><div style="font-size:2.4rem">🚪</div>'
+      + '<h2 style="margin:8px 0 6px">Çıkış yapmak istiyor musunuz?</h2>'
+      + '<p style="margin:0 0 16px;color:var(--muted);font-weight:600">Oturum kapanır ve şifre ekranına dönülür.</p>'
+      + '<div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">'
+      + '<button type="button" class="start-btn" id="exitYesBtn" style="margin-left:0">Evet, çıkış yap</button>'
+      + '<button type="button" class="preset" id="exitNoBtn">Hayır</button></div></div>';
+    document.body.appendChild(o);
+    document.getElementById("exitYesBtn").addEventListener("click", function(){
+      o.classList.remove("show");
+      if(typeof authLogout === "function") authLogout();
+    });
+    document.getElementById("exitNoBtn").addEventListener("click", function(){ o.classList.remove("show"); });
+    return o;
+  }
+  function showExit(){ exitBox().classList.add("show"); }
+
+  /* Geçmişte her zaman bir "nöbetçi" kayıt bulunsun: geri tuşu uygulama içinde kalır */
+  function ensureSentinel(){
+    if(history.state && history.state.sxApp) return;
+    if(!(history.state && history.state.sxBase)) history.replaceState({ sxBase:true }, "");
     history.pushState({ sxApp:true }, "");
   }
+  ensureSentinel();
+  document.addEventListener("pointerdown", ensureSentinel, true);   // kullanıcı dokunuşuyla eklenen kayıt tarayıcı tarafından atlanmaz
+  window.addEventListener("pageshow", ensureSentinel);
+  document.addEventListener("visibilitychange", function(){ if(!document.hidden) ensureSentinel(); });
+
   window.addEventListener("popstate", function(e){
     if(leaving) return;
     if(e.state && e.state.sxApp) return;            // ileri gidildi, işlem yok
-    if(handleBack()){ history.pushState({ sxApp:true }, ""); return; }
-    if(confirm("Uygulamadan çıkmak istiyor musunuz?")) exitApp();
-    else history.pushState({ sxApp:true }, "");
+    if(handleBack()){ ensureSentinel(); return; }
+    if(typeof Auth !== "undefined" && !Auth.user){ ensureSentinel(); return; }   // zaten şifre ekranında
+    showExit();
+    ensureSentinel();
   });
 })();
 </script>
