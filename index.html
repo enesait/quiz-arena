@@ -7024,26 +7024,37 @@ function libReaderDownload(){
   document.body.appendChild(a); a.click(); a.remove();
 }
 /* ---- Yakınlaştırma hareketleri (PDF ve sunum ortak): iki parmakla büyüt/küçült + taşı, yakınken tek parmakla sürükle, Ctrl+tekerlek ---- */
-let zoomer = null, zgLast = 0;
+let zoomer = null, zgLast = 0, zgSane = false;
 const zgRecent = ()=>performance.now() - zgLast < 450;
 function bindZoomGestures(stage, z){
   const ptrs = new Map();
   let pinch = null, pan = null;
+  const now = ()=>performance.now();
   const pts = ()=>Array.from(ptrs.values());
   const dist = ()=>{ const a = pts(); return Math.hypot(a[0].x-a[1].x, a[0].y-a[1].y) || 1; };
   const mid = ()=>{ const a = pts(); return {x:(a[0].x+a[1].x)/2, y:(a[0].y+a[1].y)/2}; };
+  const PINCH_DEAD = 24, PINCH_BASE = 160, PINCH_POW = 0.8;   // ölü bölge (px), ölçek tabanı (px), yumuşatma
+  const cleanBox = (bx)=>{ if(bx){ bx.style.transform = ""; bx.style.transformOrigin = ""; } };
+  const dropPinch = ()=>{ if(pinch){ cleanBox(pinch.box); pinch = null; } };
+  const reset = ()=>{ dropPinch(); pan = null; ptrs.clear(); };     // takılı kalan dokunuşları temizler
+  stage._zgReset = reset;
   const startPinch = ()=>{
     if(inkSess && inkSess.cancel) inkSess.cancel();
     pan = null;
     const b = z.box(); if(!b) return;
     const r = b.getBoundingClientRect();
-    pinch = {d0:dist(), m0:mid(), L:r.left, T:r.top, mult0:z.mult(), nm:z.mult(), tx:0, ty:0, box:b};
-    b.style.transformOrigin = "0 0";
+    pinch = {d0:dist(), dd:dist(), m0:mid(), L:r.left, T:r.top, mult0:z.mult(), nm:z.mult(), tx:0, ty:0, box:b, live:false};
     ptrs.forEach((_, id)=>{ try{ stage.setPointerCapture(id); }catch(e){} });
   };
   const movePinch = ()=>{
-    const p = pinch, m = mid();
-    p.nm = Math.max(PDF_MIN, Math.min(PDF_MAX, p.mult0 * dist() / p.d0));
+    const p = pinch, m = mid(), d = dist();
+    if(!p.live){
+      // Tek dokunuşta sahte ikinci nokta ya da titreme olursa yakınlaştırma başlamasın
+      if(Math.abs(d - p.dd) < PINCH_DEAD && Math.hypot(m.x-p.m0.x, m.y-p.m0.y) < PINCH_DEAD) return;
+      p.live = true; p.d0 = d; p.m0 = m; p.box.style.transformOrigin = "0 0";
+    }
+    const ratio = Math.pow(Math.max(0.2, 1 + (d - p.d0) / Math.max(p.d0, PINCH_BASE)), PINCH_POW);
+    p.nm = Math.max(PDF_MIN, Math.min(PDF_MAX, p.mult0 * ratio));
     const r = p.nm / p.mult0;
     p.tx = m.x - p.L - (p.m0.x - p.L)*r;      // parmakların altındaki nokta parmakla birlikte kalır
     p.ty = m.y - p.T - (p.m0.y - p.T)*r;
@@ -7051,13 +7062,24 @@ function bindZoomGestures(stage, z){
   };
   const endPinch = ()=>{
     const p = pinch; pinch = null; if(!p) return;
-    zgLast = performance.now();
-    p.box.style.transform = ""; p.box.style.transformOrigin = "";
+    cleanBox(p.box);
+    if(!p.live) return;                          // gerçek bir çimdik olmadıysa hiçbir şey değişmez
+    zgLast = now();
     let nm = p.nm; if(nm < 1.08) nm = 1;         // 1×'e yakın bırakılırsa tek sayfaya oturur
     z.set(nm, {L:p.L + p.tx, T:p.T + p.ty});
   };
   stage.addEventListener("pointerdown", (e)=>{
-    ptrs.set(e.pointerId, {x:e.clientX, y:e.clientY});
+    const t = now(), isTouch = (e.pointerType === "touch");
+    if(isTouch && !e.isPrimary) zgSane = true;   // sürücü ikinci parmağı "birincil değil" olarak bildiriyorsa güvenilir
+    // Yeni bir hareket başlıyor: mouse/kalem ya da (güvenilir sürücüde) birincil dokunuş geldiyse eski kayıtlar bayattır
+    if(!isTouch || (e.isPrimary && zgSane)){ dropPinch(); pan = null; ptrs.clear(); }
+    else if(!pinch){ ptrs.forEach((v, id)=>{ if(t - v.t > 5000) ptrs.delete(id); }); }
+    ptrs.set(e.pointerId, {x:e.clientX, y:e.clientY, t:t});
+    if(!isTouch) {
+      if(z.mult() > 1.001 && inkSess && inkSess.tool === "hand")
+        pan = {id:e.pointerId, x:e.clientX, y:e.clientY, sl:stage.scrollLeft, st:stage.scrollTop, on:false};
+      return;
+    }
     if(ptrs.size === 2){ startPinch(); return; }
     if(ptrs.size > 2) return;
     if(z.mult() > 1.001 && inkSess && inkSess.tool === "hand")
@@ -7065,7 +7087,7 @@ function bindZoomGestures(stage, z){
   });
   stage.addEventListener("pointermove", (e)=>{
     const q = ptrs.get(e.pointerId); if(!q) return;
-    q.x = e.clientX; q.y = e.clientY;
+    q.x = e.clientX; q.y = e.clientY; q.t = now();
     if(pinch && ptrs.size >= 2){ movePinch(); e.preventDefault(); return; }
     if(pan && pan.id === e.pointerId){
       const dx = e.clientX - pan.x, dy = e.clientY - pan.y;
@@ -7077,15 +7099,23 @@ function bindZoomGestures(stage, z){
     if(!ptrs.has(e.pointerId)) return;
     ptrs.delete(e.pointerId);
     if(pinch && ptrs.size < 2) endPinch();
-    if(pan && pan.id === e.pointerId){ if(pan.on) zgLast = performance.now(); pan = null; }
+    if(pan && pan.id === e.pointerId){ if(pan.on) zgLast = now(); pan = null; }
   };
+  stage._zgUp = up;
   stage.addEventListener("pointerup", up);
   stage.addEventListener("pointercancel", up);
+  stage.addEventListener("lostpointercapture", up);
   stage.addEventListener("wheel", (e)=>{
     if(!e.ctrlKey) return;                      // Ctrl + tekerlek / dokunmatik yüzey çimdiği
     e.preventDefault(); z.set(z.mult() * (e.deltaY < 0 ? 1.1 : 1/1.1));
   }, {passive:false});
 }
+/* Parmak alan dışında kalkarsa ya da sekme değişirse takılı dokunuş kalmasın (bir kez bağlanır) */
+["pointerup","pointercancel"].forEach(ev=>document.addEventListener(ev, (e)=>{
+  const st = zoomer && zoomer.stage; if(st && st._zgUp) st._zgUp(e);
+}, true));
+window.addEventListener("blur", ()=>{ const st = zoomer && zoomer.stage; if(st && st._zgReset) st._zgReset(); });
+document.addEventListener("visibilitychange", ()=>{ const st = zoomer && zoomer.stage; if(st && st._zgReset) st._zgReset(); });
 
 /* ---- Kalem / silgi: PDF sayfası ve slayt için ortak katman (çizimler içerik koordinatında tutulur, büyütmede net kalır) ---- */
 let inkStore = {}, inkColor = "#E5484D", inkSess = null;
@@ -7216,9 +7246,9 @@ document.getElementById("lrColors").addEventListener("click", (e)=>{
 document.getElementById("lrUndo").addEventListener("click", ()=>{ if(inkSess) inkUndo(inkSess); });
 document.getElementById("lrClose").addEventListener("click", ()=>libReaderClose());
 document.getElementById("lrDownload").addEventListener("click", ()=>libReaderDownload());
-document.getElementById("lrZoomIn").addEventListener("click", ()=>{ if(zoomer) zoomer.set(zoomer.mult()*1.25); });
-document.getElementById("lrZoomOut").addEventListener("click", ()=>{ if(zoomer) zoomer.set(zoomer.mult()/1.25); });
-document.getElementById("lrFit").addEventListener("click", ()=>{ if(zoomer) zoomer.set(1); });
+document.getElementById("lrZoomIn").addEventListener("click", ()=>{ if(zoomer){ if(zoomer.stage && zoomer.stage._zgReset) zoomer.stage._zgReset(); zoomer.set(zoomer.mult()*1.25); } });
+document.getElementById("lrZoomOut").addEventListener("click", ()=>{ if(zoomer){ if(zoomer.stage && zoomer.stage._zgReset) zoomer.stage._zgReset(); zoomer.set(zoomer.mult()/1.25); } });
+document.getElementById("lrFit").addEventListener("click", ()=>{ if(zoomer){ if(zoomer.stage && zoomer.stage._zgReset) zoomer.stage._zgReset(); zoomer.set(1); } });
 document.getElementById("lrQrScan").addEventListener("click", ()=>{ if(pv && pv.stage) pdfQrManual(pv); });
 document.getElementById("lrBody").addEventListener("click", (e)=>{ if(e.target.id==="lrFallbackDl") libReaderDownload(); });
 window.addEventListener("resize", pdfOnResize);
