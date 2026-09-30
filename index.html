@@ -852,7 +852,7 @@
   .pen-stage{ position:relative; width:100%; aspect-ratio:16/9; border-radius:16px; overflow:hidden; margin:8px 0 12px; user-select:none;
     background:linear-gradient(#8FD0F2 0%, #CFECFB 36%, #58B85F 36%, #2E9647 100%); }
   .pen-stage::after{ content:""; position:absolute; left:0; right:0; top:36%; height:3px; background:rgba(255,255,255,.55); }
-  .pen-goal{ position:absolute; left:4%; right:4%; top:6%; height:52%; z-index:1; border:5px solid #fff; border-bottom:none; border-radius:6px 6px 0 0;
+  .pen-goal{ position:absolute; left:14%; right:14%; top:6%; height:52%; z-index:1; border:5px solid #fff; border-bottom:none; border-radius:6px 6px 0 0;
     background:repeating-linear-gradient(0deg, rgba(255,255,255,.26) 0 2px, transparent 2px 14px), repeating-linear-gradient(90deg, rgba(255,255,255,.26) 0 2px, transparent 2px 14px), rgba(16,44,28,.22); }
   .pen-goal.net{ animation:penNet .5s ease-out; }
   @keyframes penNet{ 0%{ transform:scale(1); } 35%{ transform:scale(1.03,1.05); } 100%{ transform:scale(1); } }
@@ -870,15 +870,20 @@
   .pen-zone.hit-bad{ background:rgba(251,91,75,.52); border-style:solid; border-color:var(--bad); }
   .pen-spot{ position:absolute; left:50%; top:90%; width:14px; height:6px; border-radius:50%; background:rgba(255,255,255,.85); transform:translate(-50%,-50%); }
   .pen-keeper, .pen-ball, .pen-player{ position:absolute; z-index:3; pointer-events:none; transform:translate(-50%,-50%); line-height:1; }
-  .pen-keeper{ font-size:clamp(1.5rem,5vw,2.5rem); width:2.8em; height:2.8em; filter:drop-shadow(0 4px 2px rgba(0,0,0,.28));
-    transition:left .42s cubic-bezier(.3,.7,.3,1), top .42s cubic-bezier(.3,.7,.3,1), transform .42s cubic-bezier(.3,.7,.3,1); }
-  .pen-keeper svg{ position:absolute; display:block; }
-  .pen-keeper .gk-ready{ left:0; top:0; width:100%; height:100%; animation:penSway 1.1s ease-in-out infinite alternate; }
-  .pen-keeper .gk-dive{ display:none; left:-45%; top:2.5%; width:190%; height:95%; }
-  .pen-keeper.dive .gk-ready{ display:none; }
-  .pen-keeper.dive .gk-dive{ display:block; }
-  @keyframes penSway{ from{ transform:translateX(-7%); } to{ transform:translateX(7%); } }
-  @media (prefers-reduced-motion:reduce){ .pen-keeper .gk-ready{ animation:none; } }
+  .pen-keeper{ width:14%; aspect-ratio:1/1; transition:left .45s cubic-bezier(.25,.6,.35,1), top .45s cubic-bezier(.25,.6,.35,1); }
+  .pk-arc, .pk-in{ position:absolute; inset:0; }
+  .pk-in{ transform-origin:50% 85%; transition:transform .15s ease-out; }
+  .pk-idle, .pk-dive{ position:absolute; overflow:visible; }
+  .pk-idle{ left:0; top:0; width:100%; height:100%; animation:pkReady 1s ease-in-out infinite; }
+  @keyframes pkReady{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-2.5%); } }
+  .pk-dive{ display:none; width:150%; height:auto; left:-25%; top:50%; transform:translateY(-50%); }
+  .pen-keeper.crouch .pk-in{ transform:scaleY(.86); }
+  .pen-keeper.crouch .pk-idle{ animation:none; }
+  .pen-keeper.dive .pk-idle{ display:none; }
+  .pen-keeper.dive .pk-dive{ display:block; }
+  .pen-keeper.dive .pk-in{ transition:none; transform:scaleX(var(--dx,1)) rotate(var(--rot,-20deg)); }
+  .pen-keeper.dive .pk-arc{ animation:pkArc .55s ease-in-out forwards; }
+  @keyframes pkArc{ 0%{ transform:translateY(0); } 45%{ transform:translateY(var(--hump,-10%)); } 100%{ transform:translateY(0); } }
   .pen-ball{ font-size:clamp(1.4rem,4.6vw,2.4rem); transition:left .55s cubic-bezier(.2,.7,.3,1), top .55s cubic-bezier(.2,.7,.3,1), font-size .55s; }
   .pen-ball.fly{ font-size:clamp(1rem,3.2vw,1.7rem); animation:penSpin .55s linear; }
   @keyframes penSpin{ from{ transform:translate(-50%,-50%) rotate(0); } to{ transform:translate(-50%,-50%) rotate(540deg); } }
@@ -891,6 +896,7 @@
   .pen-ans{ text-align:center; font-weight:700; color:var(--muted); font-size:.95rem; margin-top:2px; overflow-wrap:anywhere; }
   @media (prefers-reduced-motion:reduce){
     .pen-ball, .pen-keeper{ transition-duration:.01s; }
+    .pk-idle, .pen-keeper.dive .pk-arc{ animation:none; }
     .pen-ball.fly, .pen-player.kick, .pen-goal.net{ animation:none; }
   }
   .pen-kick{ text-align:center; padding:26px 8px 20px; }
@@ -4026,7 +4032,7 @@ function penUpdateBoard(){
   let lbl = "HER TAKIM " + penN + " ATIŞ";
   if(on){
     const cur = penKicks[penTeam].length + 1;
-    lbl = (penKicks[1].length >= penN && penKicks[2].length >= penN) ? "SERİ ATIŞ" : ("ATIŞ " + cur + " / " + penN);
+    lbl = (penKicks[1].length >= penN && penKicks[2].length >= penN) ? "ALTIN ATIŞ" : ("ATIŞ " + cur + " / " + penN);
   }
   document.getElementById("penTurnLbl").textContent = lbl;
   const hist = document.getElementById("penHist");
@@ -4080,8 +4086,42 @@ function penNext(){
   penUpdateBoard(); penRender();
 }
 function penZonePos(n){
-  return n === 2 ? [{x:27,y:32},{x:73,y:32}] : [{x:27,y:19},{x:73,y:19},{x:27,y:45},{x:73,y:45}];
+  return n === 2 ? [{x:32,y:32},{x:68,y:32}] : [{x:32,y:19},{x:68,y:19},{x:32,y:45},{x:68,y:45}];
 }
+const PEN_KEEPER_SVG = `
+<svg class="pk-idle" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <line x1="44" y1="70" x2="38" y2="88" stroke="#E9B48A" stroke-width="7" stroke-linecap="round"/>
+  <line x1="38" y1="82" x2="36" y2="92" stroke="#D9472B" stroke-width="8" stroke-linecap="round"/>
+  <ellipse cx="34" cy="95.5" rx="7" ry="3.2" fill="#222"/>
+  <line x1="56" y1="70" x2="62" y2="88" stroke="#E9B48A" stroke-width="7" stroke-linecap="round"/>
+  <line x1="62" y1="82" x2="64" y2="92" stroke="#D9472B" stroke-width="8" stroke-linecap="round"/>
+  <ellipse cx="66" cy="95.5" rx="7" ry="3.2" fill="#222"/>
+  <path d="M38 33 L62 33 L60 63 L40 63 Z" fill="#F26A1B"/>
+  <path d="M40 60 L60 60 L64 76 L51.5 73 L48.5 73 L36 76 Z" fill="#2B2F3A"/>
+  <line x1="39" y1="36" x2="23" y2="50" stroke="#F26A1B" stroke-width="9" stroke-linecap="round"/>
+  <circle cx="20" cy="53" r="6.5" fill="#F28C1B" stroke="#C4500F" stroke-width="1.5"/>
+  <line x1="61" y1="36" x2="77" y2="50" stroke="#F26A1B" stroke-width="9" stroke-linecap="round"/>
+  <circle cx="80" cy="53" r="6.5" fill="#F28C1B" stroke="#C4500F" stroke-width="1.5"/>
+  <rect x="46" y="27" width="8" height="8" rx="3" fill="#E9B48A"/>
+  <circle cx="50" cy="20" r="10" fill="#1B1B1B"/>
+  <circle cx="50" cy="23.5" r="7.8" fill="#F2B88C"/>
+</svg>
+<svg class="pk-dive" viewBox="0 0 120 70" xmlns="http://www.w3.org/2000/svg">
+  <line x1="36" y1="42" x2="20" y2="51" stroke="#2B2F3A" stroke-width="12" stroke-linecap="round"/>
+  <line x1="20" y1="51" x2="8" y2="57" stroke="#D9472B" stroke-width="8" stroke-linecap="round"/>
+  <ellipse cx="5" cy="58" rx="3.2" ry="6.5" fill="#222" transform="rotate(25 5 58)"/>
+  <line x1="36" y1="44" x2="24" y2="60" stroke="#2B2F3A" stroke-width="12" stroke-linecap="round"/>
+  <line x1="24" y1="60" x2="14" y2="66" stroke="#D9472B" stroke-width="8" stroke-linecap="round"/>
+  <ellipse cx="11" cy="66" rx="3.2" ry="6.5" fill="#222" transform="rotate(55 11 66)"/>
+  <line x1="40" y1="40" x2="70" y2="32" stroke="#F26A1B" stroke-width="18" stroke-linecap="round"/>
+  <line x1="32" y1="42" x2="44" y2="39" stroke="#2B2F3A" stroke-width="17" stroke-linecap="round"/>
+  <line x1="68" y1="30" x2="98" y2="14" stroke="#E0561A" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="102" cy="12" r="6.5" fill="#F28C1B" stroke="#C4500F" stroke-width="1.5"/>
+  <line x1="70" y1="36" x2="100" y2="36" stroke="#F26A1B" stroke-width="9" stroke-linecap="round"/>
+  <circle cx="105" cy="36" r="6.5" fill="#F28C1B" stroke="#C4500F" stroke-width="1.5"/>
+  <circle cx="80" cy="25" r="9.5" fill="#1B1B1B"/>
+  <circle cx="82.5" cy="28" r="7.3" fill="#F2B88C"/>
+</svg>`;
 function penRender(){
   const it = penCur, t = penTeam, tf = it.o.length === 2, panel = document.getElementById("penPanel");
   panel.className = "panel t" + t;
@@ -4089,7 +4129,7 @@ function penRender(){
   panel.innerHTML = `<div class="panel-head"><span>${t===1?"🔵":"🔴"} ${penTeamName(t)} penaltı atıyor</span><span class="whl-cat-tag" style="background:${tf?"#E58E0A":"#3B7DDD"}">${tf?"Doğru / Yanlış":"Çoktan Seçmeli"}</span></div>`
     + `<div class="question">${qbEscape(it.q)}</div>`
     + `<div class="pen-stage" id="penStage"><div class="pen-goal" id="penGoal"><div class="pen-zones${tf?" tf":""}" id="penZones">${zones}</div></div>`
-    + `<div class="pen-spot"></div><div class="pen-keeper" id="penKeeper" style="left:50%;top:${tf?32:40}%"><svg class="gk gk-ready" viewBox="0 0 100 100" aria-hidden="true"><line x1="43" y1="58" x2="38" y2="72" stroke="#23272F" stroke-width="12" stroke-linecap="round"/><line x1="57" y1="58" x2="62" y2="72" stroke="#23272F" stroke-width="12" stroke-linecap="round"/><line x1="38" y1="72" x2="34" y2="82" stroke="#F2C9A0" stroke-width="7" stroke-linecap="round"/><line x1="62" y1="72" x2="66" y2="82" stroke="#F2C9A0" stroke-width="7" stroke-linecap="round"/><line x1="34" y1="82" x2="32" y2="90" stroke="#FF7A00" stroke-width="8" stroke-linecap="round"/><line x1="66" y1="82" x2="68" y2="90" stroke="#FF7A00" stroke-width="8" stroke-linecap="round"/><ellipse cx="29" cy="93" rx="8" ry="4" fill="#111"/><ellipse cx="71" cy="93" rx="8" ry="4" fill="#111"/><rect x="36" y="52" width="28" height="10" rx="3" fill="#23272F"/><rect x="35" y="28" width="30" height="31" rx="9" fill="#FF7A00"/><rect x="35" y="40" width="30" height="5" fill="#FFB566"/><polyline points="37,34 24,46 20,28" fill="none" stroke="#FF7A00" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/><polyline points="63,34 76,46 80,28" fill="none" stroke="#FF7A00" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/><circle cx="20" cy="23" r="8" fill="#4CD964" stroke="#fff" stroke-width="2.5"/><circle cx="80" cy="23" r="8" fill="#4CD964" stroke="#fff" stroke-width="2.5"/><rect x="46" y="24" width="8" height="6" fill="#F2C9A0"/><circle cx="50" cy="17" r="9.5" fill="#F2C9A0"/><path d="M40.5 15 A9.5 9.5 0 0 1 59.5 15 Q50 10 40.5 15Z" fill="#3A2A1E"/><circle cx="46.5" cy="18" r="1.2" fill="#222"/><circle cx="53.5" cy="18" r="1.2" fill="#222"/></svg><svg class="gk gk-dive" viewBox="0 0 120 60" aria-hidden="true"><line x1="36" y1="32" x2="24" y2="30" stroke="#23272F" stroke-width="11" stroke-linecap="round"/><line x1="24" y1="30" x2="14" y2="25" stroke="#F2C9A0" stroke-width="6" stroke-linecap="round"/><line x1="14" y1="25" x2="8" y2="21" stroke="#FF7A00" stroke-width="7" stroke-linecap="round"/><circle cx="5" cy="19" r="4.5" fill="#111"/><line x1="36" y1="38" x2="24" y2="40" stroke="#23272F" stroke-width="11" stroke-linecap="round"/><line x1="24" y1="40" x2="12" y2="44" stroke="#F2C9A0" stroke-width="6" stroke-linecap="round"/><line x1="12" y1="44" x2="6" y2="47" stroke="#FF7A00" stroke-width="7" stroke-linecap="round"/><circle cx="3" cy="48" r="4.5" fill="#111"/><rect x="34" y="23" width="42" height="20" rx="9" fill="#FF7A00"/><rect x="48" y="23" width="6" height="20" fill="#FFB566"/><line x1="70" y1="27" x2="97" y2="19" stroke="#FF7A00" stroke-width="8" stroke-linecap="round"/><line x1="68" y1="38" x2="95" y2="35" stroke="#FF7A00" stroke-width="8" stroke-linecap="round"/><circle cx="80" cy="29" r="9" fill="#F2C9A0"/><path d="M71 27 A9 9 0 0 1 89 27 Q80 22 71 27Z" fill="#3A2A1E"/><circle cx="84" cy="30" r="1.2" fill="#222"/><circle cx="103" cy="17" r="8" fill="#4CD964" stroke="#fff" stroke-width="2.5"/><circle cx="101" cy="35" r="8" fill="#4CD964" stroke="#fff" stroke-width="2.5"/></svg></div>`
+    + `<div class="pen-spot"></div><div class="pen-keeper" id="penKeeper" style="left:50%;top:44%"><div class="pk-arc"><div class="pk-in">${PEN_KEEPER_SVG}</div></div></div>`
     + `<div class="pen-player" id="penPlayer">🏃</div><div class="pen-ball" id="penBall" style="left:50%;top:86%">⚽</div></div>`
     + `<div class="ord-hint" id="penHint">${tf ? "İfade doğruysa sol, yanlışsa sağ köşeye vurun." : "Doğru cevabın olduğu köşeye vurun!"}</div><div id="penResult"></div>`;
   panel.querySelectorAll(".pen-zone").forEach(z=>z.addEventListener("click", ()=>penShoot(parseInt(z.dataset.i, 10))));
@@ -4108,15 +4148,17 @@ function penShoot(i){
   const ball = document.getElementById("penBall"), keeper = document.getElementById("penKeeper"), player = document.getElementById("penPlayer");
   player.classList.add("kick");
   penLater(()=>{ ball.style.left = pos[i].x + "%"; ball.style.top = pos[i].y + "%"; ball.classList.add("fly"); }, 120);
-  penLater(()=>{                            // yana plonjon: eldivenler topun gittiği noktaya uzanır
-    const dir = pos[kz].x < 50 ? -1 : 1, ang = pos[kz].y < 25 ? -26 : (pos[kz].y > 40 ? 12 : -8);
-    keeper.classList.add("dive");
-    keeper.style.left = pos[kz].x + "%"; keeper.style.top = pos[kz].y + "%";
-    keeper.style.transform = "translate(calc(-50% + " + (-dir*1.55) + "em),-50%) scaleX(" + dir + ") rotate(" + ang + "deg)";
-  }, 170);
-  if(!ok) penLater(()=>{                    // kurtarış: top kalecinin ellerinden sekip uzaklaşır
-    ball.style.left = (pos[i].x + (pos[i].x < 50 ? -9 : 9)) + "%"; ball.style.top = Math.min(84, pos[i].y + 22) + "%";
-  }, 640);
+  keeper.classList.add("crouch");
+  penLater(()=>{
+    const p = pos[kz], dir = p.x < 50 ? -1 : 1;
+    const hi = p.y < 22, mid = p.y < 35;
+    keeper.classList.remove("crouch"); keeper.classList.add("dive");
+    keeper.style.setProperty("--dx", dir);
+    keeper.style.setProperty("--rot", (hi ? -32 : (mid ? -16 : -6)) + "deg");
+    keeper.style.setProperty("--hump", hi ? "-6%" : "-14%");
+    keeper.style.left = (p.x - dir*7) + "%";
+    keeper.style.top = (p.y + (hi ? 7 : (mid ? 4 : 1.5))) + "%";
+  }, 200);
   penLater(()=>penResolve(i, ok), 950);
 }
 function penResolve(i, ok){
@@ -4133,8 +4175,10 @@ function penResolve(i, ok){
   const ans = tf ? qbEscape(it.o[it.c]) : (QB_LETTERS[it.c] + ") " + qbEscape(it.o[it.c]));
   let html = `<div class="pen-banner ${ok?"ok":"bad"}">${ok ? "⚽ GOOOL!" : "🧤 Kaleci kurtardı!"}</div>`;
   if(!ok) html += `<div class="pen-ans">Doğru cevap: <b>${ans}</b></div>`;
+  const w = penWinner();
+  html += `<div class="ord-actions"><button class="start-btn" id="penNextBtn">${w ? "🏁 Sonucu Göster" : "➡️ Sıradaki Atış"}</button></div>`;
   const res = document.getElementById("penResult"); res.innerHTML = html;
-  penLater(penAfterShot, ok ? 2200 : 3500);   // sonuç görününce otomatik: maç bittiyse sonuç, değilse karşı takım
+  document.getElementById("penNextBtn").addEventListener("click", penAfterShot);
 }
 function penAfterShot(){
   if(penState !== "result") return;
@@ -4148,12 +4192,12 @@ function penEnd(winner){
   SFX.play("pen_end");
   document.getElementById("penTrophy").textContent = "🏆";
   document.getElementById("penWinTitle").textContent = penTeamName(winner) + " Kazandı! 🎉";
-  document.getElementById("penWinText").textContent = "Mavi " + penGoals[1] + " – Kırmızı " + penGoals[2] + " gol." + (penSuddenDeath() && penKicks[1].length > penN ? " Maç seri atışlarla belirlendi." : "");
+  document.getElementById("penWinText").textContent = "Mavi " + penGoals[1] + " – Kırmızı " + penGoals[2] + " gol." + (penSuddenDeath() && penKicks[1].length > penN ? " Maç altın atışla belirlendi." : "");
   document.getElementById("overlayPen").classList.add("show");
 }
 function penReset(){
   penClearTimers();
-  ["pen_start","pen_goal","pen_save","pen_end"].forEach(id=>SFX.stop(id, 0.1)); try{ speechSynthesis.cancel(); }catch(e){}
+  ["pen_start","pen_goal","pen_save","pen_end"].forEach(id=>SFX.stop(id, 0.1));
   document.getElementById("overlayPen").classList.remove("show");
   penState = "setup"; penGoals = {1:0,2:0}; penKicks = {1:[],2:[]}; penTeam = 1; penCur = null; penPool = [];
   document.getElementById("penSetupBar").style.display = "flex";
@@ -4186,21 +4230,6 @@ const SFX = {
     try{ this.on = localStorage.getItem("sfxOn") !== "0"; }catch(e){}
     try{ this.vols = JSON.parse(localStorage.getItem("sfxVols") || "{}") || {}; }catch(e){ this.vols = {}; }
     this.dbOpen().then(()=>this.loadMeta()).catch(()=>{});
-    try{ speechSynthesis.getVoices(); speechSynthesis.addEventListener("voiceschanged", ()=>{}); }catch(e){}   // Türkçe sesleri önceden yükle
-  },
-  ttsVoice(){
-    try{ return (speechSynthesis.getVoices() || []).find(v=>/^tr([-_]|$)/i.test(v.lang)) || null; }catch(e){ return null; }
-  },
-  speak(id, text, o){                  // cihazın Türkçe sesiyle spiker gibi konuşur; ses yoksa false döner
-    if(!("speechSynthesis" in window) || typeof SpeechSynthesisUtterance === "undefined") return false;
-    const v = this.ttsVoice(); if(!v) return false;
-    try{
-      speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(text);
-      u.voice = v; u.lang = v.lang || "tr-TR"; u.rate = o.rate || 1; u.pitch = o.pitch || 1;
-      u.volume = Math.min(1, Math.max(0.05, this.vol(id)));
-      speechSynthesis.speak(u); return true;
-    }catch(e){ return false; }
   },
   getCtx(){
     if(!this.ctx){ try{ this.ctx = new (window.AudioContext || window.webkitAudioContext)(); }catch(e){ this.ctx = null; } }
@@ -4298,7 +4327,7 @@ const SFX = {
     if(this.active[h.id] === h) delete this.active[h.id];
   },
   stop(id, fade){ const h = this.active[id]; if(h) this.stopHandle(h, fade); },
-  stopAll(){ Object.keys(this.active).forEach(id=>this.stop(id, 0.1)); try{ speechSynthesis.cancel(); }catch(e){} },
+  stopAll(){ Object.keys(this.active).forEach(id=>this.stop(id, 0.1)); },
   isPlaying(id){ return !!this.active[id]; },
   duck(id, level, sec){
     const h = this.active[id], c = this.ctx; if(!h || !c) return;
@@ -4417,7 +4446,7 @@ const SFX = {
   },
   synth(id, h, opts){
     const c = this.ctx, t = c.currentTime + 0.02;
-    const ttl = {pen_start:1.4, pen_end:2.0, pen_goal:3.2, pen_save:2.2, tug_end:2.8, kick:0.4}[id];
+    const ttl = {pen_start:1.4, pen_end:2.0, pen_goal:2.9, pen_save:1.7, tug_end:2.8, kick:0.4}[id];
     if(ttl) setTimeout(()=>{ if(this.active[id] === h) delete this.active[id]; }, ttl*1000);
     if(id === "pen_start"){
       this.whistle(h, t, 1.15, 2900);
@@ -4434,8 +4463,6 @@ const SFX = {
       };
       tick(); h.stops.push(()=>clearTimeout(h.timer));
     } else if(id === "pen_goal"){         // "GOOOOOL!" (spiker gibi) + hafif tribün
-      const spoke = this.speak(id, "Gooooool!", {rate:0.82, pitch:1.3});
-      if(spoke){ this.swell(h, t, 3.0, 0.42, 450, 1300); this.swell(h, t + 0.1, 2.6, 0.22, 900, 2200); return; }
       const sh = (mul, del, a)=>this.voice(h, t + del, {dur:2.05, vib:7, vibHz:6,
         f0:[[0,150*mul],[0.28,225*mul],[0.55,250*mul],[1.55,235*mul],[1.95,165*mul]],
         forms:[[0,400,700,2600],[0.16,490,840,2700],[1.55,490,840,2700],[1.72,360,1300,2500]],
@@ -4447,8 +4474,6 @@ const SFX = {
       sh(1, 0.03, 0.55); sh(1.06, 0.05, 0.3); sh(0.94, 0.07, 0.3);
       this.swell(h, t + 0.15, 2.4, 0.22, 500, 1200);
     } else if(id === "pen_save"){         // "Aaaaaa..." (hayal kırıklığı) + hafif tribün
-      const spoke = this.speak(id, "Penaltı kaçtı!", {rate:0.95, pitch:0.85});
-      if(spoke){ this.swell(h, t, 1.8, 0.26, 800, 240); return; }
       const sh = (mul, del, a)=>this.voice(h, t + del, {dur:1.6, vib:4, vibHz:5,
         f0:[[0,250*mul],[0.18,260*mul],[0.9,195*mul],[1.5,135*mul]],
         forms:[[0,730,1090,2440],[0.9,690,1040,2400],[1.5,600,980,2350]],
