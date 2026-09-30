@@ -3,6 +3,27 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>
+/* Çıkış: "Evet" denince sayfa temiz (tek geçmiş kayıtlı) yeniden açılır ve kapatılır. Kapanmazsa kısa bir bilgi gösterilir. */
+(function(){
+  window.__sxLen0 = history.length;
+  try{
+    if(sessionStorage.getItem("sxExit") === "1"){
+      sessionStorage.removeItem("sxExit");
+      document.documentElement.style.visibility = "hidden";
+      window.close();
+      setTimeout(function(){
+        document.documentElement.style.visibility = "";
+        var t = document.createElement("div");
+        t.textContent = "Kapatmak için geri tuşuna bir kez daha basın";
+        t.style.cssText = "position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:#1f2937;color:#fff;padding:12px 18px;border-radius:14px;font:600 14px sans-serif;z-index:99999;max-width:88vw;text-align:center";
+        document.addEventListener("DOMContentLoaded", function(){ document.body.appendChild(t); setTimeout(function(){ t.remove(); }, 4000); });
+        if(document.body){ document.body.appendChild(t); setTimeout(function(){ t.remove(); }, 4000); }
+      }, 700);
+    }
+  }catch(e){}
+})();
+</script>
 <title>Dkab SorX</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
@@ -6771,6 +6792,10 @@ qbRenderPanel("tug");
   function exitApp(){
     leaving = true;
     try{ if(navigator.app && navigator.app.exitApp){ navigator.app.exitApp(); return; } }catch(e){}
+    // Uygulamadan önce başka bir sayfa açıksa (Google vb.) oraya dön
+    if((window.__sxLen0 || 1) > 1){ history.back(); return; }
+    // Aksi halde: geçmişi tek kayda indirip (aynı adrese yer değiştirerek) pencereyi kapat
+    try{ sessionStorage.setItem("sxExit", "1"); location.replace(location.href); return; }catch(e){}
     history.back();
     setTimeout(function(){ try{ window.close(); }catch(e){} }, 200);
   }
