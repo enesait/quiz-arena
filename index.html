@@ -259,18 +259,45 @@
   .bk-clue{ font-weight:700; font-size:1rem; line-height:1.4; margin-bottom:10px; padding:12px 14px; background:#F6F7FB; border:2px solid #E1E7EF; border-radius:12px; }
   .bk-clue-num{ font-family:'Space Grotesk'; font-weight:800; color:var(--violet-dark); margin-right:4px; }
 
+  /* ---- Paragraftaki Yanlışları Bulma ---- */
+  .nav-item[data-view="parwrong"] .nav-icon{ background:#FFE9C7; }
+  .par-card{ background:#fff; border-radius:22px; padding:clamp(18px,3vw,34px); box-shadow:0 8px 30px rgba(60,40,120,.12); }
+  .par-p{ font-size:clamp(1.15rem,2.2vw,1.7rem); line-height:2.15; margin:0 0 .6em; text-align:left; color:#232B3D; }
+  .par-w{ display:inline-block; padding:0 .28em; margin:0 .04em; border-radius:10px; cursor:pointer; user-select:none; -webkit-user-select:none; -webkit-tap-highlight-color:transparent; transition:background .12s; }
+  .par-w:hover{ background:#EEF1FF; }
+  .par-w.sel{ background:#FFE69A; box-shadow:0 0 0 2px #F2B705 inset; }
+  .par-card.checked .par-w{ cursor:default; }
+  .par-card.checked .par-w:hover{ background:transparent; }
+  .par-card.checked .par-w.ok{ background:#69D2A0; color:#14532D; font-weight:800; }
+  .par-card.checked .par-w.bad{ background:#E8756F; color:#6B0F0B; font-weight:800; }
+  .par-card.checked .par-w.miss{ background:#F6CFCF; color:#9B1C1C; text-decoration:underline; text-underline-offset:4px; }
+  .par-g{ white-space:pre; }
+  .par-actions{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:18px; }
+  .par-actions button[disabled]{ opacity:.45; cursor:not-allowed; }
+  .par-result{ margin-top:18px; background:#fff; border-radius:22px; padding:clamp(18px,3vw,30px); box-shadow:0 8px 30px rgba(60,40,120,.12); text-align:center; }
+  .par-res-head{ display:flex; align-items:center; justify-content:center; gap:12px; font-family:'Space Grotesk'; font-weight:800; font-size:clamp(1.4rem,3vw,2.1rem); color:#4C7BEA; }
+  .par-res-line{ font-size:clamp(1rem,1.9vw,1.35rem); margin:6px 0; color:#2B3347; }
+  .par-res-note{ font-size:clamp(.95rem,1.7vw,1.2rem); margin:14px 0 4px; color:#4A5368; }
+  .par-fix{ margin:12px auto 0; max-width:720px; text-align:left; font-size:clamp(.95rem,1.7vw,1.2rem); }
+  .par-fix div{ padding:6px 12px; margin:4px 0; border-radius:10px; background:#F6F7FB; }
+  .par-fix s{ color:#B42318; }
+  .par-total{ font-family:'Space Grotesk'; font-weight:800; font-size:clamp(1.6rem,3.6vw,2.6rem); margin-top:12px; }
+  .qb-par-err{ color:#B42318; font-weight:700; text-decoration:underline; text-decoration-style:wavy; text-underline-offset:3px; }
+  .qb-par-badge{ display:inline-block; margin-left:8px; padding:2px 10px; border-radius:999px; background:#FDE7E7; color:#B42318; font-weight:800; font-size:.8rem; }
+
   /* ---------- akıllı tahta / büyük ekran: 4 oyun büyük görünsün ---------- */
   @media (min-width:1200px){
-    #view-multiple .game-wrap, #view-scramble .game-wrap, #view-benkim .game-wrap{ zoom:1.4; }
+    #view-multiple .game-wrap, #view-scramble .game-wrap, #view-benkim .game-wrap, #view-parwrong .game-wrap{ zoom:1.4; }
     #view-tugofwar .game-wrap{ zoom:1.05; }
     #scrField, #bkField{ max-width:760px !important; }
+    #parField{ max-width:900px !important; }
   }
   @media (min-width:1600px){
-    #view-multiple .game-wrap, #view-scramble .game-wrap, #view-benkim .game-wrap{ zoom:1.75; }
+    #view-multiple .game-wrap, #view-scramble .game-wrap, #view-benkim .game-wrap, #view-parwrong .game-wrap{ zoom:1.75; }
     #view-tugofwar .game-wrap{ zoom:1.15; }
   }
   @media (min-width:2200px){
-    #view-multiple .game-wrap, #view-scramble .game-wrap, #view-benkim .game-wrap{ zoom:2.4; }
+    #view-multiple .game-wrap, #view-scramble .game-wrap, #view-benkim .game-wrap, #view-parwrong .game-wrap{ zoom:2.4; }
     #view-tugofwar .game-wrap{ zoom:1.3; }
   }
 
@@ -759,12 +786,6 @@
   @keyframes lrQrPulse{ 0%,100%{ box-shadow:0 0 0 4px rgba(108,92,231,.28); } 50%{ box-shadow:0 0 0 9px rgba(108,92,231,.1); } }
   @media (min-width:1200px){ .lr-qr::after{ font-size:1.25rem; padding:8px 18px; } }
   @media (min-width:1700px){ .lr-qr::after{ font-size:1.6rem; padding:10px 22px; } }
-  .lr-pan{ position:absolute; right:14px; bottom:calc(96px + env(safe-area-inset-bottom,0px)); z-index:5; display:none; grid-template-columns:repeat(3,58px); grid-template-rows:repeat(3,58px); gap:6px; padding:8px; border-radius:22px; background:rgba(22,32,43,.72); box-shadow:0 8px 28px rgba(0,0,0,.45); touch-action:none; user-select:none; -webkit-user-select:none; }
-  #libReader.lrzoomed .lr-pan{ display:grid; }
-  .lr-pb{ border:0; border-radius:14px; background:#2B3E54; color:#fff; font:800 1.4rem 'Manrope',sans-serif; display:grid; place-items:center; cursor:pointer; touch-action:none; -webkit-tap-highlight-color:transparent; padding:0; }
-  .lr-pb:active{ background:#4A6C97; }
-  .lr-pb.up{ grid-column:2; grid-row:1; } .lr-pb.lf{ grid-column:1; grid-row:2; } .lr-pb.fit{ grid-column:2; grid-row:2; font-size:1.2rem; background:#3A2F7A; } .lr-pb.rt{ grid-column:3; grid-row:2; } .lr-pb.dn{ grid-column:2; grid-row:3; }
-  @media (min-width:1200px){ .lr-pan{ right:22px; bottom:calc(120px + env(safe-area-inset-bottom,0px)); grid-template-columns:repeat(3,74px); grid-template-rows:repeat(3,74px); gap:8px; padding:10px; } .lr-pb{ font-size:1.9rem; } .lr-pb.fit{ font-size:1.6rem; } }
   .lr-toast{ position:absolute; left:50%; bottom:calc(150px + env(safe-area-inset-bottom, 0px)); transform:translateX(-50%) translateY(8px); z-index:6; max-width:88vw; padding:12px 20px; border-radius:14px; background:rgba(22,32,43,.96); color:#fff; font:700 1rem 'Manrope',sans-serif; text-align:center; box-shadow:0 8px 28px rgba(0,0,0,.55), inset 0 0 0 1px rgba(255,255,255,.1); opacity:0; pointer-events:none; transition:opacity .2s, transform .2s; }
   .lr-toast.show{ opacity:1; transform:translateX(-50%); }
   .lr-tb.busy{ background:rgba(108,92,231,.45); color:#fff; animation:lrBusy 1s ease-in-out infinite; }
@@ -776,6 +797,11 @@
   .lr-colors{ display:flex; align-items:center; gap:10px; padding-right:10px; border-right:1px solid rgba(255,255,255,.14); }
   .lr-sw{ width:38px; height:38px; padding:0; border-radius:50%; border:3px solid rgba(255,255,255,.3); outline:3px solid transparent; cursor:pointer; transition:outline-color .15s, transform .1s; }
   .lr-sw.on{ outline-color:#fff; transform:scale(1.08); }
+  .lr-sizes{ display:flex; align-items:center; gap:8px; padding-left:10px; margin-left:2px; border-left:1px solid rgba(255,255,255,.14); }
+  .lr-sz{ width:38px; height:38px; padding:0; border-radius:50%; border:3px solid rgba(255,255,255,.3); background:rgba(255,255,255,.08); display:grid; place-items:center; cursor:pointer; }
+  .lr-sz i{ display:block; border-radius:50%; background:#fff; }
+  .lr-sz.on{ border-color:#fff; background:rgba(255,255,255,.22); }
+  @media (min-width:1200px){ .lr-sz{ width:44px; height:44px; } }
   @media (max-width:640px){
     .lr-bar{ padding:8px 10px; gap:8px; }
     .lr-title{ flex:1 1 0; font-size:1rem; }
@@ -806,6 +832,8 @@
   .lr-stage.lr-pdfstage::-webkit-scrollbar{ display:none; }
   .lr-stage.lr-pdfstage .lr-pg, .lr-stage.lr-pdfstage .lr-sbox{ margin:auto; }
   .lr-stage.lr-pdfstage.zoomed{ overflow:auto; cursor:grab; touch-action:none; }
+  /* El aracı + büyütülmüş sayfa: tek parmakla taşımayı tarayıcının kendi kaydırması yapar (iki parmakla büyütme kapalı kalır) */
+  .lr-stage.lr-pdfstage.zoomed:not(.inking){ touch-action:pan-x pan-y; }
   .lr-stage.inking{ cursor:default; }
   .lr-sbox canvas.lr-ink{ position:absolute; left:0; top:0; width:100%; height:100%; display:block; z-index:2; }
   .lr-stage canvas.lr-ink{ pointer-events:none; touch-action:none; }
@@ -831,7 +859,6 @@
   .lr-deckbar .lr-tb{ width:54px; height:34px; }
   .lr-count{ min-width:96px; height:34px; padding:0 14px; border-radius:11px; font-size:1rem; }
   .lr-sub{ bottom:calc(52px + env(safe-area-inset-bottom,0px)); padding:6px 10px; gap:8px; }
-  .lr-pan{ bottom:calc(64px + env(safe-area-inset-bottom,0px)); }
   .lr-toast{ bottom:calc(72px + env(safe-area-inset-bottom,0px)); }
 
   /* --- BoomSoru & Sıralama --- */
@@ -1054,6 +1081,7 @@
     <button class="nav-item" data-view="hotpotato"><span class="nav-icon">💣</span><span>BoomSoru<small>Din Kültürü</small></span></button>
     <button class="nav-item" data-view="ordering"><span class="nav-icon">🔢</span><span>Sıralama<small>Din Kültürü</small></span></button>
     <button class="nav-item" data-view="penalty"><span class="nav-icon">⚽</span><span>Penaltı<small>Din Kültürü</small></span></button>
+    <button class="nav-item" data-view="parwrong"><span class="nav-icon">🔍</span><span>Paragraf Yanlışları<small>Din Kültürü</small></span></button>
     <button class="nav-item" data-view="questionbank"><span class="nav-icon">📝</span><span>Soruları Düzenle<small>Genel Kültür soruları</small></span></button>
     <button class="nav-item" data-view="sounds"><span class="nav-icon">🎵</span><span>Sesler<small>Cihazdan ses ekle</small></span></button>
     <div class="nav-item disabled"><span class="nav-icon">➕</span><span>Yakında</span></div>
@@ -1227,6 +1255,24 @@
 
         <div class="field" id="scrField" style="display:none; max-width:640px; margin:0 auto;">
           <div id="scrCard"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PARAGRAFTAKİ YANLIŞLARI BULMA -->
+    <section id="view-parwrong" class="view">
+      <div class="game-wrap">
+        <div class="game-topbar"><button class="home-link" data-view="home">🏠 Ana Sayfa</button><span></span></div>
+        <h1 class="game-title">🔍 Paragraftaki Yanlışları Bulma: Din Kültürü</h1>
+        <div class="subtitle">Paragraftaki yanlış kelimelere dokunarak işaretleyin, ardından Kontrol Et'e basın. Her doğru bulunan hata +25, her yanlış işaret −25 puan.</div>
+
+        <div class="setup-bar" id="parSetupBar" style="justify-content:center;">
+          <span class="lbl">Sınıfla birlikte paragraftaki yanlışları bulun.</span>
+          <button class="start-btn" id="parStartBtn">▶ Paragrafı Göster</button>
+        </div>
+
+        <div class="field" id="parField" style="display:none; max-width:720px; margin:0 auto;">
+          <div id="parCard"></div>
         </div>
       </div>
     </section>
@@ -1523,6 +1569,7 @@
           <button class="pl-tab" data-qbtab="hp">💣 BoomSoru</button>
           <button class="pl-tab" data-qbtab="ord">🔢 Sıralama</button>
           <button class="pl-tab" data-qbtab="pen">⚽ Penaltı</button>
+          <button class="pl-tab" data-qbtab="par">🔍 Paragraf Yanlışları</button>
         </div>
 
         <div class="qb-panel" id="qbPanel-mc" style="display:none;"></div>
@@ -1534,6 +1581,7 @@
         <div class="qb-panel" id="qbPanel-whl" style="display:none;"></div>
         <div class="qb-panel" id="qbPanel-hp" style="display:none;"></div>
         <div class="qb-panel" id="qbPanel-ord" style="display:none;"></div>
+        <div class="qb-panel" id="qbPanel-par" style="display:none;"></div>
         <div class="qb-panel" id="qbPanel-pen" style="display:none;"></div>
         <div class="qb-panel" id="qbPanel-quick" style="display:none;"></div>
       </div>
@@ -1586,19 +1634,17 @@
   </div>
   <div class="lr-body" id="lrBody"></div>
   <div class="lr-toast" id="lrToast" role="status"></div>
-  <div class="lr-pan" id="lrPan" role="group" aria-label="Sayfayı kaydır">
-    <button type="button" class="lr-pb up" data-d="u" aria-label="Yukarı">▲</button>
-    <button type="button" class="lr-pb lf" data-d="l" aria-label="Sola">◀</button>
-    <button type="button" class="lr-pb fit" data-d="fit" aria-label="Sığdır">⤢</button>
-    <button type="button" class="lr-pb rt" data-d="r" aria-label="Sağa">▶</button>
-    <button type="button" class="lr-pb dn" data-d="d" aria-label="Aşağı">▼</button>
-  </div>
   <div class="lr-sub" id="lrSub">
     <div class="lr-colors" id="lrColors">
       <button class="lr-sw on" type="button" data-color="#E5484D" style="background:#E5484D" aria-label="Kırmızı"></button>
       <button class="lr-sw" type="button" data-color="#2F6BFF" style="background:#2F6BFF" aria-label="Mavi"></button>
       <button class="lr-sw" type="button" data-color="#16A34A" style="background:#16A34A" aria-label="Yeşil"></button>
       <button class="lr-sw" type="button" data-color="#111827" style="background:#111827" aria-label="Siyah"></button>
+      <span class="lr-sizes" id="lrSizes">
+        <button class="lr-sz on" type="button" data-w="1.6" aria-label="İnce"><i style="width:5px;height:5px"></i></button>
+        <button class="lr-sz" type="button" data-w="3" aria-label="Orta"><i style="width:10px;height:10px"></i></button>
+        <button class="lr-sz" type="button" data-w="5" aria-label="Kalın"><i style="width:17px;height:17px"></i></button>
+      </span>
     </div>
     <button class="lr-tb" id="lrUndo" type="button" aria-label="Geri al" title="Geri al"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5a5.5 5.5 0 0 1-5.5 5.5H11"/></svg></button>
   </div>
@@ -2390,7 +2436,7 @@ function qbEnsureSynced(g){
   const cfg = QB_GAMES[g]; if(!cfg) return;
   qbAttachSync(cfg.storageKey, cfg.arr);
 }
-const QB_VIEW_MAP = { multiple:"mc", tugofwar:"tug", millionaire:"mill", picture:"pic", scramble:"scr", benkim:"bk", wheel:"whl", hotpotato:"hp", ordering:"ord", penalty:"pen" };
+const QB_VIEW_MAP = { multiple:"mc", tugofwar:"tug", millionaire:"mill", picture:"pic", scramble:"scr", benkim:"bk", wheel:"whl", hotpotato:"hp", ordering:"ord", penalty:"pen", parwrong:"par" };
 /* ---- Bulut soru sayısı dizini: dkabSorXQBN/<anahtar> = soru sayısı (yalnızca küçük sayılar).
    Başka cihazda sınıf/ünite ekranı "kaç soru var"ı ve "Oyna" düğmesinin açık olup olmadığını
    soruların kendisini indirmeden bu dizinden bilir. ---- */
@@ -4579,6 +4625,150 @@ async function sfxRenderView(){
     row.querySelector('[data-a="vol"]').oninput = (e)=>SFX.setVol(id, parseFloat(e.target.value));
   });
 }
+/* ================= PARAGRAFTAKİ YANLIŞLARI BULMA ================= */
+const PAR_ITEMS_DEFAULTS = [
+  {t:"Farsça kökenli peygamber kelimesi, sözlükte “haber getiren” anlamına gelir. Allah'ın vahiylerini bildirmekle görevli elçilere Kur'an'da resul ve nebi denir. Resul “elçi”, nebi ise {“sihirbaz”|“haber getiren”} demektir. Peygamberlerin dürüstlük anlamına gelen sıfatına {emanet|sıdk} denir. Kur'an-ı Kerim'de adı geçen yirmi beş peygamber içinde tarihteki ilk peygamber Hz. {Nuh|Âdem}, son peygamber ise Hz. Muhammed'dir (sav)."}
+];
+const PAR_ITEMS = [];
+qbLoadLocal(PAR_ITEMS, "parItemsV1", PAR_ITEMS_DEFAULTS);
+const PAR_PTS = 25;
+let parPool = [], parCur = null, parTokens = [], parSel = new Set(), parChecked = false;
+
+/* {yanlış|doğrusu} işaretlerini ayrıştırır. Satır başına bir paragraf bloğu; her kelime ayrı dokunulabilir. */
+function parParse(text){
+  const lines = String(text||"").split(/\n/).map(x=>x.trim()).filter(Boolean);
+  const out = []; let gid = 0, idx = 0;
+  lines.forEach((line, li)=>{
+    const re = /\{([^{}|]+)(?:\|([^{}]*))?\}/g;
+    let last = 0, m, prevGroup = false, first = true;
+    const pushPlain = (seg)=>{
+      const parts = seg.split(/(\s+)/);
+      let sp = /^\s/.test(seg);
+      parts.forEach(pc=>{
+        if(!pc) return;
+        if(/^\s+$/.test(pc)){ sp = true; return; }
+        const glued = !sp && !first;
+        out.push({i:idx++, line:li, t:pc, err:false, gid:null, sp:sp && !first, glued:glued});
+        first = false; sp = false;
+      });
+    };
+    const pushGroup = (words, corr)=>{
+      const g = gid++;
+      words.forEach((w, k)=>{
+        const sp = (k===0) ? (!first && !(out.length && out[out.length-1].spNext===false)) : true;
+        out.push({i:idx++, line:li, t:w, err:true, gid:g, corr:(k===0 ? (corr||"") : ""), sp:sp, glued:false});
+        first = false;
+      });
+    };
+    while((m = re.exec(line))){
+      const before = line.slice(last, m.index);
+      if(before){
+        pushPlain(before);
+      }
+      const ws = m[1].trim().split(/\s+/).filter(Boolean);
+      // grup öncesinde boşluk yoksa kelimeye bitişik yaz
+      const needSp = !before || /\s$/.test(before);
+      pushGroup(ws, (m[2]||"").trim());
+      if(!needSp && !first){ const k = out.length - ws.length; if(out[k]) out[k].sp = false; }
+      last = re.lastIndex;
+    }
+    const tail = line.slice(last);
+    if(tail){
+      // grubun hemen ardına yapışık noktalama/ek: dokunulamaz bitişik metin
+      const mm = /^(\S+)([\s\S]*)$/.exec(tail);
+      if(mm && last>0 && !/^\s/.test(tail)){
+        out.push({i:idx++, line:li, t:mm[1], err:false, gid:null, sp:false, glued:true});
+        if(mm[2]) pushPlain(mm[2]);
+      } else pushPlain(tail);
+    }
+  });
+  return out;
+}
+function parErrorCount(text){ return parParse(text).filter(t=>t.err).length; }
+
+document.getElementById("parStartBtn").addEventListener("click", ()=>{
+  if(PAR_ITEMS.length===0){ alert("Soruları Düzenle bölümünde hiç paragraf yok. Önce Soruları Düzenle > Paragraf Yanlışları bölümünden paragraf ekleyin."); return; }
+  document.getElementById("parSetupBar").style.display="none";
+  document.getElementById("parField").style.display="block";
+  parPool = shuffle(PAR_ITEMS);
+  parNext();
+});
+function parNext(){
+  if(parPool.length===0) parPool = shuffle(PAR_ITEMS);
+  parCur = parPool.pop();
+  if(!parCur){ document.getElementById("parCard").innerHTML = '<div class="scramble-reveal">Bankada paragraf kalmadı.</div>'; return; }
+  parTokens = parParse(parCur.t); parSel = new Set(); parChecked = false;
+  parRender();
+}
+function parRender(){
+  const lines = {};
+  parTokens.forEach(tk=>{ (lines[tk.line] = lines[tk.line] || []).push(tk); });
+  const body = Object.keys(lines).map(k=>{
+    return '<div class="par-p">' + lines[k].map(tk=>{
+      const space = tk.sp ? " " : "";
+      if(tk.glued) return `<span class="par-g">${qbEscape(tk.t)}</span>`;
+      let cls = "par-w";
+      if(parChecked){
+        const picked = parSel.has(tk.i);
+        if(picked && tk.err) cls += " ok";
+        else if(picked && !tk.err) cls += " bad";
+        else if(!picked && tk.err) cls += " miss";
+      } else if(parSel.has(tk.i)) cls += " sel";
+      return space + `<span class="${cls}" data-i="${tk.i}">${qbEscape(tk.t)}</span>`;
+    }).join("") + '</div>';
+  }).join("");
+  const card = document.getElementById("parCard");
+  let html = `<div class="par-card${parChecked?" checked":""}" id="parBox">${body}</div>`;
+  if(!parChecked){
+    html += `<div class="par-actions">
+      <button class="start-btn" id="parCheckBtn" style="margin-left:0;" ${parSel.size===0?"disabled":""}>✅ Kontrol Et</button>
+      <button class="preset" id="parClearBtn" ${parSel.size===0?"disabled":""}>↺ Seçimleri Temizle</button>
+      <button class="preset" id="parSkipBtn">➡️ Başka Paragraf</button>
+    </div>`;
+  } else {
+    html += parResultHtml() + `<div class="par-actions"><button class="start-btn" id="parNextBtn" style="margin-left:0;">➡️ Sıradaki Paragraf</button></div>`;
+  }
+  card.innerHTML = html;
+  const box = document.getElementById("parBox");
+  if(!parChecked) box.addEventListener("click", (e)=>{
+    const w = e.target.closest(".par-w"); if(!w) return;
+    const i = parseInt(w.dataset.i, 10);
+    if(parSel.has(i)) parSel.delete(i); else parSel.add(i);
+    w.classList.toggle("sel", parSel.has(i));
+    const has = parSel.size>0;
+    const cb = document.getElementById("parCheckBtn"), xb = document.getElementById("parClearBtn");
+    if(cb) cb.disabled = !has; if(xb) xb.disabled = !has;
+  });
+  const q = (id,fn)=>{ const el = document.getElementById(id); if(el) el.addEventListener("click", fn); };
+  q("parCheckBtn", ()=>{ if(parSel.size===0) return; parChecked = true; parRender(); const r = document.getElementById("parResult"); if(r && r.scrollIntoView) r.scrollIntoView({behavior:"smooth", block:"nearest"}); });
+  q("parClearBtn", ()=>{ parSel = new Set(); parRender(); });
+  q("parSkipBtn", parNext);
+  q("parNextBtn", parNext);
+}
+function parResultHtml(){
+  let ok = 0, bad = 0, miss = 0;
+  parTokens.forEach(tk=>{
+    if(tk.glued) return;
+    const p = parSel.has(tk.i);
+    if(p && tk.err) ok++; else if(p && !tk.err) bad++; else if(!p && tk.err) miss++;
+  });
+  const total = ok*PAR_PTS - bad*PAR_PTS;
+  const perfect = bad===0 && miss===0;
+  const fixes = [];
+  parTokens.forEach(tk=>{ if(tk.err && tk.corr){
+    const grp = parTokens.filter(x=>x.gid===tk.gid).map(x=>x.t).join(" ");
+    fixes.push(`<div>❌ <s>${qbEscape(grp)}</s> &nbsp;→&nbsp; ✅ <b>${qbEscape(tk.corr)}</b></div>`);
+  }});
+  return `<div class="par-result" id="parResult">
+    <div class="par-res-head"><span>${perfect?"🎉":"👏"}</span><span>${perfect?"Mükemmel! Tüm yanlışlar bulundu":"Kontrol Sonuçlandı!"}</span></div>
+    <div class="par-res-line">Doğru seçim: ${ok} (+${ok*PAR_PTS} Puan)</div>
+    <div class="par-res-line">Yanlış seçim: ${bad} (−${bad*PAR_PTS} Puan)</div>
+    ${miss>0 ? `<div class="par-res-line">Kaçırılan yanlış: ${miss}</div><div class="par-res-note">Kaçırdığınız hatalı ifadeler metin içinde altı çizili kırmızı renk ile gösterilmiştir.</div>` : ""}
+    ${fixes.length ? `<div class="par-fix">${fixes.join("")}</div>` : ""}
+    <div class="par-total" style="color:${perfect?"var(--ok)":"#E0524A"}">Toplam Puanınız: ${total}</div>
+  </div>`;
+}
+
 /* ================= 7) SORU BANKASI (EKLE / DÜZENLE) ================= */
 const QB_LETTERS = ["A","B","C","D","E"];
 const QB_GAMES = {
@@ -4591,11 +4781,12 @@ const QB_GAMES = {
   whl:  { arr: WHEEL_QUESTIONS, storageKey:"wheelQuestionsV1", defaults: WHEEL_QUESTIONS_DEFAULTS, hasEmoji:false, hasLevel:false, hasCat:true, hasLayout:true, label:"Çarkıfelek" },
   hp:   { arr: HP_QUESTIONS, storageKey:"hpQuestionsV1", defaults: HP_QUESTIONS_DEFAULTS, hasEmoji:false, hasLevel:false, hasLayout:true, label:"BoomSoru" },
   ord:  { arr: ORD_ITEMS,    storageKey:"ordItemsV1",    defaults: ORD_ITEMS_DEFAULTS,    kind:"ord", noun:"Sıralama", label:"Sıralama" },
-  pen:  { arr: PEN_ITEMS,    storageKey:"penItemsV1",    defaults: PEN_ITEMS_DEFAULTS,    kind:"pen", noun:"Soru", label:"Penaltı" }
+  pen:  { arr: PEN_ITEMS,    storageKey:"penItemsV1",    defaults: PEN_ITEMS_DEFAULTS,    kind:"pen", noun:"Soru", label:"Penaltı" },
+  par:  { arr: PAR_ITEMS,    storageKey:"parItemsV1",    defaults: PAR_ITEMS_DEFAULTS,    kind:"par", noun:"Paragraf", label:"Paragraf Yanlışları" }
 };
 const QB_BASE = {};
 Object.keys(QB_GAMES).forEach(g=>{ QB_BASE[g] = { key: QB_GAMES[g].storageKey, defaults: QB_GAMES[g].defaults }; });
-let qbEditingId = { mc:null, tug:null, mill:null, pic:null, scr:null, bk:null, whl:null, hp:null, ord:null, pen:null };
+let qbEditingId = { mc:null, tug:null, mill:null, pic:null, scr:null, bk:null, whl:null, hp:null, ord:null, pen:null, par:null };
 let qbCatFilter = "all";
 
 document.querySelectorAll("#qbTabs .pl-tab").forEach(btn=>{
@@ -4662,6 +4853,12 @@ function qbSpecialFormHtml(game, mode, q){
       </div>
       <div class="qb-form-note">Oyunda futbolcu cevabın olduğu köşeye vurursa gol olur, yanlış köşeye vurursa kaleci kurtarır. Doğru/Yanlış sorularda kale iki bölmeye ayrılır.</div>` + actions;
   }
+  if(cfg.kind==="par"){
+    q = q || {t:""};
+    return head + `
+      <label>Paragraf (yanlış kelimeleri {yanlış|doğrusu} biçiminde yazın)<textarea class="qb-par-t" rows="7" placeholder="İlk peygamber Hz. {Nuh|Âdem}, son peygamber Hz. Muhammed'dir." required>${qbEscape(q.t||"")}</textarea></label>
+      <div class="qb-form-note">Yanlış yazdığınız kelimeyi süslü parantez içine alın; çizgiden sonra doğrusunu yazabilirsiniz (isteğe bağlı), örnek: <b>{Nuh|Âdem}</b>. Parantez içinde birden fazla kelime olursa her kelime ayrı bir hata sayılır. Yeni satır = yeni paragraf bloğu.</div>` + actions;
+  }
   if(cfg.kind==="ord"){
     q = q || {q:"", s:[]};
     return head + `
@@ -4697,6 +4894,13 @@ function qbSpecialCardHtml(game, q){
         <div class="qb-card-head"><span class="qb-card-q">${qbEscape(q.q)}</span>${actions}</div>
         <div class="qb-card-opts">${(q.o||[]).map((opt,i)=>`<span class="qb-opt-pill ${i===q.c?"qb-correct":""}">${tf?"":QB_LETTERS[i]+") "}${qbEscape(opt)}</span>`).join("")}</div>
         <div class="qb-level-badge">${tf?"✔️ Doğru / Yanlış":"✅ Çoktan seçmeli"}</div>
+      </div>`;
+  }
+  if(cfg.kind==="par"){
+    const shownTxt = qbEscape(q.t||"").replace(/\{([^{}|]+)(?:\|([^{}]*))?\}/g, (m0, a, b)=>`<span class="qb-par-err"${b?` title="Doğrusu: ${b.trim()}"`:""}>${a}</span>${b?` <small style="color:#2E9E6B;font-weight:700;">(${b.trim()})</small>`:""}`);
+    return `
+      <div class="qb-card" data-id="${q.id}">
+        <div class="qb-card-head"><span class="qb-card-q">${shownTxt}<span class="qb-par-badge">${parErrorCount(q.t||"")} hata</span></span>${actions}</div>
       </div>`;
   }
   if(cfg.kind==="ord"){
@@ -4737,6 +4941,12 @@ function qbHandleSpecialSubmit(form){
       if(po.length<4 || po.some(x=>!x) || !r){ alert("Lütfen dört şıkkı doldurun ve doğru cevabı işaretleyin."); return; }
       data = {q:pq, t:"mc", o:po, c:parseInt(r.value, 10)};
     }
+  } else if(cfg.kind==="par"){
+    const pt = form.querySelector(".qb-par-t").value.trim();
+    if(!pt){ alert("Lütfen paragrafı yazın."); return; }
+    if(/[{}]/.test(pt.replace(/\{[^{}|]+(?:\|[^{}]*)?\}/g, ""))){ alert("Süslü parantezler hatalı. Her yanlış kelime {yanlış} ya da {yanlış|doğrusu} biçiminde, parantezi kapatarak yazılmalı."); return; }
+    if(parErrorCount(pt) < 1){ alert("Paragrafta en az bir yanlış kelime işaretleyin. Örnek: {Nuh|Âdem}"); return; }
+    data = {t:pt};
   } else if(cfg.kind==="ord"){
     const qq = form.querySelector(".qb-ord-q").value.trim();
     const s = form.querySelector(".qb-ord-s").value.split("\n").map(x=>x.trim()).filter(Boolean);
@@ -5391,7 +5601,7 @@ setInterval(()=>{
 
 /* ================= 8) SINIFLAR > DERSLER > ÜNİTELER ================= */
 const SINIF_KEY = "sinifTreeV1";
-const APP_STORAGE_KEYS = ["mcQuestionsV1","tugQuestionsV1","millQuestionsV1","picQuestionsV1","scrWordsV1","bkItemsV1","wheelQuestionsV1","hpQuestionsV1","ordItemsV1","penItemsV1","plRoster",SINIF_KEY,"kitapTreeV1","sunumTreeV1"];
+const APP_STORAGE_KEYS = ["mcQuestionsV1","tugQuestionsV1","millQuestionsV1","picQuestionsV1","scrWordsV1","bkItemsV1","wheelQuestionsV1","hpQuestionsV1","ordItemsV1","penItemsV1","parItemsV1","plRoster",SINIF_KEY,"kitapTreeV1","sunumTreeV1"];
 
 /* Hazır ünite paketleri: ders kitabı PDF'lerinden hazırlanan sorular buraya eklenir.
    Örnek: { classId:"c6", courseId:"c6-dkab", unitId:"c6-dkab-u1", name:"1. Ünite: ...",
@@ -5410,7 +5620,8 @@ const UNIT_GAMES = [
   {id:"whl",  icon:"🎡", name:"Çarkıfelek",         view:"wheel",       noun:"soru"},
   {id:"hp",   icon:"💣", name:"BoomSoru",      view:"hotpotato",   noun:"soru"},
   {id:"ord",  icon:"🔢", name:"Sıralama",           view:"ordering",    noun:"sıralama"},
-  {id:"pen",  icon:"⚽", name:"Penaltı",            view:"penalty",     noun:"soru"}
+  {id:"pen",  icon:"⚽", name:"Penaltı",            view:"penalty",     noun:"soru"},
+  {id:"par",  icon:"🔍", name:"Paragraf Yanlışları", view:"parwrong",    noun:"paragraf"}
 ];
 
 function sinifDefaultClasses(){
@@ -5575,6 +5786,7 @@ function unitResetGame(game){
   else if(game==="hp"){ hpReset(); }
   else if(game==="ord"){ ordReset(); }
   else if(game==="pen"){ penReset(); }
+  else if(game==="par"){ parPool=[]; parCur=null; document.getElementById("parSetupBar").style.display="flex"; document.getElementById("parField").style.display="none"; }
 }
 function qbUseSource(unitId){
   unitId = unitId || null;
@@ -5593,7 +5805,7 @@ function qbUseSource(unitId){
   if(active) qbRenderPanel(active.dataset.qbtab);
   unitCtxUpdate();
 }
-const UNIT_CTX_VIEWS = ["multiple","tugofwar","millionaire","picture","scramble","benkim","wheel","hotpotato","ordering","penalty","questionbank"];
+const UNIT_CTX_VIEWS = ["multiple","tugofwar","millionaire","picture","scramble","benkim","wheel","hotpotato","ordering","penalty","parwrong","questionbank"];
 function unitCtxUpdate(){
   const label = qbSource ? unitPathLabel(qbSource) : "";
   const qbH = document.querySelector("#view-questionbank .game-title"); if(qbH) qbH.textContent = "📝 Soruları Düzenle";
@@ -5786,7 +5998,7 @@ function sinifRestore(file){
       }
       if(p.data[SINIF_KEY]){ try{ await fbDb.ref("dkabSorXSinif/tree").set(JSON.parse(p.data[SINIF_KEY])); }catch(e){} }
       if(p.data["plRoster"]){ try{ await fbDb.ref("dkabSorXRoster").set(JSON.parse(p.data["plRoster"])); }catch(e){} }
-      const QB_FIXED_KEYS = ["mcQuestionsV1","tugQuestionsV1","millQuestionsV1","picQuestionsV1","scrWordsV1","bkItemsV1","wheelQuestionsV1","hpQuestionsV1","ordItemsV1","penItemsV1"];
+      const QB_FIXED_KEYS = ["mcQuestionsV1","tugQuestionsV1","millQuestionsV1","picQuestionsV1","scrWordsV1","bkItemsV1","wheelQuestionsV1","hpQuestionsV1","ordItemsV1","penItemsV1","parItemsV1"];
       for(const k of Object.keys(p.data)){
         if(k.startsWith("unitQ:") || QB_FIXED_KEYS.includes(k)){
           try{ const arr0 = JSON.parse(p.data[k]); await fbDb.ref("dkabSorXQB/"+k).set(arr0); if(Array.isArray(arr0) && arr0.length) await fbDb.ref("dkabSorXQBN/"+k).set(arr0.length); }catch(e){}
@@ -7182,6 +7394,7 @@ function bindZoomGestures(stage, z){
   stage.addEventListener("pointerdown", (e)=>{
     const t = now(), isTouch = (e.pointerType === "touch");
     if(!ZG_PINCH){
+      if(isTouch) return;   // dokunmatik taşımayı tarayıcı yapar (touch-action: pan-x pan-y); bu kod yalnızca fare/kalem için
       // Tek parmakla taşıma. Avuç, kol ya da sahte ikinci nokta yakınlaştırma başlatmaz ve taşımayı bozmaz:
       // ekrandaki noktalardan ilk kıpırdayan (6 px'ten fazla) parmak sayfayı taşır, diğerleri yok sayılır.
       if(isTouch && e.isPrimary && zgSane){ cands.clear(); pan = null; }
@@ -7287,7 +7500,9 @@ document.addEventListener("visibilitychange", ()=>{ const st = zoomer && zoomer.
 
 /* ---- Kalem / silgi: PDF sayfası ve slayt için ortak katman (çizimler içerik koordinatında tutulur, büyütmede net kalır) ---- */
 let inkStore = {}, inkColor = "#E5484D", inkSess = null;
-const PEN_W = 3.2, ERASE_R = 16;
+let PEN_W = 1.6;   // kalem kalınlığı: ince 1.6 / orta 3 / kalın 5 (alt çubuktan seçilir)
+try{ const sw = parseFloat(localStorage.getItem("inkPenWV1")); if(sw >= 1 && sw <= 8) PEN_W = sw; }catch(_){}
+const ERASE_R = 16;
 function inkSession(key){
   return {tool:"hand", undo:[], dead:false, cancel:null, store:(inkStore[key] = inkStore[key] || {}), stage:null, cur:null, goto:null, redraw:null};
 }
@@ -7410,6 +7625,14 @@ document.getElementById("lrColors").addEventListener("click", (e)=>{
   const b = e.target.closest("[data-color]"); if(!b) return;
   inkColor = b.dataset.color;
   document.querySelectorAll("#lrColors .lr-sw").forEach(x=>x.classList.toggle("on", x===b));
+});
+document.querySelectorAll("#lrSizes .lr-sz").forEach(x=>x.classList.toggle("on", Math.abs(parseFloat(x.dataset.w) - PEN_W) < 0.01));
+if(!document.querySelector("#lrSizes .lr-sz.on")) document.querySelector("#lrSizes .lr-sz").classList.add("on");
+document.getElementById("lrSizes").addEventListener("click", (e)=>{
+  const b = e.target.closest("[data-w]"); if(!b) return;
+  PEN_W = parseFloat(b.dataset.w);
+  try{ localStorage.setItem("inkPenWV1", String(PEN_W)); }catch(_){}
+  document.querySelectorAll("#lrSizes .lr-sz").forEach(x=>x.classList.toggle("on", x===b));
 });
 document.getElementById("lrUndo").addEventListener("click", ()=>{ if(inkSess) inkUndo(inkSess); });
 document.getElementById("lrClose").addEventListener("click", ()=>libReaderClose());
