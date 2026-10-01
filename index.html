@@ -7694,25 +7694,38 @@ qbRenderPanel("tug");
   }
   function showExit(){ exitBox().classList.add("show"); }
 
-  /* Geçmişte her zaman bir "nöbetçi" kayıt bulunsun: geri tuşu uygulama içinde kalır */
-  function ensureSentinel(){
-    if(history.state && history.state.sxApp) return;
-    if(!(history.state && history.state.sxBase)) history.replaceState({ sxBase:true }, "");
-    history.pushState({ sxApp:true }, "");
+  /* Geçmişte her zaman birkaç "nöbetçi" kayıt (tampon) bulunsun. Her geri basışı bir kayıt harcar,
+     her dokunuşta tampon yeniden doldurulur. Dokunuşla eklenen kayıtlar tarayıcı tarafından atlanmaz. */
+  var BUF = 5, depth = 0;
+  (function(){
+    var st = history.state;
+    if(st && st.sxApp && typeof st.d === "number") depth = st.d;
+    else { history.replaceState({ sxBase:true }, ""); depth = 0; }
+  })();
+  function fill(){
+    try{ while(depth < BUF){ depth++; history.pushState({ sxApp:true, d:depth }, ""); } }catch(e){}
   }
-  ensureSentinel();
-  document.addEventListener("pointerdown", ensureSentinel, true);   // kullanıcı dokunuşuyla eklenen kayıt tarayıcı tarafından atlanmaz
-  window.addEventListener("pageshow", ensureSentinel);
-  document.addEventListener("visibilitychange", function(){ if(!document.hidden) ensureSentinel(); });
+  fill();
+  document.addEventListener("pointerdown", fill, true);
+  window.addEventListener("pageshow", fill);
+  document.addEventListener("visibilitychange", function(){ if(!document.hidden) fill(); });
 
+  function backPressed(){
+    if(handleBack()) return;
+    if(typeof Auth !== "undefined" && !Auth.user) return;   // zaten şifre ekranında
+    showExit();
+  }
   window.addEventListener("popstate", function(e){
     if(leaving) return;
-    if(e.state && e.state.sxApp) return;            // ileri gidildi, işlem yok
-    if(handleBack()){ ensureSentinel(); return; }
-    if(typeof Auth !== "undefined" && !Auth.user){ ensureSentinel(); return; }   // zaten şifre ekranında
-    showExit();
-    ensureSentinel();
+    var st = e.state, nd = (st && st.sxApp && typeof st.d === "number") ? st.d : 0;
+    if(nd > depth){ depth = nd; return; }                   // ileri gidildi, işlem yok
+    depth = nd;
+    backPressed();
+    fill();
   });
+  /* Android sarmalayıcı (Cordova vb.) kendi geri tuşu olayını gönderirse */
+  document.addEventListener("backbutton", function(e){ if(e && e.preventDefault) e.preventDefault(); backPressed(); }, false);
+  window.handleAppBack = function(){ backPressed(); return true; };
 })();
 </script>
 </body>
