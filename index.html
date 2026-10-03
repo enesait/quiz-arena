@@ -287,17 +287,17 @@
 
   /* ---------- akıllı tahta / büyük ekran: 4 oyun büyük görünsün ---------- */
   @media (min-width:1200px){
-    #view-multiple .game-wrap, #view-scramble .game-wrap, #view-benkim .game-wrap, #view-parwrong .game-wrap{ zoom:1.4; }
+    #view-multiple .game-wrap, #view-scramble .game-wrap, #view-benkim .game-wrap, #view-parwrong .game-wrap, #view-swipe .game-wrap{ zoom:1.4; }
     #view-tugofwar .game-wrap{ zoom:1.05; }
     #scrField, #bkField{ max-width:760px !important; }
-    #parField{ max-width:900px !important; }
+    #parField, #swField{ max-width:900px !important; }
   }
   @media (min-width:1600px){
-    #view-multiple .game-wrap, #view-scramble .game-wrap, #view-benkim .game-wrap, #view-parwrong .game-wrap{ zoom:1.75; }
+    #view-multiple .game-wrap, #view-scramble .game-wrap, #view-benkim .game-wrap, #view-parwrong .game-wrap, #view-swipe .game-wrap{ zoom:1.75; }
     #view-tugofwar .game-wrap{ zoom:1.15; }
   }
   @media (min-width:2200px){
-    #view-multiple .game-wrap, #view-scramble .game-wrap, #view-benkim .game-wrap, #view-parwrong .game-wrap{ zoom:2.4; }
+    #view-multiple .game-wrap, #view-scramble .game-wrap, #view-benkim .game-wrap, #view-parwrong .game-wrap, #view-swipe .game-wrap{ zoom:2.4; }
     #view-tugofwar .game-wrap{ zoom:1.3; }
   }
 
@@ -1011,6 +1011,84 @@
   .ord-answer{ background:#F4F6FA; border-radius:14px; padding:10px 16px; margin-top:10px; font-family:'Manrope'; font-weight:700; }
   .ord-answer ol{ margin:6px 0 0 20px; padding:0; }
   .ord-timer.low{ background:#E5484D !important; }
+  /* ---- Okuyucu üst çubuğu: siyah zemin, beyaz ikonlar, araçlar ortada ---- */
+  #libReader .lr-bar{ background:#000; }
+  #libReader .lr-seg, #libReader .lr-dl{ background:#000; box-shadow:inset 0 0 0 2px rgba(255,255,255,.3); }
+  #libReader .lr-tb{ color:#fff; }
+  #libReader .lr-tb svg{ stroke-width:2.8; }
+  #libReader .lr-tb:hover{ background:rgba(255,255,255,.2); }
+  #libReader .lr-tb.on{ background:var(--violet,#6C5CE7); color:#fff; }
+  @media (min-width:1000px){
+    #libReader .lr-bar{ position:relative; flex-wrap:nowrap; }
+    #libReader .lr-title{ flex:1 1 0; }
+    #libReader .lr-pdfctl{ flex:0 0 auto; margin:0; }
+    #libReader .lr-dl{ order:2; }
+    #libReader .lr-bar::after{ content:""; order:2; flex:1 1 0; }
+    #libReader .lr-close{ order:3; position:absolute; right:16px; top:50%; transform:translateY(-50%); }
+  }
+  @media (min-width:1200px){
+    #libReader .lr-tb{ width:60px; height:60px; }
+    #libReader .lr-tb svg{ width:30px; height:30px; }
+  }
+  /* ---- Genel Kültür oyun seçimi ---- */
+  #view-gk{ padding:36px 24px 40px; }
+  .gk-wrap{ max-width:1100px; margin:0 auto; }
+  .gk-title{ font-size:clamp(1.6rem,3.2vw,2.2rem); font-weight:700; margin:0 0 6px; color:var(--text-strong); }
+  .gk-sub{ color:var(--muted); font-weight:600; margin:0 0 22px; }
+  .gk-label{ font-family:'Manrope'; font-weight:800; font-size:.78rem; color:#A6AFBD; text-transform:uppercase; letter-spacing:.07em; margin:26px 4px 10px; }
+  .gk-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:14px; }
+  .gk-tile{ display:flex; flex-direction:column; align-items:center; gap:12px; padding:22px 12px 20px; border:0; border-radius:20px; background:var(--card,#fff); box-shadow:0 6px 0 rgba(20,30,45,.06); cursor:pointer; font:800 1.05rem 'Manrope',sans-serif; color:var(--text-strong); text-align:center; -webkit-tap-highlight-color:transparent; transition:transform .1s; }
+  .gk-tile:active{ transform:scale(.97); }
+  .gk-ic{ width:72px; height:72px; border-radius:20px; display:grid; place-items:center; font-size:2.3rem; background:#F1F3F9; }
+  .gk-tile[data-view="tugofwar"] .gk-ic{ background:var(--teal-soft); }
+  .gk-tile[data-view="millionaire"] .gk-ic{ background:var(--amber-soft); }
+  .gk-tile[data-view="picture"] .gk-ic{ background:var(--violet-soft); }
+  .gk-tile[data-view="parwrong"] .gk-ic{ background:#FFE9C7; }
+  .gk-tile[data-view="questionbank"] .gk-ic{ background:var(--amber-soft); }
+  .gk-tile[data-view="wheel"] .gk-ic{ background:#FFE8F0; }
+  .gk-tile[data-view="hotpotato"] .gk-ic{ background:#FFE9D6; }
+  .gk-tile[data-view="ordering"] .gk-ic{ background:var(--blue-soft); }
+  .gk-tile[data-view="penalty"] .gk-ic{ background:#E1F6E8; }
+  .gk-tile[data-view="sounds"] .gk-ic{ background:#F1E8FF; }
+  .gk-tile[data-view="multiple"] .gk-ic{ background:#F1F3F9; }
+  .gk-tile[data-view="scramble"] .gk-ic{ background:#F1F3F9; }
+  .gk-tile[data-view="benkim"] .gk-ic{ background:#F1F3F9; }
+  body.role-ogretmen .gk-tile[data-view="questionbank"]{ display:none; }
+  .nav-item[data-view="gk"] .nav-icon{ background:#E7EEFF; }
+  @media (max-width:600px){ #view-gk{ padding:22px 14px 30px; } .gk-grid{ grid-template-columns:repeat(2,1fr); gap:10px; } .gk-tile{ font-size:.95rem; padding:18px 8px 16px; } .gk-ic{ width:60px; height:60px; font-size:2rem; } }
+  @media (min-width:1200px){ .gk-wrap{ zoom:1.25; } }
+  @media (min-width:1600px){ .gk-wrap{ zoom:1.6; } }
+  @media (min-width:2200px){ .gk-wrap{ zoom:2.2; } }
+  /* ---- Doğru Yanlış Kartları ---- */
+  .nav-item[data-view="swipe"] .nav-icon{ background:#E2F5F0; }
+  .gk-tile[data-view="swipe"] .gk-ic{ background:#E2F5F0; }
+  .sw-head{ display:flex; align-items:center; gap:14px; background:rgba(255,255,255,.9); border-radius:999px; padding:12px 22px; margin-bottom:14px; font-weight:800; color:#1F6F63; font-size:clamp(.95rem,1.8vw,1.3rem); }
+  .sw-prog{ flex:1; height:12px; border-radius:99px; background:#CFEFE8; overflow:hidden; }
+  .sw-prog i{ display:block; height:100%; background:#2BA58F; border-radius:99px; transition:width .25s; }
+  .sw-stage{ position:relative; overflow:hidden; border-radius:26px; height:clamp(340px,54vh,540px); background:linear-gradient(160deg,#4FA99C,#8FE6D2); touch-action:pan-y; transition:box-shadow .2s; }
+  .sw-stage.good{ box-shadow:inset 0 0 0 8px #2EB872; }
+  .sw-stage.bad{ box-shadow:inset 0 0 0 8px #E0524A; }
+  .sw-x, .sw-ok{ position:absolute; top:50%; transform:translateY(-50%); font-size:clamp(2rem,6vw,3.4rem); opacity:.9; pointer-events:none; }
+  .sw-x{ left:5%; } .sw-ok{ right:5%; }
+  .sw-card{ position:absolute; left:0; right:0; margin:0 auto; top:11%; width:min(64%,420px); height:78%; border-radius:28px; border:6px solid #D4AF4A; background:linear-gradient(170deg,#FFFDF3,#FFE7A6); box-shadow:0 14px 30px rgba(0,0,0,.28); display:flex; align-items:center; justify-content:center; padding:22px; text-align:center; cursor:grab; touch-action:pan-y; user-select:none; -webkit-user-select:none; will-change:transform; }
+  .sw-card.drag{ cursor:grabbing; transition:none; }
+  .sw-card.fly{ transition:transform .32s ease-in, opacity .32s; opacity:0; }
+  .sw-card.snap{ transition:transform .2s ease-out; }
+  .sw-text{ font-family:'Space Grotesk','Manrope',sans-serif; font-weight:800; font-size:clamp(1.25rem,3vw,2.1rem); line-height:1.4; color:#2A2113; }
+  .sw-stamp{ position:absolute; top:7%; left:50%; transform:translateX(-50%) rotate(-8deg); padding:4px 18px; border-radius:12px; border:5px solid; font-weight:900; font-size:clamp(1.2rem,3vw,2rem); letter-spacing:.06em; opacity:0; pointer-events:none; background:rgba(255,255,255,.7); }
+  .sw-stamp.yes{ color:#1E9E5F; border-color:#1E9E5F; } .sw-stamp.no{ color:#D8433B; border-color:#D8433B; }
+  .sw-btns{ display:flex; gap:14px; justify-content:center; margin-top:16px; }
+  .sw-btn{ border:0; border-radius:16px; padding:14px 26px; font:800 clamp(1rem,2vw,1.35rem) 'Manrope',sans-serif; cursor:pointer; color:#fff; box-shadow:0 5px 0 rgba(0,0,0,.15); }
+  .sw-btn.no{ background:#E0524A; } .sw-btn.yes{ background:#2EB872; }
+  .sw-btn[disabled]{ opacity:.5; cursor:not-allowed; }
+  .sw-hint{ text-align:center; color:var(--muted); font-weight:700; margin-top:10px; }
+  .sw-fb{ text-align:center; font-weight:800; font-size:clamp(1.1rem,2.3vw,1.6rem); min-height:2em; margin-top:8px; }
+  .sw-result{ background:#fff; border-radius:22px; padding:clamp(18px,3vw,30px); box-shadow:0 8px 30px rgba(60,40,120,.12); text-align:center; }
+  .sw-result h2{ font-family:'Space Grotesk'; font-size:clamp(1.5rem,3.2vw,2.3rem); margin:0 0 6px; color:#1F6F63; }
+  .sw-wrong{ margin:14px auto 0; max-width:720px; text-align:left; }
+  .sw-wrong div{ padding:8px 12px; margin:6px 0; border-radius:12px; background:#F6F7FB; font-size:clamp(.95rem,1.7vw,1.2rem); }
+  .qb-sw-badge{ display:inline-block; margin-left:8px; padding:2px 10px; border-radius:999px; font-weight:800; font-size:.8rem; }
+  .qb-sw-badge.yes{ background:#DDF5E8; color:#1E8A55; } .qb-sw-badge.no{ background:#FDE7E7; color:#B42318; }
 </style>
 </head>
 <body class="auth-locked">
@@ -1070,7 +1148,8 @@
     </div>
     <div class="auth-chip" id="authChip"><span id="authChipText"></span><button type="button" id="authLogoutBtn">Çıkış</button></div>
     <button class="nav-item active" data-view="home"><span class="nav-icon">🏠</span><span>Ana Sayfa</span></button>
-    <div class="nav-section-label">Genel Kültür</div>
+    <button class="nav-item" data-view="gk"><span class="nav-icon">🎓</span><span>Genel Kültür<small>Oyunlar ve sorular</small></span></button>
+    <div id="gkHiddenNav" style="display:none;">
     <button class="nav-item" data-view="multiple"><span class="nav-icon">✅</span><span>Çoktan Seçmeli<small>Din Kültürü</small></span></button>
     <button class="nav-item" data-view="tugofwar"><span class="nav-icon">🪢</span><span>Halat Çekme<small>Din Kültürü</small></span></button>
     <button class="nav-item" data-view="millionaire"><span class="nav-icon">💰</span><span>Milyoner<small>Din Kültürü</small></span></button>
@@ -1082,9 +1161,10 @@
     <button class="nav-item" data-view="ordering"><span class="nav-icon">🔢</span><span>Sıralama<small>Din Kültürü</small></span></button>
     <button class="nav-item" data-view="penalty"><span class="nav-icon">⚽</span><span>Penaltı<small>Din Kültürü</small></span></button>
     <button class="nav-item" data-view="parwrong"><span class="nav-icon">🔍</span><span>Paragraf Yanlışları<small>Din Kültürü</small></span></button>
+    <button class="nav-item" data-view="swipe"><span class="nav-icon">🃏</span><span>Doğru Yanlış Kartları<small>Din Kültürü</small></span></button>
     <button class="nav-item" data-view="questionbank"><span class="nav-icon">📝</span><span>Soruları Düzenle<small>Genel Kültür soruları</small></span></button>
     <button class="nav-item" data-view="sounds"><span class="nav-icon">🎵</span><span>Sesler<small>Cihazdan ses ekle</small></span></button>
-    <div class="nav-item disabled"><span class="nav-icon">➕</span><span>Yakında</span></div>
+    </div>
     <div class="nav-section-label">Ders Anında</div>
     <button class="nav-item" data-view="kitap"><span class="nav-icon">📚</span><span>Ders Kitapları<small>Kitap kaynakları</small></span></button>
     <button class="nav-item" data-view="sunum"><span class="nav-icon">📽️</span><span>Ders Sunumları<small>Sunum kaynakları</small></span></button>
@@ -1105,6 +1185,33 @@
         <div class="brand-badge">🎬</div>
         <h1>Dkab SorX</h1>
         <p>Soldaki menüden bir yarışma seçerek başlayın.</p>
+      </div>
+    </section>
+
+    <!-- GENEL KÜLTÜR: OYUN SEÇİMİ -->
+    <section id="view-gk" class="view">
+      <div class="gk-wrap">
+        <h1 class="gk-title">🎓 Genel Kültür</h1>
+        <p class="gk-sub">Bir yarışma seçerek başlayın.</p>
+        <div class="gk-grid">
+          <button class="gk-tile" type="button" data-view="multiple"><span class="gk-ic">✅</span><span>Çoktan Seçmeli</span></button>
+          <button class="gk-tile" type="button" data-view="tugofwar"><span class="gk-ic">🪢</span><span>Halat Çekme</span></button>
+          <button class="gk-tile" type="button" data-view="millionaire"><span class="gk-ic">💰</span><span>Milyoner</span></button>
+          <button class="gk-tile" type="button" data-view="picture"><span class="gk-ic">🖼️</span><span>Resimli Soru</span></button>
+          <button class="gk-tile" type="button" data-view="scramble"><span class="gk-ic">🔤</span><span>Karışık Kelimeler</span></button>
+          <button class="gk-tile" type="button" data-view="benkim"><span class="gk-ic">🕵️</span><span>Ben Kimim?</span></button>
+          <button class="gk-tile" type="button" data-view="wheel"><span class="gk-ic">🎡</span><span>Çarkıfelek</span></button>
+          <button class="gk-tile" type="button" data-view="hotpotato"><span class="gk-ic">💣</span><span>BoomSoru</span></button>
+          <button class="gk-tile" type="button" data-view="ordering"><span class="gk-ic">🔢</span><span>Sıralama</span></button>
+          <button class="gk-tile" type="button" data-view="penalty"><span class="gk-ic">⚽</span><span>Penaltı</span></button>
+          <button class="gk-tile" type="button" data-view="parwrong"><span class="gk-ic">🔍</span><span>Paragraf Yanlışları</span></button>
+          <button class="gk-tile" type="button" data-view="swipe"><span class="gk-ic">🃏</span><span>Doğru Yanlış Kartları</span></button>
+        </div>
+        <div class="gk-label">Araçlar</div>
+        <div class="gk-grid">
+          <button class="gk-tile" type="button" data-view="questionbank"><span class="gk-ic">📝</span><span>Soruları Düzenle</span></button>
+          <button class="gk-tile" type="button" data-view="sounds"><span class="gk-ic">🎵</span><span>Sesler</span></button>
+        </div>
       </div>
     </section>
 
@@ -1255,6 +1362,24 @@
 
         <div class="field" id="scrField" style="display:none; max-width:640px; margin:0 auto;">
           <div id="scrCard"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- DOĞRU YANLIŞ KARTLARI -->
+    <section id="view-swipe" class="view">
+      <div class="game-wrap">
+        <div class="game-topbar"><button class="home-link" data-view="home">🏠 Ana Sayfa</button><span></span></div>
+        <h1 class="game-title">🃏 Doğru Yanlış Kartları: Din Kültürü</h1>
+        <div class="subtitle">Kartı <b>sağa</b> kaydırırsan Doğru, <b>sola</b> kaydırırsan Yanlış demiş olursun.</div>
+
+        <div class="setup-bar" id="swSetupBar" style="justify-content:center;">
+          <span class="lbl">Her turda en fazla 10 kart gelir.</span>
+          <button class="start-btn" id="swStartBtn">▶ Başla</button>
+        </div>
+
+        <div class="field" id="swField" style="display:none; max-width:720px; margin:0 auto;">
+          <div id="swBox"></div>
         </div>
       </div>
     </section>
@@ -1570,6 +1695,7 @@
           <button class="pl-tab" data-qbtab="ord">🔢 Sıralama</button>
           <button class="pl-tab" data-qbtab="pen">⚽ Penaltı</button>
           <button class="pl-tab" data-qbtab="par">🔍 Paragraf Yanlışları</button>
+          <button class="pl-tab" data-qbtab="sw">🃏 Doğru/Yanlış Kartları</button>
         </div>
 
         <div class="qb-panel" id="qbPanel-mc" style="display:none;"></div>
@@ -1582,6 +1708,7 @@
         <div class="qb-panel" id="qbPanel-hp" style="display:none;"></div>
         <div class="qb-panel" id="qbPanel-ord" style="display:none;"></div>
         <div class="qb-panel" id="qbPanel-par" style="display:none;"></div>
+        <div class="qb-panel" id="qbPanel-sw" style="display:none;"></div>
         <div class="qb-panel" id="qbPanel-pen" style="display:none;"></div>
         <div class="qb-panel" id="qbPanel-quick" style="display:none;"></div>
       </div>
@@ -1641,9 +1768,9 @@
       <button class="lr-sw" type="button" data-color="#16A34A" style="background:#16A34A" aria-label="Yeşil"></button>
       <button class="lr-sw" type="button" data-color="#111827" style="background:#111827" aria-label="Siyah"></button>
       <span class="lr-sizes" id="lrSizes">
-        <button class="lr-sz on" type="button" data-w="1.6" aria-label="İnce"><i style="width:5px;height:5px"></i></button>
-        <button class="lr-sz" type="button" data-w="3" aria-label="Orta"><i style="width:10px;height:10px"></i></button>
-        <button class="lr-sz" type="button" data-w="5" aria-label="Kalın"><i style="width:17px;height:17px"></i></button>
+        <button class="lr-sz on" type="button" data-w="0.6" aria-label="İnce"><i style="width:5px;height:5px"></i></button>
+        <button class="lr-sz" type="button" data-w="1.1" aria-label="Orta"><i style="width:10px;height:10px"></i></button>
+        <button class="lr-sz" type="button" data-w="2" aria-label="Kalın"><i style="width:17px;height:17px"></i></button>
       </span>
     </div>
     <button class="lr-tb" id="lrUndo" type="button" aria-label="Geri al" title="Geri al"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5a5.5 5.5 0 0 1-5.5 5.5H11"/></svg></button>
@@ -2342,6 +2469,8 @@ function showView(view){
   document.querySelectorAll(".view").forEach(v=> v.classList.toggle("active", v.id === "view-"+view));
   const navView = (view === "questionbank" && qbSource) ? (unitBackTo === "sorxadd" ? "sorxadd" : "classes") : view;
   document.querySelectorAll(".nav-item[data-view]").forEach(b=> b.classList.toggle("active", b.dataset.view === navView));
+  const GK_VIEWS = ["gk","multiple","tugofwar","millionaire","picture","scramble","benkim","wheel","hotpotato","ordering","penalty","parwrong","swipe","questionbank","sounds"];
+  document.querySelectorAll('.nav-item[data-view="gk"]').forEach(b=> b.classList.toggle("active", GK_VIEWS.includes(navView) && !qbSource));
   const contentEl = document.querySelector(".content");
   if(contentEl) contentEl.scrollTop = 0;
   window.scrollTo(0,0);
@@ -2436,7 +2565,7 @@ function qbEnsureSynced(g){
   const cfg = QB_GAMES[g]; if(!cfg) return;
   qbAttachSync(cfg.storageKey, cfg.arr);
 }
-const QB_VIEW_MAP = { multiple:"mc", tugofwar:"tug", millionaire:"mill", picture:"pic", scramble:"scr", benkim:"bk", wheel:"whl", hotpotato:"hp", ordering:"ord", penalty:"pen", parwrong:"par" };
+const QB_VIEW_MAP = { multiple:"mc", tugofwar:"tug", millionaire:"mill", picture:"pic", scramble:"scr", benkim:"bk", wheel:"whl", hotpotato:"hp", ordering:"ord", penalty:"pen", parwrong:"par", swipe:"sw" };
 /* ---- Bulut soru sayısı dizini: dkabSorXQBN/<anahtar> = soru sayısı (yalnızca küçük sayılar).
    Başka cihazda sınıf/ünite ekranı "kaç soru var"ı ve "Oyna" düğmesinin açık olup olmadığını
    soruların kendisini indirmeden bu dizinden bilir. ---- */
@@ -4769,6 +4898,117 @@ function parResultHtml(){
   </div>`;
 }
 
+/* ================= DOĞRU YANLIŞ KARTLARI (SAĞA / SOLA KAYDIR) ================= */
+const SW_ITEMS_DEFAULTS = [
+  {q:"Günde beş vakit namaz kılınır.", t:"tf", o:["Doğru","Yanlış"], c:0},
+  {q:"Hac ibadeti Medine'de yapılır.", t:"tf", o:["Doğru","Yanlış"], c:1},
+  {q:"Kur'an-ı Kerim Arapça indirilmiştir.", t:"tf", o:["Doğru","Yanlış"], c:0},
+  {q:"Zekât, İslam'ın şartlarından biri değildir.", t:"tf", o:["Doğru","Yanlış"], c:1},
+  {q:"Hz. Muhammed son peygamberdir.", t:"tf", o:["Doğru","Yanlış"], c:0},
+  {q:"Vahiy getiren melek Mikâil'dir.", t:"tf", o:["Doğru","Yanlış"], c:1},
+  {q:"Abdest, namaza başlamadan önce alınır.", t:"tf", o:["Doğru","Yanlış"], c:0},
+  {q:"Oruç, sabahtan akşama kadar yeme içmeden uzak durmaktır.", t:"tf", o:["Doğru","Yanlış"], c:0}
+];
+const SW_ITEMS = [];
+qbLoadLocal(SW_ITEMS, "swItemsV1", SW_ITEMS_DEFAULTS);
+const SW_ROUND = 10;
+let swDeck = [], swIdx = 0, swScore = 0, swWrongs = [], swBusy = false, swTimer = null;
+
+function swReset(){
+  clearTimeout(swTimer); swDeck = []; swIdx = 0; swScore = 0; swWrongs = []; swBusy = false;
+  const sb = document.getElementById("swSetupBar"), fl = document.getElementById("swField");
+  if(sb) sb.style.display = "flex"; if(fl) fl.style.display = "none";
+}
+document.getElementById("swStartBtn").addEventListener("click", swStart);
+function swStart(){
+  if(SW_ITEMS.length === 0){ alert("Soruları Düzenle > Doğru/Yanlış Kartları bölümünde hiç kart yok. Önce kart ekleyin."); return; }
+  clearTimeout(swTimer);
+  swDeck = shuffle(SW_ITEMS).slice(0, SW_ROUND); swIdx = 0; swScore = 0; swWrongs = []; swBusy = false;
+  document.getElementById("swSetupBar").style.display = "none";
+  document.getElementById("swField").style.display = "block";
+  swRender();
+}
+function swRender(){
+  const box = document.getElementById("swBox");
+  if(swIdx >= swDeck.length){ swFinish(); return; }
+  const it = swDeck[swIdx], pct = Math.round(swIdx / swDeck.length * 100);
+  box.innerHTML = `
+    <div class="sw-head"><span>🃏 Doğru / Yanlış</span><div class="sw-prog"><i style="width:${pct}%"></i></div><span>${swIdx+1}/${swDeck.length}</span></div>
+    <div class="sw-stage" id="swStage">
+      <div class="sw-x">❌</div><div class="sw-ok">✅</div>
+      <div class="sw-card" id="swCard"><div class="sw-stamp" id="swStamp"></div><div class="sw-text">${qbEscape(it.q)}</div></div>
+    </div>
+    <div class="sw-btns"><button class="sw-btn no" id="swNo">❌ Yanlış</button><button class="sw-btn yes" id="swYes">✅ Doğru</button></div>
+    <div class="sw-hint">Kartı sağa kaydır = Doğru · sola kaydır = Yanlış</div>
+    <div class="sw-fb" id="swFb"></div>`;
+  document.getElementById("swNo").addEventListener("click", ()=> swAnswer(1));
+  document.getElementById("swYes").addEventListener("click", ()=> swAnswer(0));
+  swBindDrag();
+}
+function swBindDrag(){
+  const card = document.getElementById("swCard"), stage = document.getElementById("swStage"), stamp = document.getElementById("swStamp");
+  let sx = 0, dx = 0, drag = false, pid = null;
+  const thr = ()=> Math.max(80, stage.clientWidth * 0.2);
+  card.addEventListener("pointerdown", (e)=>{
+    if(swBusy) return;
+    drag = true; sx = e.clientX; dx = 0; pid = e.pointerId;
+    card.classList.remove("snap"); card.classList.add("drag");
+    try{ card.setPointerCapture(pid); }catch(_){}
+  });
+  card.addEventListener("pointermove", (e)=>{
+    if(!drag) return;
+    dx = e.clientX - sx;
+    card.style.transform = `translateX(${dx}px) rotate(${dx/22}deg)`;
+    const a = Math.min(1, Math.abs(dx) / (thr()*1.1));
+    if(Math.abs(dx) > 12){
+      stamp.textContent = dx > 0 ? "DOĞRU" : "YANLIŞ";
+      stamp.className = "sw-stamp " + (dx > 0 ? "yes" : "no");
+      stamp.style.opacity = a;
+    } else stamp.style.opacity = 0;
+  });
+  const end = ()=>{
+    if(!drag) return; drag = false;
+    card.classList.remove("drag");
+    if(Math.abs(dx) >= thr()) swAnswer(dx > 0 ? 0 : 1);
+    else { card.classList.add("snap"); card.style.transform = ""; stamp.style.opacity = 0; }
+  };
+  card.addEventListener("pointerup", end);
+  card.addEventListener("pointercancel", end);
+}
+function swAnswer(choice){
+  if(swBusy || swIdx >= swDeck.length) return;
+  swBusy = true;
+  const it = swDeck[swIdx], ok = (choice === it.c);
+  const card = document.getElementById("swCard"), stage = document.getElementById("swStage"), stamp = document.getElementById("swStamp"), fb = document.getElementById("swFb");
+  const dir = choice === 0 ? 1 : -1;
+  stamp.textContent = choice === 0 ? "DOĞRU" : "YANLIŞ"; stamp.className = "sw-stamp " + (choice === 0 ? "yes" : "no"); stamp.style.opacity = 1;
+  card.classList.remove("drag","snap"); card.classList.add("fly");
+  card.style.transform = `translateX(${dir * stage.clientWidth * 1.1}px) rotate(${dir * 24}deg)`;
+  ["swNo","swYes"].forEach(id=>{ const b = document.getElementById(id); if(b) b.disabled = true; });
+  stage.classList.add(ok ? "good" : "bad");
+  if(ok){ swScore++; fb.innerHTML = '<span style="color:#1E9E5F">✅ Doğru cevap!</span>'; }
+  else { swWrongs.push(it); fb.innerHTML = `<span style="color:#D8433B">❌ Yanlış! Doğrusu: ${it.c === 0 ? "Doğru" : "Yanlış"}</span>`; }
+  swTimer = setTimeout(()=>{ swIdx++; swBusy = false; swRender(); }, ok ? 900 : 1900);
+}
+function swFinish(){
+  const n = swDeck.length, ratio = swScore / n;
+  const wrongHtml = swWrongs.length ? `<div class="sw-wrong"><b>Yanlış bilinenler:</b>${swWrongs.map(it=>`<div>${qbEscape(it.q)} <b>→ ${it.c===0?"✅ Doğru":"❌ Yanlış"}</b></div>`).join("")}</div>` : "";
+  document.getElementById("swBox").innerHTML = `
+    <div class="sw-result">
+      <div style="font-size:3rem">${ratio === 1 ? "🏆" : ratio >= 0.6 ? "🎉" : "👏"}</div>
+      <h2>${swScore} / ${n} doğru</h2>
+      <div style="color:var(--muted);font-weight:700;">${ratio === 1 ? "Mükemmel! Hepsini bildiniz." : "Tur tamamlandı."}</div>
+      ${wrongHtml}
+      <div class="par-actions"><button class="start-btn" id="swAgainBtn" style="margin-left:0;">🔄 Tekrar Oyna</button></div>
+    </div>`;
+  document.getElementById("swAgainBtn").addEventListener("click", swStart);
+}
+document.addEventListener("keydown", (e)=>{
+  const v = document.getElementById("view-swipe");
+  if(!v || !v.classList.contains("active") || swBusy || !swDeck.length || swIdx >= swDeck.length) return;
+  if(e.key === "ArrowRight") swAnswer(0); else if(e.key === "ArrowLeft") swAnswer(1);
+});
+
 /* ================= 7) SORU BANKASI (EKLE / DÜZENLE) ================= */
 const QB_LETTERS = ["A","B","C","D","E"];
 const QB_GAMES = {
@@ -4782,11 +5022,12 @@ const QB_GAMES = {
   hp:   { arr: HP_QUESTIONS, storageKey:"hpQuestionsV1", defaults: HP_QUESTIONS_DEFAULTS, hasEmoji:false, hasLevel:false, hasLayout:true, label:"BoomSoru" },
   ord:  { arr: ORD_ITEMS,    storageKey:"ordItemsV1",    defaults: ORD_ITEMS_DEFAULTS,    kind:"ord", noun:"Sıralama", label:"Sıralama" },
   pen:  { arr: PEN_ITEMS,    storageKey:"penItemsV1",    defaults: PEN_ITEMS_DEFAULTS,    kind:"pen", noun:"Soru", label:"Penaltı" },
-  par:  { arr: PAR_ITEMS,    storageKey:"parItemsV1",    defaults: PAR_ITEMS_DEFAULTS,    kind:"par", noun:"Paragraf", label:"Paragraf Yanlışları" }
+  par:  { arr: PAR_ITEMS,    storageKey:"parItemsV1",    defaults: PAR_ITEMS_DEFAULTS,    kind:"par", noun:"Paragraf", label:"Paragraf Yanlışları" },
+  sw:   { arr: SW_ITEMS,     storageKey:"swItemsV1",     defaults: SW_ITEMS_DEFAULTS,     kind:"sw", noun:"Kart", label:"Doğru/Yanlış Kartları" }
 };
 const QB_BASE = {};
 Object.keys(QB_GAMES).forEach(g=>{ QB_BASE[g] = { key: QB_GAMES[g].storageKey, defaults: QB_GAMES[g].defaults }; });
-let qbEditingId = { mc:null, tug:null, mill:null, pic:null, scr:null, bk:null, whl:null, hp:null, ord:null, pen:null, par:null };
+let qbEditingId = { mc:null, tug:null, mill:null, pic:null, scr:null, bk:null, whl:null, hp:null, ord:null, pen:null, par:null, sw:null };
 let qbCatFilter = "all";
 
 document.querySelectorAll("#qbTabs .pl-tab").forEach(btn=>{
@@ -4853,6 +5094,16 @@ function qbSpecialFormHtml(game, mode, q){
       </div>
       <div class="qb-form-note">Oyunda futbolcu cevabın olduğu köşeye vurursa gol olur, yanlış köşeye vurursa kaleci kurtarır. Doğru/Yanlış sorularda kale iki bölmeye ayrılır.</div>` + actions;
   }
+  if(cfg.kind==="sw"){
+    q = q || {q:"", c:0};
+    return head + `
+      <label>İfade (kartın üzerinde görünür)<textarea class="qb-sw-q" rows="3" required>${qbEscape(q.q||"")}</textarea></label>
+      <div class="qb-form-note">Bu ifade doğru mu, yanlış mı?</div>
+      <div style="display:flex;gap:22px;align-items:center;margin:6px 0 12px;font-weight:800;">
+        <label style="display:flex;gap:6px;align-items:center;"><input type="radio" name="qbSwAns" value="0" ${q.c!==1?"checked":""}> ✅ Doğru</label>
+        <label style="display:flex;gap:6px;align-items:center;"><input type="radio" name="qbSwAns" value="1" ${q.c===1?"checked":""}> ❌ Yanlış</label>
+      </div>` + actions;
+  }
   if(cfg.kind==="par"){
     q = q || {t:""};
     return head + `
@@ -4894,6 +5145,12 @@ function qbSpecialCardHtml(game, q){
         <div class="qb-card-head"><span class="qb-card-q">${qbEscape(q.q)}</span>${actions}</div>
         <div class="qb-card-opts">${(q.o||[]).map((opt,i)=>`<span class="qb-opt-pill ${i===q.c?"qb-correct":""}">${tf?"":QB_LETTERS[i]+") "}${qbEscape(opt)}</span>`).join("")}</div>
         <div class="qb-level-badge">${tf?"✔️ Doğru / Yanlış":"✅ Çoktan seçmeli"}</div>
+      </div>`;
+  }
+  if(cfg.kind==="sw"){
+    return `
+      <div class="qb-card" data-id="${q.id}">
+        <div class="qb-card-head"><span class="qb-card-q">${qbEscape(q.q||"")}<span class="qb-sw-badge ${q.c===1?"no":"yes"}">${q.c===1?"Yanlış":"Doğru"}</span></span>${actions}</div>
       </div>`;
   }
   if(cfg.kind==="par"){
@@ -4941,6 +5198,11 @@ function qbHandleSpecialSubmit(form){
       if(po.length<4 || po.some(x=>!x) || !r){ alert("Lütfen dört şıkkı doldurun ve doğru cevabı işaretleyin."); return; }
       data = {q:pq, t:"mc", o:po, c:parseInt(r.value, 10)};
     }
+  } else if(cfg.kind==="sw"){
+    const sq = form.querySelector(".qb-sw-q").value.trim();
+    if(!sq){ alert("Lütfen ifadeyi yazın."); return; }
+    const sr = form.querySelector('input[name="qbSwAns"]:checked');
+    data = {q:sq, t:"tf", o:["Doğru","Yanlış"], c:sr ? parseInt(sr.value, 10) : 0};
   } else if(cfg.kind==="par"){
     const pt = form.querySelector(".qb-par-t").value.trim();
     if(!pt){ alert("Lütfen paragrafı yazın."); return; }
@@ -5601,7 +5863,7 @@ setInterval(()=>{
 
 /* ================= 8) SINIFLAR > DERSLER > ÜNİTELER ================= */
 const SINIF_KEY = "sinifTreeV1";
-const APP_STORAGE_KEYS = ["mcQuestionsV1","tugQuestionsV1","millQuestionsV1","picQuestionsV1","scrWordsV1","bkItemsV1","wheelQuestionsV1","hpQuestionsV1","ordItemsV1","penItemsV1","parItemsV1","plRoster",SINIF_KEY,"kitapTreeV1","sunumTreeV1"];
+const APP_STORAGE_KEYS = ["mcQuestionsV1","tugQuestionsV1","millQuestionsV1","picQuestionsV1","scrWordsV1","bkItemsV1","wheelQuestionsV1","hpQuestionsV1","ordItemsV1","penItemsV1","parItemsV1","swItemsV1","plRoster",SINIF_KEY,"kitapTreeV1","sunumTreeV1"];
 
 /* Hazır ünite paketleri: ders kitabı PDF'lerinden hazırlanan sorular buraya eklenir.
    Örnek: { classId:"c6", courseId:"c6-dkab", unitId:"c6-dkab-u1", name:"1. Ünite: ...",
@@ -5621,7 +5883,8 @@ const UNIT_GAMES = [
   {id:"hp",   icon:"💣", name:"BoomSoru",      view:"hotpotato",   noun:"soru"},
   {id:"ord",  icon:"🔢", name:"Sıralama",           view:"ordering",    noun:"sıralama"},
   {id:"pen",  icon:"⚽", name:"Penaltı",            view:"penalty",     noun:"soru"},
-  {id:"par",  icon:"🔍", name:"Paragraf Yanlışları", view:"parwrong",    noun:"paragraf"}
+  {id:"par",  icon:"🔍", name:"Paragraf Yanlışları", view:"parwrong",    noun:"paragraf"},
+  {id:"sw",   icon:"🃏", name:"Doğru Yanlış Kartları", view:"swipe",      noun:"kart"}
 ];
 
 function sinifDefaultClasses(){
@@ -5786,6 +6049,7 @@ function unitResetGame(game){
   else if(game==="hp"){ hpReset(); }
   else if(game==="ord"){ ordReset(); }
   else if(game==="pen"){ penReset(); }
+  else if(game==="sw"){ swReset(); }
   else if(game==="par"){ parPool=[]; parCur=null; document.getElementById("parSetupBar").style.display="flex"; document.getElementById("parField").style.display="none"; }
 }
 function qbUseSource(unitId){
@@ -5805,7 +6069,7 @@ function qbUseSource(unitId){
   if(active) qbRenderPanel(active.dataset.qbtab);
   unitCtxUpdate();
 }
-const UNIT_CTX_VIEWS = ["multiple","tugofwar","millionaire","picture","scramble","benkim","wheel","hotpotato","ordering","penalty","parwrong","questionbank"];
+const UNIT_CTX_VIEWS = ["multiple","tugofwar","millionaire","picture","scramble","benkim","wheel","hotpotato","ordering","penalty","parwrong","swipe","questionbank"];
 function unitCtxUpdate(){
   const label = qbSource ? unitPathLabel(qbSource) : "";
   const qbH = document.querySelector("#view-questionbank .game-title"); if(qbH) qbH.textContent = "📝 Soruları Düzenle";
@@ -5998,7 +6262,7 @@ function sinifRestore(file){
       }
       if(p.data[SINIF_KEY]){ try{ await fbDb.ref("dkabSorXSinif/tree").set(JSON.parse(p.data[SINIF_KEY])); }catch(e){} }
       if(p.data["plRoster"]){ try{ await fbDb.ref("dkabSorXRoster").set(JSON.parse(p.data["plRoster"])); }catch(e){} }
-      const QB_FIXED_KEYS = ["mcQuestionsV1","tugQuestionsV1","millQuestionsV1","picQuestionsV1","scrWordsV1","bkItemsV1","wheelQuestionsV1","hpQuestionsV1","ordItemsV1","penItemsV1","parItemsV1"];
+      const QB_FIXED_KEYS = ["mcQuestionsV1","tugQuestionsV1","millQuestionsV1","picQuestionsV1","scrWordsV1","bkItemsV1","wheelQuestionsV1","hpQuestionsV1","ordItemsV1","penItemsV1","parItemsV1","swItemsV1"];
       for(const k of Object.keys(p.data)){
         if(k.startsWith("unitQ:") || QB_FIXED_KEYS.includes(k)){
           try{ const arr0 = JSON.parse(p.data[k]); await fbDb.ref("dkabSorXQB/"+k).set(arr0); if(Array.isArray(arr0) && arr0.length) await fbDb.ref("dkabSorXQBN/"+k).set(arr0.length); }catch(e){}
@@ -7500,8 +7764,8 @@ document.addEventListener("visibilitychange", ()=>{ const st = zoomer && zoomer.
 
 /* ---- Kalem / silgi: PDF sayfası ve slayt için ortak katman (çizimler içerik koordinatında tutulur, büyütmede net kalır) ---- */
 let inkStore = {}, inkColor = "#E5484D", inkSess = null;
-let PEN_W = 1.6;   // kalem kalınlığı: ince 1.6 / orta 3 / kalın 5 (alt çubuktan seçilir)
-try{ const sw = parseFloat(localStorage.getItem("inkPenWV1")); if(sw >= 1 && sw <= 8) PEN_W = sw; }catch(_){}
+let PEN_W = 0.6;   // kalem kalınlığı: ince 0.6 / orta 1.1 / kalın 2 (alt çubuktan seçilir)
+try{ const sw = parseFloat(localStorage.getItem("inkPenWV2")); if(sw >= 0.3 && sw <= 8) PEN_W = sw; }catch(_){}
 const ERASE_R = 16;
 function inkSession(key){
   return {tool:"hand", undo:[], dead:false, cancel:null, store:(inkStore[key] = inkStore[key] || {}), stage:null, cur:null, goto:null, redraw:null};
@@ -7631,7 +7895,7 @@ if(!document.querySelector("#lrSizes .lr-sz.on")) document.querySelector("#lrSiz
 document.getElementById("lrSizes").addEventListener("click", (e)=>{
   const b = e.target.closest("[data-w]"); if(!b) return;
   PEN_W = parseFloat(b.dataset.w);
-  try{ localStorage.setItem("inkPenWV1", String(PEN_W)); }catch(_){}
+  try{ localStorage.setItem("inkPenWV2", String(PEN_W)); }catch(_){}
   document.querySelectorAll("#lrSizes .lr-sz").forEach(x=>x.classList.toggle("on", x===b));
 });
 document.getElementById("lrUndo").addEventListener("click", ()=>{ if(inkSess) inkUndo(inkSess); });
