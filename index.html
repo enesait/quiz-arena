@@ -5274,6 +5274,128 @@ function qbFormHtml(game, mode, q){
     </form>`;
 }
 
+/* ================= TOPLU EKLE (Karışık Kelimeler, Ben Kimim?, Sıralama, Doğru/Yanlış, Paragraf) ================= */
+const QB_BULK = {
+  scr: { line:true,  help:"Her satıra bir kelime yazın: KELİME | ipucu. Kelime tek kelime olmalı, otomatik büyük harf olur.",
+         ph:"NAMAZ | Günde beş vakit kılınan ibadet\nZEKÂT | Mala bağlı mali ibadet" },
+  sw:  { line:true,  help:"Her satıra bir ifade yazın: ifade | Doğru ya da Yanlış (D / Y de olur).",
+         ph:"Hac ibadeti Medine'de yapılır. | Yanlış\nGünde beş vakit namaz kılınır. | Doğru" },
+  bk:  { line:false, help:"Her kart için ilk satıra cevabı, altına 2-6 ipucu satırı yazın. Kartlar arasında boş satır bırakın.",
+         ph:"Hz. İbrahim\nBir peygamberim.\nAteşe atıldığım hâlde yanmadım.\n\nHz. Musa\nAsam yılana dönüştü.\nFiravun'a gönderildim." },
+  ord: { line:false, help:"Her sıralama için ilk satıra soruyu / başlığı, altına doğru sırayla 3-6 adım yazın. Sıralamalar arasında boş satır bırakın.",
+         ph:"Namazın kılınış sırasını sıralayın.\nNiyet ve iftitah tekbiri\nKıyam\nRükû\nSecde\n\nAbdestin alınış sırası\nNiyet\nEller yıkanır\nYüz yıkanır" },
+  par: { line:false, help:"Her paragrafı ayrı yazın, aralarında boş satır bırakın. Yanlış kelimeleri {yanlış|doğrusu} ile işaretleyin (doğrusu isteğe bağlı).",
+         ph:"İlk peygamber Hz. {Nuh|Âdem}, son peygamber Hz. Muhammed'dir.\n\nHac, {Medine'de|Mekke'de} yapılan ibadettir." }
+};
+const qbBulkText = {}, qbBulkMsg = {};
+
+function qbBulkNorm(x){ return String(x||"").toLocaleLowerCase("tr-TR").replace(/\s+/g," ").trim(); }
+function qbBulkParse(kind, text, existing){
+  const out = { items:[], errors:[], dups:0 };
+  const seen = new Set();
+  const add = (item, key, raw)=>{
+    const k = qbBulkNorm(key);
+    if(seen.has(k) || existing.has(k)){ out.dups++; return; }
+    seen.add(k); out.items.push(item);
+  };
+  const err = (raw, why)=> out.errors.push({raw:raw, why:why});
+  const cfg = QB_BULK[kind];
+  const units = cfg.line
+    ? String(text||"").split(/\r?\n/).map(x=>x.trim()).filter(Boolean)
+    : String(text||"").split(/\r?\n\s*\r?\n/).map(b=>b.split(/\r?\n/).map(x=>x.trim()).filter(Boolean)).filter(b=>b.length);
+  units.forEach(u=>{
+    if(kind==="scr"){
+      const m = /^(.*?)\s*(?:\||\t)\s*(.+)$/.exec(u);
+      if(!m || !m[1]) return err(u, "KELİME | ipucu biçiminde olmalı");
+      const w = m[1].trim().toLocaleUpperCase("tr-TR"), h = m[2].trim();
+      if(/\s/.test(w)) return err(u, "kelime tek kelime olmalı");
+      add({w:w, h:h}, w+"|"+h);
+    } else if(kind==="sw"){
+      const i = u.lastIndexOf("|");
+      if(i < 1) return err(u, "ifade | Doğru/Yanlış biçiminde olmalı");
+      const q = u.slice(0,i).trim(), a = qbBulkNorm(u.slice(i+1));
+      let c = null;
+      if(["doğru","dogru","d","true","evet","+"].includes(a)) c = 0;
+      else if(["yanlış","yanlis","y","false","hayır","hayir","-"].includes(a)) c = 1;
+      if(!q) return err(u, "ifade boş");
+      if(c === null) return err(u, "cevap Doğru ya da Yanlış olmalı");
+      add({q:q, t:"tf", o:["Doğru","Yanlış"], c:c}, q);
+    } else if(kind==="bk"){
+      const raw = u.join("\n"), a = u[0], c = u.slice(1);
+      if(c.length < 2 || c.length > 6) return err(raw, "ipucu sayısı 2-6 olmalı (şu an "+c.length+")");
+      add({a:a, c:c}, a+"|"+c.join("|"));
+    } else if(kind==="ord"){
+      const raw = u.join("\n"), q = u[0], st = u.slice(1).map(x=>x.replace(/^\d+\s*[.)-]\s*/, ""));
+      if(st.length < 3 || st.length > 6) return err(raw, "adım sayısı 3-6 olmalı (şu an "+st.length+")");
+      add({q:q, s:st}, q+"|"+st.join("|"));
+    } else if(kind==="par"){
+      const raw = u.join(" ");
+      if(/[{}]/.test(raw.replace(/\{[^{}|]+(?:\|[^{}]*)?\}/g, ""))) return err(raw, "süslü parantez hatalı");
+      if(parErrorCount(raw) < 1) return err(raw, "en az bir {yanlış} kelime işaretleyin");
+      add({t:raw}, raw);
+    }
+  });
+  return out;
+}
+function qbBulkExisting(kind, arr){
+  const set = new Set();
+  arr.forEach(it=>{
+    if(kind==="scr") set.add(qbBulkNorm(it.w+"|"+it.h));
+    else if(kind==="sw") set.add(qbBulkNorm(it.q));
+    else if(kind==="bk") set.add(qbBulkNorm(it.a+"|"+(it.c||[]).join("|")));
+    else if(kind==="ord") set.add(qbBulkNorm(it.q+"|"+(it.s||[]).join("|")));
+    else if(kind==="par") set.add(qbBulkNorm(it.t));
+  });
+  return set;
+}
+function qbBulkCardHtml(game){
+  const cfg = QB_GAMES[game], b = QB_BULK[cfg.kind];
+  if(!b) return "";
+  return `<div class="qb-add-card qbk-card" data-game="${game}">
+    <div class="qb-add-title">📋 Toplu ekle (yapıştır) — ${cfg.label}</div>
+    ${qbBulkMsg[game] ? `<div class="qbq-summary" style="color:var(--ok);font-weight:800;">${qbBulkMsg[game]}</div>` : ""}
+    <div class="qbq-help">${b.help}</div>
+    <textarea class="qbq-bulk qbk-text" rows="8" placeholder="${qbEscape(b.ph)}">${qbEscape(qbBulkText[game]||"")}</textarea>
+    <div class="qbq-summary qbk-sum"></div>
+    <button type="button" class="qb-save-btn qbk-btn" disabled>➕ Toplu ekle</button>
+  </div>`;
+}
+function qbBulkUpdate(card){
+  const game = card.dataset.game, cfg = QB_GAMES[game];
+  const ta = card.querySelector(".qbk-text"), sum = card.querySelector(".qbk-sum"), btn = card.querySelector(".qbk-btn");
+  const r = qbBulkParse(cfg.kind, ta.value, qbBulkExisting(cfg.kind, cfg.arr));
+  btn.disabled = r.items.length === 0;
+  if(!ta.value.trim()){ sum.innerHTML = ""; return r; }
+  let h = `✅ ${r.items.length} eklenecek`;
+  if(r.dups) h += ` • ♻️ ${r.dups} zaten var (atlanır)`;
+  if(r.errors.length) h += ` • ⚠️ ${r.errors.length} hatalı`;
+  if(r.errors.length) h += `<ul style="margin:6px 0 0;padding-left:18px;color:#B42318;font-weight:600;">${r.errors.slice(0,8).map(e=>`<li>${qbEscape(e.raw.length>70 ? e.raw.slice(0,70)+"…" : e.raw)} — ${e.why}</li>`).join("")}</ul>`;
+  sum.innerHTML = h;
+  return r;
+}
+document.addEventListener("input", (e)=>{
+  const ta = e.target; if(!ta || !ta.classList || !ta.classList.contains("qbk-text")) return;
+  const card = ta.closest(".qbk-card"); if(!card) return;
+  qbBulkText[card.dataset.game] = ta.value; qbBulkMsg[card.dataset.game] = "";
+  qbBulkUpdate(card);
+});
+document.addEventListener("click", (e)=>{
+  const btn = e.target && e.target.closest ? e.target.closest(".qbk-btn") : null; if(!btn) return;
+  const card = btn.closest(".qbk-card"); if(!card) return;
+  const game = card.dataset.game, cfg = QB_GAMES[game];
+  const ta = card.querySelector(".qbk-text");
+  const r = qbBulkParse(cfg.kind, ta.value, qbBulkExisting(cfg.kind, cfg.arr));
+  if(!r.items.length) return;
+  r.items.forEach(it=> cfg.arr.push({ id: qbGenId(), ...it }));
+  qbSave(cfg.storageKey, cfg.arr);
+  const sep = QB_BULK[cfg.kind].line ? "\n" : "\n\n";
+  qbBulkText[game] = r.errors.map(x=>x.raw).join(sep);
+  qbBulkMsg[game] = "✅ " + r.items.length + " " + (cfg.noun ? cfg.noun.toLowerCase() : "soru") + " eklendi" + (r.dups ? " (" + r.dups + " tanesi zaten vardı, atlandı)" : "") + (r.errors.length ? ". Hatalı olanlar kutuda bırakıldı." : ".");
+  qbRenderPanel(game);
+  const nc = document.querySelector('#qbPanel-' + game + ' .qbk-card'); if(nc) qbBulkUpdate(nc);
+});
+document.addEventListener("DOMContentLoaded", ()=>{});
+
 function qbRenderPanel(game){
   if(game==="quick"){ qbQuickState.result=""; qbQuickRender(); return; }
   const cfg = QB_GAMES[game];
@@ -5285,6 +5407,7 @@ function qbRenderPanel(game){
       <div class="qb-add-title">➕ Yeni ${cfg.noun||"Soru"} Ekle — ${cfg.label}</div>
       ${qbFormHtml(game, "add", null)}
     </div>
+    ${qbBulkCardHtml(game)}
     <div class="qb-toolbar">
       <span class="qb-count">${list.length} ${cfg.noun ? cfg.noun.toLowerCase() : "soru"} • otomatik olarak sırayla/karışık kullanılır</span>
       <button class="qb-reset-btn" id="qbReset-${game}">${qbSource && cfg.defaults.length===0 ? "🗑️ Tüm Soruları Sil" : "↺ Varsayılan Sorulara Sıfırla"}</button>
