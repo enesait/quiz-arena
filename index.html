@@ -1089,6 +1089,59 @@
   .sw-wrong div{ padding:8px 12px; margin:6px 0; border-radius:12px; background:#F6F7FB; font-size:clamp(.95rem,1.7vw,1.2rem); }
   .qb-sw-badge{ display:inline-block; margin-left:8px; padding:2px 10px; border-radius:999px; font-weight:800; font-size:.8rem; }
   .qb-sw-badge.yes{ background:#DDF5E8; color:#1E8A55; } .qb-sw-badge.no{ background:#FDE7E7; color:#B42318; }
+  /* ---- SorX filtreli görünüm ---- */
+  .sx-panel{ background:var(--card,#fff); border-radius:22px; padding:clamp(14px,2.4vw,24px); box-shadow:0 4px 0 rgba(20,30,45,.06); margin-bottom:18px; }
+  .sx-head{ display:flex; align-items:center; justify-content:space-between; gap:10px; font-family:'Space Grotesk'; font-weight:700; font-size:1.15rem; padding-bottom:12px; margin-bottom:14px; border-bottom:2px solid #EEF1F6; color:var(--text-strong); }
+  .sx-edit{ border:0; background:#F1F3F9; border-radius:12px; padding:8px 14px; font:800 .9rem 'Manrope',sans-serif; cursor:pointer; color:var(--text-strong); }
+  #sxFilter{ width:100%; max-width:1000px; }
+  .sx-panel{ width:100%; box-sizing:border-box; border-radius:16px; padding:12px 14px 14px; box-shadow:0 1px 0 rgba(20,30,45,.05); }
+  .sx-head{ font-size:.98rem; padding-bottom:9px; margin-bottom:10px; border-bottom-width:1px; }
+  .sx-edit{ padding:6px 11px; font-size:.8rem; border-radius:10px; }
+  .sx-selects{ display:grid; grid-template-columns:1fr; gap:8px; }
+  @media (min-width:700px){ .sx-selects{ grid-template-columns:repeat(2,1fr); } }
+  @media (min-width:1100px){ .sx-selects{ grid-template-columns:repeat(3,1fr); } }
+  .sx-field{ position:relative; display:block; }
+  .sx-field::after{ content:"▾"; position:absolute; right:14px; top:50%; transform:translateY(-50%); color:#8A93A6; pointer-events:none; font-size:.8rem; }
+  .sx-ico{ position:absolute; left:12px; top:50%; transform:translateY(-50%); font-size:.95rem; pointer-events:none; }
+  .sx-field select{ width:100%; box-sizing:border-box; height:42px; appearance:none; -webkit-appearance:none; border:1.5px solid #E3E7EF; border-radius:12px; padding:0 34px 0 38px; font:600 .9rem 'Manrope',sans-serif; background:#fff; color:var(--text-strong); box-shadow:none; cursor:pointer; text-overflow:ellipsis; transition:border-color .15s, background .15s; }
+  .sx-field.has select{ border-color:#6C5CE7; background:#F8F7FF; box-shadow:none; }
+  .sx-field.dis select{ opacity:.5; background:#F6F7FB; cursor:not-allowed; }
+  .sx-field select:focus{ outline:none; border-color:#6C5CE7; box-shadow:0 0 0 3px rgba(108,92,231,.15); }
+  .sx-clear{ width:auto; margin-top:10px; border:1.5px solid #E3E7EF; border-radius:10px; padding:7px 14px; background:#F6F7FB; color:#4A5568; font:700 .82rem 'Manrope',sans-serif; cursor:pointer; box-shadow:none; }
+  .sx-clear:active{ transform:none; background:#EEF0F6; }
+  .sx-results .act-grid{ grid-template-columns:repeat(2,1fr); gap:8px; }
+  @media (min-width:700px){ .sx-results .act-grid{ grid-template-columns:repeat(3,1fr); } }
+  .sx-results .act-card{ padding:10px 11px; border-radius:14px; gap:5px; box-shadow:0 2px 0 rgba(20,30,45,.06); }
+  .sx-results .act-head{ font-size:.88rem; gap:8px; }
+  .sx-results .act-icon{ width:28px; height:28px; border-radius:9px; font-size:1rem; }
+  .sx-results .act-count{ font-size:.75rem; }
+  .sx-results .act-buttons{ margin-top:2px; gap:6px; }
+  .sx-results .act-play{ padding:6px 10px; font-size:.82rem; border-radius:10px; box-shadow:0 2px 0 var(--violet-dark); }
+  .sx-results .res-grid{ grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); gap:10px; }
+  .sx-results .res-tile{ padding:12px 12px 12px; border-radius:14px; gap:5px; box-shadow:0 2px 0 rgba(20,30,45,.07); border-width:2px; }
+  .sx-results .res-tile-icon{ width:44px; height:44px; border-radius:13px; font-size:1.5rem; }
+  .sx-results .res-tile-title{ font-size:.95rem; }
+  .sx-results .res-tile-meta{ font-size:.72rem; }
+  .sx-results .res-tile-open{ margin-top:3px; padding:7px 12px; font-size:.88rem; border-radius:10px; box-shadow:0 2px 0 var(--violet-dark); }
+  .sx-results .sinif-section-title{ font-size:1rem; }
+  .sx-back{ border:0; background:#F1F3F9; border-radius:12px; padding:10px 16px; font:800 .95rem 'Manrope',sans-serif; cursor:pointer; margin-bottom:14px; color:var(--text-strong); }
+  .sx-unit{ margin-bottom:28px; }
+  .sx-sub{ font-family:'Manrope'; font-weight:800; font-size:.95rem; color:var(--muted); margin:14px 0 8px; }
+  .sx-sub small{ font-weight:600; }
+  .sx-note{ color:var(--muted); font-weight:600; font-size:.9rem; margin:10px 2px; }
+  .sx-hbtns{ display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end; }
+  #overlaySwi .swi-card{ max-width:760px; width:94%; max-height:90vh; overflow:auto; text-align:left; }
+  .swi-help{ margin:0 0 10px; color:var(--muted); font-weight:600; font-size:.92rem; }
+  .swi-row{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px; }
+  .swi-text{ width:100%; box-sizing:border-box; border:1.5px solid #E3E7EF; border-radius:12px; padding:10px 12px; font:500 .88rem/1.45 ui-monospace,Menlo,Consolas,monospace; resize:vertical; }
+  .swi-prev{ margin-top:10px; }
+  .swi-unit{ background:#F6F7FB; border-radius:12px; padding:8px 12px; margin:6px 0; font-size:.9rem; }
+  .swi-unit ul{ margin:4px 0 0; padding-left:18px; }
+  .swi-sum{ font-weight:800; margin:8px 2px; }
+  .swi-ok{ background:#E7F8EF; color:#1E8A55; border-radius:12px; padding:8px 12px; font-weight:800; margin:6px 0; }
+  .swi-prob{ background:#FFF1F0; color:#B42318; border-radius:12px; padding:8px 12px 8px 28px; margin:6px 0; font-weight:600; font-size:.86rem; }
+  .swi-actions{ display:flex; gap:8px; margin-top:12px; flex-wrap:wrap; }
+  .swi-actions button[disabled]{ opacity:.5; cursor:not-allowed; }
 </style>
 </head>
 <body class="auth-locked">
@@ -1577,7 +1630,8 @@
         <div class="game-topbar"><button class="home-link" data-view="home">🏠 Ana Sayfa</button><span></span></div>
         <h1 class="game-title">🏫 SorX</h1>
         <div class="subtitle">Sınıf, ders ve üniteye göre etkinlik oynayın ve ünitenin sorularını düzenleyin.</div>
-        <div class="sinif-body" id="sinifBody"></div>
+        <div id="sxFilter"></div>
+        <div class="sinif-body" id="sinifBody" style="display:none;"></div>
       </div>
     </section>
 
@@ -6041,6 +6095,8 @@ function sinifLoad(){
 }
 let sinifData = sinifLoad();
 let sinifNav = { classId:null, courseId:null, unitId:null };
+let sxEditMode = false;
+let sxSel = { classId:"", courseId:"", unitId:"", topicId:"", type:"" };
 /* Sınıfları addaki sayıya göre sıralar (4, 5, 6 … 9); sayısız adlar sonda, eklenme sırasıyla kalır */
 function sinifSortClasses(arr){
   if(!Array.isArray(arr)) return arr;
@@ -6442,6 +6498,8 @@ function sinifActGrid(srcId){
   return { html, total };
 }
 function sinifRender(){
+  sxRender();
+  if(!sxEditMode) return;
   const body = document.getElementById("sinifBody");
   const cl = sinifNav.classId ? sinifData.classes.find(c=>c.id===sinifNav.classId) : null;
   const co = (cl && sinifNav.courseId) ? cl.courses.find(c=>c.id===sinifNav.courseId) : null;
@@ -6496,6 +6554,381 @@ function sinifRender(){
   body.innerHTML = html;
 }
 
+/* ================= SORX: FİLTRELİ GÖRÜNÜM (Sınıf › Ders › Ünite › Alt Başlık › İçerik) ================= */
+function sxNorm(x){ return String(x||"").toLocaleLowerCase("tr-TR").replace(/[^a-z0-9çğıöşüâîû]/g, ""); }
+function sxUnitNo(x){ const m = /(\d+)\s*\.?\s*ünite/i.exec(String(x||"")); return m ? m[1] : null; }
+/* Kitap / sunum ağaçları ayrı tutulduğu için sınıf, ders ve ünite adına göre eşleştirilir. */
+function sxLibUnit(sec, cl, co, u){
+  const d = libData[sec]; if(!d) return null;
+  const lc = d.classes.find(c=>sxNorm(c.name)===sxNorm(cl.name)); if(!lc) return null;
+  const lco = lc.courses.find(c=>sxNorm(c.name)===sxNorm(co.name)) || (lc.courses.length===1 ? lc.courses[0] : null); if(!lco) return null;
+  let lu = lco.units.find(x=>sxNorm(x.name)===sxNorm(u.name));
+  const no = sxUnitNo(u.name);
+  if(!lu && no) lu = lco.units.find(x=>sxUnitNo(x.name)===no);
+  return lu || null;
+}
+function sxCtx(cl, co, u, tp){
+  return `data-class="${cl.id}" data-course="${co.id}" data-unit="${u.id}" data-topic="${tp ? tp.id : ""}"`;
+}
+function sxGamesHtml(cl, co, u, tp, singleUnit){
+  let html = '';
+  const quick = Auth.readOnly() ? "" : UNIT_QUICK_BTN;
+  if(tp){
+    const gr = sinifActGrid(tp.id);
+    html += '<div class="sx-sub">🎮 Etkinlikler — '+qbEscape(tp.name)+'</div><div class="sx-ctx" '+sxCtx(cl,co,u,tp)+'>'+quick+gr.html+'</div>';
+    if(gr.total===0) html += '<div class="sinif-empty" style="margin-top:10px;">Bu başlıkta henüz soru yok.'+(Auth.readOnly()?"":" Her etkinliğin “📝 Sorular” bölümünden soru ekleyebilirsiniz.")+'</div>';
+    return html;
+  }
+  const topics = u.topics || [];
+  if(topics.length){
+    const ids = [u.id].concat(topics.map(x=>x.id));
+    html += '<div class="sx-sub">🏁 Ünite Değerlendirme <small>(tüm başlıklardaki sorular karışık gelir)</small></div><div class="act-grid sx-ctx" '+sxCtx(cl,co,u,null)+'>';
+    UNIT_GAMES.forEach(g=>{
+      const n = ids.reduce((sum,id)=>sum+unitCount(id, g.id), 0);
+      html += '<div class="act-card"><div class="act-head"><span class="act-icon">'+g.icon+'</span><span>'+g.name+'</span></div>'
+        + '<div class="act-count">'+(n>0 ? n+' '+g.noun : 'Henüz soru yok')+'</div>'
+        + '<div class="act-buttons"><button class="act-play" data-act="eplay" data-game="'+g.id+'" '+(n===0?"disabled":"")+'>▶ Oyna</button></div></div>';
+    });
+    html += '</div>';
+    html += '<div class="sx-note">Alt başlığa göre etkinlikler için yukarıdan alt başlık seçin.</div>';
+  } else {
+    const gr = sinifActGrid(u.id);
+    html += '<div class="sx-sub">🎮 Etkinlikler</div><div class="sx-ctx" '+sxCtx(cl,co,u,null)+'>'+quick+gr.html+'</div>';
+  }
+  return html;
+}
+function sxResHtml(sec, cl, co, u, strict){
+  const lu = sxLibUnit(sec, cl, co, u), title = (sec==="kitap" ? "📚 Ders Kitapları (PDF)" : "📽️ Ders Sunumları");
+  if(!lu) return strict ? '<div class="sx-sub">'+title+'</div><div class="sinif-empty">Bu ünite için eşleşen kaynak bulunamadı (ünite adı '+(sec==="kitap"?"Ders Kitapları":"Ders Sunumları")+' bölümünde farklı olabilir).</div>' : "";
+  const items = resLoad(sec, lu.id);
+  if(!items.length) return strict ? '<div class="sx-sub">'+title+'</div><div class="sinif-empty">Bu ünitede henüz kaynak yok.</div>' : "";
+  return '<div class="sx-sub">'+title+'</div><div class="res-grid" data-sec="'+sec+'" data-lunit="'+lu.id+'">'+items.map(resTileHtml).join("")+'</div>';
+}
+function sxField(ico, key, optionsHtml, val, enabled){
+  return '<label class="sx-field'+(val?" has":"")+(enabled?"":" dis")+'"><span class="sx-ico">'+ico+'</span><select data-sxsel="'+key+'" '+(enabled?"":"disabled")+'>'+optionsHtml+'</select></label>';
+}
+function sxRender(){
+  const f = document.getElementById("sxFilter"), sb = document.getElementById("sinifBody");
+  if(!f || !sb) return;
+  if(sxEditMode){
+    sb.style.display = "";
+    f.innerHTML = '<button type="button" class="sx-back" data-sx="back">← Filtreli görünüme dön</button>';
+    return;
+  }
+  sb.style.display = "none";
+  const classes = sinifData.classes;
+  let cl = classes.find(c=>c.id===sxSel.classId) || null;
+  if(!cl) sxSel = { classId:"", courseId:"", unitId:"", topicId:"", type:sxSel.type };
+  let co = cl ? (cl.courses.find(c=>c.id===sxSel.courseId) || null) : null;
+  if(cl && !co){
+    if(cl.courses.length===1){ co = cl.courses[0]; sxSel.courseId = co.id; } else sxSel.courseId = "";
+    sxSel.unitId = ""; sxSel.topicId = "";
+  }
+  let un = co ? (co.units.find(u=>u.id===sxSel.unitId) || null) : null;
+  if(!un){ sxSel.unitId = ""; sxSel.topicId = ""; }
+  let tp = un ? ((un.topics||[]).find(x=>x.id===sxSel.topicId) || null) : null;
+  if(!tp) sxSel.topicId = "";
+  const opts = (arr, sel, ph)=> '<option value="">'+ph+'</option>' + arr.map(x=>'<option value="'+x.id+'"'+(x.id===sel?" selected":"")+'>'+qbEscape(x.name)+'</option>').join("");
+  const types = [["kitap","📚 Ders Kitapları (PDF)"],["sunum","📽️ Ders Sunumları"],["oyun","🎮 Yarışma Oyunları"]];
+  let html = '<div class="sx-panel"><div class="sx-head"><span>🎛️ Hızlı Erişim</span>'
+    + (Auth.readOnly() ? '' : '<span class="sx-hbtns"><button type="button" class="sx-edit" data-sx="import">📥 Soru Yükle</button><button type="button" class="sx-edit" data-sx="edit">✏️ Yapıyı Düzenle</button></span>') + '</div>'
+    + '<div class="sx-selects">'
+    + sxField("🏫","classId",opts(classes, sxSel.classId, "Sınıf Seçiniz"), sxSel.classId, !!cl || true)
+    + sxField("📖","courseId",opts(cl?cl.courses:[], sxSel.courseId, "Ders Seçiniz"), sxSel.courseId, !!cl)
+    + sxField("📚","unitId",opts(co?co.units:[], sxSel.unitId, "Ünite Seçiniz"), sxSel.unitId, !!co)
+    + sxField("🗂️","topicId",opts(un?(un.topics||[]):[], sxSel.topicId, "Alt Başlık Seçiniz"), sxSel.topicId, !!(un && (un.topics||[]).length))
+    + sxField("🎯","type",'<option value="">İçerik Seçiniz</option>'+types.map(t=>'<option value="'+t[0]+'"'+(t[0]===sxSel.type?" selected":"")+'>'+t[1]+'</option>').join(""), sxSel.type, true)
+    + '</div><button type="button" class="sx-clear" data-sx="clear">↺ Filtreleri Temizle</button></div>';
+  if(!cl || !co){
+    html += '<div class="sinif-empty" style="margin-top:16px;">Başlamak için sınıf'+(cl ? ' ve ders' : '')+' seçin.</div>';
+  } else {
+    const units = un ? [un] : co.units, strict = !!sxSel.type;
+    const want = (t)=> !sxSel.type || sxSel.type===t;
+    html += '<div class="sx-results">';
+    if(!units.length) html += '<div class="sinif-empty">Bu derste henüz ünite yok.</div>';
+    units.forEach(u=>{
+      html += '<div class="sx-unit"><div class="sinif-section-title">📖 '+qbEscape(u.name)+'</div>';
+      let inner = "";
+      if(want("oyun")) inner += sxGamesHtml(cl, co, u, (un && u.id===un.id) ? tp : null, !!un);
+      if(!tp && want("kitap")) inner += sxResHtml("kitap", cl, co, u, strict);
+      if(!tp && want("sunum")) inner += sxResHtml("sunum", cl, co, u, strict);
+      html += (inner || '<div class="sx-note">Bu ünitede gösterilecek içerik yok.</div>') + '</div>';
+    });
+    if(tp && (sxSel.type==="kitap" || sxSel.type==="sunum")) html += '<div class="sinif-empty" style="margin-top:12px;">Kitap ve sunumlar ünite bazında tutulur, alt başlığa göre ayrılmaz. Üniteye ait kitap ve sunumları görmek için alt başlık seçimini temizleyin.</div>';
+    html += '</div>';
+  }
+  f.innerHTML = html;
+}
+/* ================= SORU YÜKLE (tek dosyadan toplu ekleme) ================= */
+const SWI_GAMES = {
+  "karışıkkelimeler":["scr"], "doğruyanlış":["sw"], "doğruyanlışkartları":["sw"], "benkimim":["bk"], "sıralama":["ord"],
+  "paragraf":["par"], "paragrafyanlışları":["par"]
+};
+const SWI_MC = { "çoktanseçmeli":"mc", "halatçekme":"tug", "milyoner":"mill", "resimlisoru":"pic", "çarkıfelek":"whl", "boomsoru":"hp", "penaltı":"pen" };
+const SWI_LABEL = { mc:"Çoktan Seçmeli", tug:"Halat Çekme", mill:"Milyoner", pic:"Resimli Soru", whl:"Çarkıfelek", hp:"BoomSoru", pen:"Penaltı", scr:"Karışık Kelimeler", bk:"Ben Kimim?", ord:"Sıralama", sw:"Doğru/Yanlış Kartları", par:"Paragraf Yanlışları" };
+const SWI_EXAMPLE = `# SINIF: 6. Sınıf
+# ÜNİTE: 1. Ünite
+# ALT BAŞLIK: 1.1 Peygamberlere İman
+
+# KARIŞIK KELİMELER
+NAMAZ | Günde beş vakit kılınan ibadet
+
+# DOĞRU YANLIŞ
+Hac Medine'de yapılır. | Yanlış
+
+# BEN KİMİM
+Hz. İbrahim
+Bir peygamberim.
+Ateşe atıldım.
+
+# SIRALAMA
+Abdestin sırası
+Niyet
+Eller yıkanır
+Yüz yıkanır
+
+# PARAGRAF
+İlk peygamber Hz. {Nuh|Âdem}.
+
+# OYUNLAR: Çoktan Seçmeli, Milyoner
+Kur'an-ı Kerim'in ilk inen ayeti hangisidir?
+A) Alak suresi
+B) Fatiha suresi
+C) İhlas suresi
+D) Nas suresi
+Cevap: A
+`;
+function swiShort(t){ t = String(t||"").trim(); return t.length>60 ? t.slice(0,60)+"…" : t; }
+function swiParse(text){
+  const lines = String(text||"").replace(/^\uFEFF/,"").split(/\r?\n/);
+  const ctx = { cls:"", course:"", unit:"", topic:"" }, blocks = [], errors = [];
+  let cur = null;
+  const flush = ()=>{ if(cur){ cur.text = cur.lines.join("\n").trim(); if(cur.text) blocks.push(cur); cur = null; } };
+  lines.forEach(ln=>{
+    const m = /^\s*#\s*(.*)$/.exec(ln);
+    if(!m){ if(cur) cur.lines.push(ln); else if(ln.trim()) errors.push("Başlıksız satır atlandı: "+swiShort(ln)); return; }
+    const raw = m[1].trim(), ci = raw.indexOf(":");
+    const head = sxNorm(ci>-1 ? raw.slice(0,ci) : raw), tail = ci>-1 ? raw.slice(ci+1).trim() : "";
+    if(head==="sınıf"){ flush(); ctx.cls = tail; ctx.course = ""; ctx.unit = ""; ctx.topic = ""; return; }
+    if(head==="ders"){ flush(); ctx.course = tail; ctx.unit = ""; ctx.topic = ""; return; }
+    if(head==="ünite"){ flush(); ctx.unit = tail; ctx.topic = ""; return; }
+    if(head==="altbaşlık" || head==="başlık" || head==="konu"){ flush(); ctx.topic = tail; return; }
+    flush();
+    const c = { ctx:Object.assign({}, ctx), lines:[], kind:null, games:[], title:raw };
+    if(SWI_GAMES[head]){ c.kind = SWI_GAMES[head][0]; c.games = SWI_GAMES[head]; }
+    else if(SWI_MC[head]){ c.kind = "mc"; c.games = [SWI_MC[head]]; }
+    else if(head==="oyunlar"){
+      c.kind = "mc";
+      tail.split(/[,;]/).map(x=>sxNorm(x)).filter(Boolean).forEach(n=>{
+        if(n==="tümü" || n==="hepsi") Object.values(SWI_MC).forEach(g=>{ if(!c.games.includes(g)) c.games.push(g); });
+        else if(SWI_MC[n]){ if(!c.games.includes(SWI_MC[n])) c.games.push(SWI_MC[n]); }
+        else errors.push("Tanınmayan oyun adı: "+swiShort(n));
+      });
+      if(!c.games.length){ errors.push("“# OYUNLAR:” satırında geçerli oyun adı yok, bu bölüm atlandı."); cur = {skip:true, lines:[]}; return; }
+    } else { errors.push("Tanınmayan başlık: # "+swiShort(raw)); cur = {skip:true, lines:[]}; return; }
+    cur = c;
+  });
+  flush();
+  return { blocks: blocks.filter(b=>!b.skip), errors: errors };
+}
+function swiResolve(ctx){
+  if(!ctx.cls) return { err:"Sınıf belirtilmemiş (# SINIF: ...)" };
+  if(!ctx.unit) return { err:"Ünite belirtilmemiş (# ÜNİTE: ...)" };
+  const nm = /(\d+)/.exec(ctx.cls);
+  const cl = sinifData.classes.find(c=>sxNorm(c.name)===sxNorm(ctx.cls)) || (nm ? sinifData.classes.find(c=>{ const m = /(\d+)/.exec(c.name); return m && m[1]===nm[1]; }) : null);
+  if(!cl) return { err:"Sınıf bulunamadı: "+ctx.cls };
+  let co = null;
+  if(ctx.course){ co = cl.courses.find(c=>sxNorm(c.name).includes(sxNorm(ctx.course)) || sxNorm(ctx.course).includes(sxNorm(c.name))); if(!co) return { err:"Ders bulunamadı: "+ctx.course }; }
+  else if(cl.courses.length===1) co = cl.courses[0];
+  else return { err:"Bu sınıfta birden fazla ders var, # DERS: satırı ekleyin" };
+  const no = sxUnitNo(ctx.unit);
+  const un = co.units.find(u=>sxNorm(u.name)===sxNorm(ctx.unit)) || (no ? co.units.find(u=>sxUnitNo(u.name)===no) : null);
+  if(!un) return { err:"Ünite bulunamadı: "+ctx.unit };
+  let tp = null;
+  if(ctx.topic){
+    const t = sxNorm(ctx.topic);
+    tp = (un.topics||[]).find(x=>sxNorm(x.name)===t) || (un.topics||[]).find(x=>t.length>=2 && (sxNorm(x.name).includes(t) || t.includes(sxNorm(x.name))));
+    if(!tp) return { err:"Alt başlık bulunamadı: "+ctx.topic+" ("+un.name+")" };
+  }
+  return { srcId: tp ? tp.id : un.id, label: cl.name+" › "+un.name+(tp ? " › "+tp.name : "") };
+}
+async function swiBase(srcId, g){
+  const key = "unitQ:"+srcId+":"+g;
+  let arr = null;
+  if(firebaseHazir){
+    const snap = await Promise.race([ fbDb.ref("dkabSorXQB/"+key).once("value"), new Promise((_,rej)=>setTimeout(()=>rej(new Error("zaman aşımı")), 8000)) ]);
+    const v = snap.val(); if(Array.isArray(v) && v.length) arr = v;
+  }
+  if(!arr){ try{ const a = JSON.parse(localStorage.getItem(key)); if(Array.isArray(a) && a.length) arr = a; }catch(e){} }
+  if(!arr) arr = JSON.parse(JSON.stringify((UNIT_DEFAULTS[srcId] && UNIT_DEFAULTS[srcId][g]) || []));
+  return arr;
+}
+async function swiPlan(text){
+  const ps = swiParse(text), groups = new Map(), problems = ps.errors.slice();
+  let dups = 0, badLines = 0;
+  for(const b of ps.blocks){
+    const r = swiResolve(b.ctx);
+    if(r.err){ problems.push("“# "+swiShort(b.title)+"” bölümü atlandı — "+r.err); continue; }
+    const gk = async (g)=>{
+      const k = r.srcId+"|"+g;
+      if(!groups.has(k)) groups.set(k, { srcId:r.srcId, game:g, label:r.label, base:await swiBase(r.srcId, g), added:[], dups:0, fmt:0 });
+      return groups.get(k);
+    };
+    if(b.kind==="mc"){
+      const pr = qbQuickParseFree(b.text);
+      pr.errors.forEach(e=>{ badLines++; problems.push("“"+swiShort(e.raw||"")+"” — "+(e.why||"okunamadı")); });
+      const ok = pr.items.filter(it=>{ if(it.c>=0 && it.c<it.o.length) return true; badLines++; problems.push("“"+swiShort(it.q)+"” — doğru şık bulunamadı (Cevap: C satırı ekleyin)"); return false; });
+      for(const g of b.games){
+        const grp = await gk(g), cfg = QB_GAMES[g];
+        const seen = new Set(grp.base.concat(grp.added).map(x=>qbQuickKey(x.q)));
+        const fresh = [];
+        ok.forEach(it=>{
+          if(g==="pen" && it.o.length!==4){ grp.fmt++; return; }
+          const k = qbQuickKey(it.q);
+          if(seen.has(k)){ grp.dups++; dups++; } else { seen.add(k); fresh.push(it); }
+        });
+        const levels = cfg.hasLevel ? qbQuickLevels(fresh.length, grp.base.concat(grp.added)) : [];
+        fresh.forEach((it,i)=>{
+          const nq = { id:qbGenId(), q:it.q, o:it.o.slice(), c:it.c };
+          if(g==="pen") nq.t = "mc";
+          if(cfg.hasEmoji) nq.emoji = "";
+          if(cfg.hasImage) nq.img = "";
+          if(cfg.hasLevel) nq.level = levels[i];
+          if(cfg.hasCat) nq.cat = qbQuickState.cat;
+          if(cfg.hasLayout) nq.layout = "stack";
+          grp.added.push(nq);
+        });
+      }
+    } else {
+      const g = b.games[0], grp = await gk(g);
+      const r2 = qbBulkParse(b.kind, b.text, qbBulkExisting(b.kind, grp.base.concat(grp.added)));
+      r2.items.forEach(it=> grp.added.push(Object.assign({ id:qbGenId() }, it)));
+      grp.dups += r2.dups; dups += r2.dups;
+      r2.errors.forEach(e=>{ badLines++; problems.push("“"+swiShort(e.raw)+"” — "+e.why); });
+    }
+  }
+  const list = Array.from(groups.values());
+  return { groups:list, total:list.reduce((n,g)=>n+g.added.length, 0), dups:dups, bad:badLines, problems:problems };
+}
+function swiPlanHtml(pl){
+  let h = "";
+  if(pl.groups.length){
+    const byLabel = {};
+    pl.groups.forEach(g=>{ (byLabel[g.label] = byLabel[g.label] || []).push(g); });
+    Object.keys(byLabel).forEach(lb=>{
+      h += '<div class="swi-unit"><b>📚 '+qbEscape(lb)+'</b><ul>'+byLabel[lb].map(g=>'<li>'+qbEscape(SWI_LABEL[g.game])+': <b>'+g.added.length+'</b> eklenecek'+(g.dups?' • ♻️ '+g.dups+' zaten var':'')+(g.fmt?' • '+g.fmt+' tanesi 4 şıklı olmadığı için atlanır':'')+'</li>').join("")+'</ul></div>';
+    });
+    h += '<div class="swi-sum">✅ Toplam <b>'+pl.total+'</b> eklenecek'+(pl.dups?' • ♻️ '+pl.dups+' zaten var (atlanır)':'')+(pl.problems.length?' • ⚠️ '+pl.problems.length+' uyarı':'')+'</div>';
+  }
+  if(pl.problems.length) h += '<ul class="swi-prob">'+pl.problems.slice(0,12).map(x=>'<li>'+qbEscape(x)+'</li>').join("")+(pl.problems.length>12?'<li>… ve '+(pl.problems.length-12)+' uyarı daha</li>':'')+'</ul>';
+  if(!h) h = '<div class="swi-sum">Henüz eklenecek bir şey bulunamadı.</div>';
+  return h;
+}
+let swiTimer = null, swiPlanCur = null, swiRun = 0;
+function swiBox(){
+  let o = document.getElementById("overlaySwi");
+  if(o) return o;
+  o = document.createElement("div"); o.className = "overlay"; o.id = "overlaySwi"; o.style.zIndex = "9000";
+  o.innerHTML = '<div class="win-card swi-card">'
+    + '<h2 style="margin:0 0 6px">📥 Soru Yükle</h2>'
+    + '<p class="swi-help">Dosyadaki <b>#</b> başlıkları sorunun hangi sınıf, ünite ve oyuna gideceğini belirler. Sen hiçbir seçim yapmazsın; eklemeden önce özet gösterilir.</p>'
+    + '<div class="swi-row"><label class="preset swi-file">📄 Dosya seç<input type="file" id="swiFile" accept=".txt,.md,text/plain" hidden></label>'
+    + '<button type="button" class="preset" id="swiEx">⬇️ Örnek dosyayı indir</button></div>'
+    + '<textarea id="swiText" class="swi-text" rows="10" placeholder="# SINIF: 6. Sınıf&#10;# ÜNİTE: 1. Ünite&#10;&#10;# KARIŞIK KELİMELER&#10;NAMAZ | Günde beş vakit kılınan ibadet"></textarea>'
+    + '<div id="swiPrev" class="swi-prev"></div>'
+    + '<div class="swi-actions"><button type="button" class="start-btn" id="swiGo" style="margin-left:0" disabled>✅ Onayla ve Ekle</button><button type="button" class="preset" id="swiClose">Kapat</button></div>'
+    + '</div>';
+  document.body.appendChild(o);
+  const ta = o.querySelector("#swiText");
+  ta.addEventListener("input", ()=>{ clearTimeout(swiTimer); swiTimer = setTimeout(swiPreview, 450); });
+  o.querySelector("#swiFile").addEventListener("change", (e)=>{
+    const f = e.target.files && e.target.files[0]; if(!f) return;
+    const rd = new FileReader();
+    rd.onload = ()=>{ ta.value = String(rd.result||""); swiPreview(); };
+    rd.readAsText(f, "utf-8"); e.target.value = "";
+  });
+  o.querySelector("#swiEx").addEventListener("click", ()=>{
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([SWI_EXAMPLE], {type:"text/plain;charset=utf-8"}));
+    a.download = "soru-yukle-ornek.txt"; document.body.appendChild(a); a.click(); a.remove();
+  });
+  o.querySelector("#swiClose").addEventListener("click", ()=> o.classList.remove("show"));
+  o.querySelector("#swiGo").addEventListener("click", swiCommit);
+  return o;
+}
+function swiOpen(){ const o = swiBox(); o.classList.add("show"); }
+async function swiPreview(){
+  const ta = document.getElementById("swiText"), prev = document.getElementById("swiPrev"), go = document.getElementById("swiGo");
+  if(!ta || !prev) return;
+  const run = ++swiRun;
+  swiPlanCur = null; go.disabled = true;
+  if(!ta.value.trim()){ prev.innerHTML = ""; return; }
+  prev.innerHTML = '<div class="swi-sum">⏳ Okunuyor…</div>';
+  try{
+    const pl = await swiPlan(ta.value);
+    if(run !== swiRun) return;
+    swiPlanCur = pl; prev.innerHTML = swiPlanHtml(pl); go.disabled = pl.total===0;
+  }catch(e){
+    if(run !== swiRun) return;
+    prev.innerHTML = '<div class="swi-prob">⚠️ Buluttaki mevcut sorulara ulaşılamadı. Diğer cihazlardaki soruların üzerine yazmamak için önizleme yapılmadı. İnternet bağlantınızı kontrol edip tekrar deneyin.</div>';
+  }
+}
+async function swiCommit(){
+  const ta = document.getElementById("swiText"), prev = document.getElementById("swiPrev"), go = document.getElementById("swiGo");
+  if(go.disabled) return;
+  go.disabled = true; prev.innerHTML = '<div class="swi-sum">⏳ Ekleniyor…</div>';
+  let pl;
+  try{ pl = await swiPlan(ta.value); }
+  catch(e){ prev.innerHTML = '<div class="swi-prob">⚠️ Buluttaki mevcut sorulara ulaşılamadı, ekleme yapılmadı. Bağlantınızı kontrol edip tekrar deneyin.</div>'; go.disabled = false; return; }
+  const jobs = pl.groups.filter(g=>g.added.length).map(g=>{
+    const key = "unitQ:"+g.srcId+":"+g.game, arr = g.base.concat(g.added);
+    return Promise.race([ qbSave(key, arr), new Promise(r=>setTimeout(()=>r(null), 8000)) ]);
+  });
+  const acks = await Promise.all(jobs);
+  const cur = qbSource; if(cur && typeof cur==="string" && cur.indexOf("eval~")!==0){ qbSource = null; try{ qbUseSource(cur); }catch(e){} }
+  const note = !firebaseHazir ? "" : acks.some(a=>a===false) ? '<div class="swi-prob">⚠️ Bu cihaza kaydedildi ama buluta yazılamadı; diğer cihazlarda görünmez.</div>'
+    : acks.some(a=>a===null) ? '<div class="swi-prob">⏳ Buluta yazma henüz onaylanmadı; bağlantı varken sayfayı kapatmayın.</div>'
+    : '<div class="swi-ok">☁️ Buluta kaydedildi — tüm cihazlarda görünür.</div>';
+  prev.innerHTML = '<div class="swi-ok">✅ '+pl.total+' soru eklendi.</div>'+swiPlanHtml(Object.assign({}, pl, { groups:pl.groups.map(g=>Object.assign({}, g, { added:g.added })) })).replace(/eklenecek/g,"eklendi")+note;
+  ta.value = pl.problems.length ? ta.value : "";
+  swiPlanCur = null;
+  try{ sxRender(); }catch(e){}
+}
+(function sxWire(){
+  const f = document.getElementById("sxFilter");
+  f.addEventListener("change", (e)=>{
+    const k = e.target && e.target.dataset ? e.target.dataset.sxsel : null; if(!k) return;
+    sxSel[k] = e.target.value;
+    if(k==="classId"){ sxSel.courseId = ""; sxSel.unitId = ""; sxSel.topicId = ""; }
+    else if(k==="courseId"){ sxSel.unitId = ""; sxSel.topicId = ""; }
+    else if(k==="unitId"){ sxSel.topicId = ""; }
+    sxRender();
+  });
+  f.addEventListener("click", (e)=>{
+    const m = e.target.closest("[data-sx]");
+    if(m){
+      const a = m.dataset.sx;
+      if(a==="clear"){ sxSel = { classId:"", courseId:"", unitId:"", topicId:"", type:"" }; sxRender(); }
+      else if(a==="edit"){ sxEditMode = true; sinifNav = {classId:null, courseId:null, unitId:null, topicId:null}; sinifRender(); }
+      else if(a==="back"){ sxEditMode = false; sinifRender(); }
+      else if(a==="import"){ swiOpen(); }
+      return;
+    }
+    const t = e.target.closest("[data-act]"); if(!t) return;
+    const act = t.dataset.act;
+    if(act==="res-open"){
+      const g = t.closest("[data-sec]"); if(!g) return;
+      resOpen(g.dataset.sec, g.dataset.lunit, t.dataset.id, false);
+      return;
+    }
+    const c = t.closest(".sx-ctx"); if(!c) return;
+    sinifNav = { classId:c.dataset.class, courseId:c.dataset.course, unitId:c.dataset.unit, topicId:c.dataset.topic || null };
+    if(act==="play") unitOpen(t.dataset.game, false);
+    else if(act==="bank") unitOpen(t.dataset.game, true);
+    else if(act==="quick") unitOpen("quick", true);
+    else if(act==="eplay"){ t.disabled = true; unitOpenEval(t.dataset.game).catch(err=>console.error(err)).then(()=>{ t.disabled = false; }); }
+  });
+})();
 (function sinifWire(){
   const body = document.getElementById("sinifBody");
   body.addEventListener("click", (e)=>{
