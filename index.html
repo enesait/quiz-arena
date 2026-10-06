@@ -1142,6 +1142,8 @@
   .swi-prob{ background:#FFF1F0; color:#B42318; border-radius:12px; padding:8px 12px 8px 28px; margin:6px 0; font-weight:600; font-size:.86rem; }
   .swi-actions{ display:flex; gap:8px; margin-top:12px; flex-wrap:wrap; }
   .swi-actions button[disabled]{ opacity:.5; cursor:not-allowed; }
+  /* Kalem / silgi seçiliyken sayfa kaymasın, çekilmesin */
+  #libReader.inkmode, #libReader.inkmode .lr-stage, #libReader.inkmode .lr-scroll{ overscroll-behavior:none; touch-action:none; }
 </style>
 </head>
 <body class="auth-locked">
@@ -8370,7 +8372,19 @@ function inkDown(o, ic, e){
   if(e.pointerType==="mouse" && e.button!==0) return;
   e.preventDefault();
   try{ ic.setPointerCapture(e.pointerId); }catch(_){}
-  const pt = (ev)=>{ const r = ic.getBoundingClientRect(); return [(ev.clientX-r.left)/r.width*o.w, (ev.clientY-r.top)/r.height*o.h]; };
+  const r0 = ic.getBoundingClientRect();   // parmağın ilk değdiği andaki konum: sayfa o sırada kaysa bile çizgi doğru yere düşer
+  const pt = (ev)=>[(ev.clientX-r0.left)/r0.width*o.w, (ev.clientY-r0.top)/r0.height*o.h];
+  const stg = ic.closest ? ic.closest(".lr-stage, .lr-scroll") : null;
+  const sl0 = stg ? stg.scrollLeft : 0, st0 = stg ? stg.scrollTop : 0, wx0 = window.scrollX, wy0 = window.scrollY;
+  const lock = ()=>{
+    if(stg){ if(stg.scrollLeft !== sl0) stg.scrollLeft = sl0; if(stg.scrollTop !== st0) stg.scrollTop = st0; }
+    if(window.scrollX !== wx0 || window.scrollY !== wy0) window.scrollTo(wx0, wy0);
+  };
+  const blockTouch = (ev)=>{ if(ev.cancelable) ev.preventDefault(); };
+  const unlock = ()=>{ if(stg) stg.removeEventListener("scroll", lock); window.removeEventListener("scroll", lock); document.removeEventListener("touchmove", blockTouch, true); };
+  if(stg) stg.addEventListener("scroll", lock);
+  window.addEventListener("scroll", lock);
+  document.addEventListener("touchmove", blockTouch, {passive:false, capture:true});
   const list = s.store[o.key] || (s.store[o.key] = []);
   const k = ic.width / o.w, ctx = ic.getContext("2d"), u = o.u || 1;
   let cur = null, removed = [], last = pt(e);
@@ -8396,6 +8410,7 @@ function inkDown(o, ic, e){
     last = q;
   };
   const up = ()=>{
+    unlock();
     ic.removeEventListener("pointermove", move);
     ic.removeEventListener("pointerup", up);
     ic.removeEventListener("pointercancel", up);
@@ -8404,6 +8419,7 @@ function inkDown(o, ic, e){
     else if(removed.length) s.undo.push({key:o.key, rem:removed});
   };
   s.cancel = ()=>{                       // ikinci parmak değdi (yakınlaştırma): yarım kalan çizgi / silme geri alınır
+    unlock();
     ic.removeEventListener("pointermove", move);
     ic.removeEventListener("pointerup", up);
     ic.removeEventListener("pointercancel", up);
@@ -8437,7 +8453,17 @@ function inkSetTool(s, t){
     s.stage.classList.toggle("t-eraser", t==="eraser");
   }
   document.querySelectorAll("#lrTools .lr-tb").forEach(b=>b.classList.toggle("on", b.dataset.tool===t));
+  document.documentElement.style.overscrollBehavior = (t!=="hand") ? "none" : "";   // kalemle yazarken sayfanın çekilip kaymasını engelle
+  document.body.style.overscrollBehavior = (t!=="hand") ? "none" : "";
 }
+/* Kalem/silgi seçiliyken tek parmakla yapılan hiçbir dokunma hareketi sayfayı kaydırmasın (araç çubukları hariç) */
+document.addEventListener("touchmove", (e)=>{
+  const rd = document.getElementById("libReader");
+  if(!rd || !rd.classList.contains("inkmode") || e.touches.length > 1) return;
+  const t = e.target;
+  if(t && t.closest && t.closest(".lr-sub, .lr-bar, .lr-deckbar")) return;
+  if(e.cancelable) e.preventDefault();
+}, {passive:false});
 document.getElementById("lrTools").addEventListener("click", (e)=>{
   const b = e.target.closest("[data-tool]"); if(b && inkSess) inkSetTool(inkSess, b.dataset.tool);
 });
