@@ -6557,7 +6557,7 @@ function sinifRender(){
 }
 
 /* ================= SORX: FİLTRELİ GÖRÜNÜM (Sınıf › Ders › Ünite › Alt Başlık › İçerik) ================= */
-function sxNorm(x){ return String(x||"").toLocaleLowerCase("tr-TR").replace(/[^a-z0-9çğıöşüâîû]/g, ""); }
+function sxNorm(x){ return String(x||"").toLocaleLowerCase("tr-TR").replace(/â/g,"a").replace(/î/g,"i").replace(/û/g,"u").replace(/[^a-z0-9çğıöşü]/g, ""); }
 function sxUnitNo(x){ const m = /(\d+)\s*\.?\s*ünite/i.exec(String(x||"")); return m ? m[1] : null; }
 /* Kitap / sunum ağaçları ayrı tutulduğu için sınıf, ders ve ünite adına göre eşleştirilir. */
 function sxLibUnit(sec, cl, co, u){
