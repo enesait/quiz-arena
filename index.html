@@ -6535,7 +6535,8 @@ function sinifRender(){
           + '<div class="act-buttons"><button class="act-play" data-act="eplay" data-game="'+g.id+'">▶ Oyna</button></div></div>';
       });
       html += '</div>';
-    } else if(unitTotal(un.id)>0){
+    }
+    if(unitTotal(un.id)>0){
       const gr = sinifActGrid(un.id);
       html += '<div class="sinif-section-title" style="margin-top:22px;">🎮 Etkinlikler — '+qbEscape(un.name)+'</div>'+UNIT_QUICK_BTN+gr.html;
     }
@@ -6759,9 +6760,10 @@ async function swiBase(srcId, g){
   let arr = null;
   if(firebaseHazir){
     const snap = await Promise.race([ fbDb.ref("dkabSorXQB/"+key).once("value"), new Promise((_,rej)=>setTimeout(()=>rej(new Error("zaman aşımı")), 8000)) ]);
-    const v = snap.val(); if(Array.isArray(v) && v.length) arr = v;
+    const v = snap.val(); arr = (Array.isArray(v) && v.length) ? v : [];   // bulut cevap verdiyse tek doğru kaynak odur (silinmişse boş)
+  } else {
+    try{ const a = JSON.parse(localStorage.getItem(key)); if(Array.isArray(a) && a.length) arr = a; }catch(e){}
   }
-  if(!arr){ try{ const a = JSON.parse(localStorage.getItem(key)); if(Array.isArray(a) && a.length) arr = a; }catch(e){} }
   if(!arr) arr = JSON.parse(JSON.stringify((UNIT_DEFAULTS[srcId] && UNIT_DEFAULTS[srcId][g]) || []));
   return arr;
 }
