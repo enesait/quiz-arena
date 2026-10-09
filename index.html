@@ -778,7 +778,7 @@
   .lr-pg canvas{ position:absolute; left:0; top:0; width:100%; height:100%; display:block; }
   .lr-pg canvas.lr-ink{ pointer-events:none; touch-action:none; }
   .lr-scroll.inking canvas.lr-ink{ pointer-events:auto; }
-  .lr-scroll.t-pen canvas.lr-ink{ cursor:crosshair; }
+  .lr-scroll.t-pen canvas.lr-ink, .lr-scroll.t-line canvas.lr-ink{ cursor:crosshair; }
   .lr-scroll.t-eraser canvas.lr-ink{ cursor:cell; }
   .lr-qr{ position:absolute; z-index:3; transform:translate(-50%,-50%); box-sizing:border-box; border:3px solid #6C5CE7; border-radius:10px; background:rgba(108,92,231,.16); box-shadow:0 0 0 4px rgba(108,92,231,.28); text-decoration:none; -webkit-tap-highlight-color:transparent; animation:lrQrPulse 2.4s ease-in-out infinite; }
   .lr-qr::after{ content:"🔗 " attr(data-host); position:absolute; top:100%; left:50%; transform:translateX(-50%); margin-top:8px; padding:6px 14px; max-width:70vw; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; background:#6C5CE7; color:#fff; border-radius:999px; font:700 .9rem 'Space Grotesk',sans-serif; box-shadow:0 4px 12px rgba(0,0,0,.35); }
@@ -838,7 +838,7 @@
   .lr-sbox canvas.lr-ink{ position:absolute; left:0; top:0; width:100%; height:100%; display:block; z-index:2; }
   .lr-stage canvas.lr-ink{ pointer-events:none; touch-action:none; }
   .lr-stage.inking canvas.lr-ink{ pointer-events:auto; }
-  .lr-stage.t-pen canvas.lr-ink{ cursor:crosshair; }
+  .lr-stage.t-pen canvas.lr-ink, .lr-stage.t-line canvas.lr-ink{ cursor:crosshair; }
   .lr-stage.t-eraser canvas.lr-ink{ cursor:cell; }
   .lr-stage.inking .lr-qr{ pointer-events:none; opacity:.3; }
   @media (min-width:1200px){ .lr-sub{ bottom:calc(104px + env(safe-area-inset-bottom, 0px)); } }
@@ -1144,6 +1144,22 @@
   .swi-actions button[disabled]{ opacity:.5; cursor:not-allowed; }
   /* Kalem / silgi seçiliyken sayfa kaymasın, çekilmesin */
   #libReader.inkmode, #libReader.inkmode .lr-stage, #libReader.inkmode .lr-scroll{ overscroll-behavior:none; touch-action:none; }
+  /* ---- Slayttan oyuna geçiş ---- */
+  .lr-mark[hidden], .sl-game[hidden]{ display:none !important; }
+  .lr-mark.on{ background:#6C5CE7 !important; }
+  .sl-game{ position:fixed; right:18px; bottom:calc(92px + env(safe-area-inset-bottom,0px)); z-index:10; border:0; border-radius:20px; padding:16px 26px; font:800 1.2rem 'Manrope',sans-serif; color:#fff; background:linear-gradient(135deg,#7B6CF0,#5B4BD8); box-shadow:0 8px 0 #3F32A8, 0 14px 28px rgba(0,0,0,.35); cursor:pointer; -webkit-tap-highlight-color:transparent; }
+  .sl-game:active{ transform:translateY(4px); box-shadow:0 4px 0 #3F32A8, 0 8px 16px rgba(0,0,0,.3); }
+  @media (min-width:1200px){ .sl-game{ right:34px; bottom:112px; padding:22px 40px; font-size:1.75rem; border-radius:26px; } }
+  #libReader.inkmode .sl-game{ display:none; }
+  #overlaySl .sl-card{ max-width:560px; width:94%; max-height:92vh; overflow:auto; text-align:left; }
+  .sl-info{ font-weight:700; color:var(--muted); margin:2px 0 8px; }
+  .sl-lbl{ display:block; font-weight:800; font-size:.9rem; margin:10px 0 4px; }
+  .sl-lbl select{ display:block; width:100%; box-sizing:border-box; height:46px; border:1.5px solid #E3E7EF; border-radius:12px; padding:0 12px; font:600 1rem 'Manrope',sans-serif; background:#fff; color:var(--text-strong); margin-top:4px; }
+  @media (min-width:1200px){ #overlaySl .sl-card{ max-width:760px; } .sl-lbl{ font-size:1.1rem; } .sl-lbl select{ height:58px; font-size:1.25rem; } #overlaySl .start-btn, #overlaySl .preset{ font-size:1.2rem; padding:14px 22px; } }
+  .sl-toast{ position:fixed; left:50%; bottom:130px; transform:translateX(-50%); z-index:30000; background:#1F2B38; color:#fff; padding:14px 22px; border-radius:14px; font:700 1.05rem 'Manrope',sans-serif; box-shadow:0 10px 30px rgba(0,0,0,.4); max-width:90vw; text-align:center; }
+  .pen-timer{ position:absolute; top:10px; left:12px; z-index:6; background:rgba(0,0,0,.55); color:#fff; border-radius:999px; padding:6px 16px; font:800 clamp(1.1rem,2.4vw,2rem) 'Manrope',sans-serif; }
+  .pen-timer.low{ background:#D8433B; animation:penTimerPulse .5s infinite alternate; }
+  @keyframes penTimerPulse{ from{ transform:scale(1); } to{ transform:scale(1.1); } }
 </style>
 </head>
 <body class="auth-locked">
@@ -1358,8 +1374,7 @@
               <div class="audience-chart" id="millAudienceChart" style="display:none;"></div>
               <div class="joker-row">
                 <button class="joker-btn" id="millJoker5050">50:50</button>
-                <button class="joker-btn" id="millJokerAudience">🎓 Sınıfa Sor</button>
-                <button class="joker-btn" id="millJokerPass">🔁 Pas Geç</button>
+                <button class="joker-btn" id="millJokerDouble">✌️ Çift Cevap</button>
                 <button class="walkaway-btn" id="millWalkaway">💼 Parayı Al ve Çekil</button>
               </div>
             </div>
@@ -1803,6 +1818,7 @@
       <div class="lr-seg" id="lrTools">
         <button class="lr-tb on" type="button" data-tool="hand" aria-label="Kaydır" title="Kaydır"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 11V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2"/><path d="M14 10V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v2"/><path d="M10 10.5V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg></button>
         <button class="lr-tb" type="button" data-tool="pen" aria-label="Kalem" title="Kalem"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>
+        <button class="lr-tb" type="button" data-tool="line" aria-label="Düz çizgi" title="Düz çizgi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19 19 5"/><circle cx="5" cy="19" r="1.7" fill="currentColor"/><circle cx="19" cy="5" r="1.7" fill="currentColor"/></svg></button>
         <button class="lr-tb" type="button" data-tool="eraser" aria-label="Silgi" title="Silgi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"/><path d="M22 21H7"/><path d="m5 11 9 9"/></svg></button>
       </div>
       <div class="lr-seg lr-zoomseg">
@@ -1813,7 +1829,9 @@
       </div>
     </div>
     <button class="lr-tb lr-dl" id="lrDownload" type="button" aria-label="İndir" title="İndir"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12"/><path d="m7 11 5 5 5-5"/><path d="M5 21h14"/></svg></button>
+    <button class="lr-tb lr-dl lr-mark" id="lrMark" type="button" aria-label="Slayda oyun ekle" title="Slayda oyun ekle" hidden><span style="font-size:1.3rem;line-height:1">📌</span></button>
     <button class="lr-btn lr-close" id="lrClose" type="button">✕ Kapat</button>
+    <button class="sl-game" id="slGame" type="button" hidden></button>
   </div>
   <div class="lr-body" id="lrBody"></div>
   <div class="lr-toast" id="lrToast" role="status"></div>
@@ -2958,24 +2976,26 @@ function millPickForLevel(level){
   }
   return millLevelPools[level].pop();
 }
-let millState="setup", millLevel=0, millCurrentQ=null, millUsed5050=false, millUsedAudience=false, millUsedPass=false, millWalkAllowed=false;
+let millState="setup", millLevel=0, millCurrentQ=null, millUsed5050=false, millUsedDouble=false, millJokerThisQ=false, millDoubleActive=false, millWalkAllowed=false;
 document.getElementById("millStartBtn").addEventListener("click", startMillionaire);
 document.getElementById("millJoker5050").addEventListener("click", millUse5050);
-document.getElementById("millJokerAudience").addEventListener("click", millUseAudience);
-document.getElementById("millJokerPass").addEventListener("click", millUsePass);
+document.getElementById("millJokerDouble").addEventListener("click", millUseDouble);
 document.getElementById("millWalkaway").addEventListener("click", millWalkAway);
 function startMillionaire(){
-  millState="playing"; millLevel=0; millUsed5050=false; millUsedAudience=false; millUsedPass=false; millLevelPools={};
+  millState="playing"; millLevel=0; millUsed5050=false; millUsedDouble=false; millJokerThisQ=false; millDoubleActive=false; millLevelPools={};
   document.getElementById("millPlayerName").textContent = document.getElementById("millNameInput").value.trim() || "Yarışmacı";
   document.getElementById("millSetupBar").style.display="none";
   document.getElementById("millField").style.display="block";
-  document.getElementById("millJoker5050").disabled=false;
-  document.getElementById("millJokerAudience").disabled=false;
-  document.getElementById("millJokerPass").disabled=false;
-  document.getElementById("millAudienceChart").style.display="none";
   millLoadLevel();
 }
+function millUpdateJokers(){
+  // her joker oyunda bir kez; bir soruda yalnızca biri kullanılabilir
+  const off = millState!=="playing" || millJokerThisQ;
+  document.getElementById("millJoker5050").disabled = off || millUsed5050;
+  document.getElementById("millJokerDouble").disabled = off || millUsedDouble;
+}
 function millLoadLevel(){
+  millJokerThisQ = false; millDoubleActive = false;
   millCurrentQ = millPickForLevel(millLevel+1);
   document.getElementById("millCurrentAmount").textContent = MILL_LADDER[millLevel];
   document.getElementById("millWaiting").textContent="";
@@ -2984,6 +3004,7 @@ function millLoadLevel(){
   document.getElementById("millWalkaway").disabled = !millWalkAllowed;
   millRenderLadder();
   millRenderQuestion();
+  millUpdateJokers();
 }
 function millRenderLadder(){
   const el=document.getElementById("millLadder"); el.innerHTML="";
@@ -3008,6 +3029,15 @@ function millRenderQuestion(){
 }
 function millAnswer(idx){
   if(millState!=="playing") return;
+  if(millDoubleActive && idx!==millCurrentQ.c){
+    // Çift Cevap: ilk yanlış seçim kapanır, ikinci hak kalır
+    millDoubleActive = false;
+    const wb = document.querySelector('#millOptions .opt[data-idx="'+idx+'"]');
+    if(wb){ wb.disabled = true; wb.classList.add("wrong"); }
+    document.getElementById("millWaiting").textContent = "✌️ Yanlış! Bir hakkın daha var, tekrar seç.";
+    return;
+  }
+  millDoubleActive = false;
   millState="locked";
   const optsEl=document.getElementById("millOptions");
   optsEl.querySelectorAll(".opt").forEach((b,i)=>{ b.disabled=true; if(i===millCurrentQ.c) b.classList.add("correct"); else if(i===idx && idx!==millCurrentQ.c) b.classList.add("wrong"); });
@@ -3025,50 +3055,23 @@ function millAnswer(idx){
   }, 900);
 }
 function millUse5050(){
-  if(millUsed5050 || millState!=="playing") return; millUsed5050=true;
-  document.getElementById("millJoker5050").disabled=true;
+  if(millUsed5050 || millJokerThisQ || millState!=="playing") return; millUsed5050=true; millJokerThisQ=true;
+  millUpdateJokers();
   const wrongIdxs = millCurrentQ.o.map((_,i)=>i).filter(i=>i!==millCurrentQ.c);
   const toHide = shuffle(wrongIdxs).slice(0, millCurrentQ.o.length - 2);
   document.querySelectorAll("#millOptions .opt").forEach(btn=>{
     if(toHide.includes(parseInt(btn.dataset.idx))){ btn.disabled=true; btn.style.visibility="hidden"; }
   });
 }
-function millUseAudience(){
-  if(millUsedAudience || millState!=="playing") return; millUsedAudience=true;
-  document.getElementById("millJokerAudience").disabled=true;
-  const correct = millCurrentQ.c;
-  let pcts=new Array(millCurrentQ.o.length).fill(0); let remaining=100;
-  const correctPct = 45 + Math.floor(Math.random()*30);
-  pcts[correct]=correctPct; remaining-=correctPct;
-  const others=pcts.map((_,i)=>i).filter(i=>i!==correct);
-  others.forEach((idx,i)=>{
-    if(i===others.length-1){ pcts[idx]=remaining; }
-    else{ const p=Math.floor(Math.random()*(remaining/ (others.length-i))); pcts[idx]=p; remaining-=p; }
-  });
-  const chart=document.getElementById("millAudienceChart"); chart.innerHTML=""; chart.style.display="flex";
-  const letters=["A","B","C","D","E"];
-  pcts.forEach((p,i)=>{
-    const wrap=document.createElement("div"); wrap.className="audience-bar-wrap";
-    wrap.innerHTML = `<span class="audience-pct">%${p}</span><div class="audience-bar" style="height:${Math.max(p,3)}%"></div><span class="audience-pct">${letters[i]}</span>`;
-    chart.appendChild(wrap);
-  });
-}
-function millUsePass(){
-  if(millUsedPass || millState!=="playing") return; millUsedPass=true;
-  document.getElementById("millJokerPass").disabled=true;
-  let others = MILL_QUESTIONS.filter(q=>q.level===millCurrentQ.level && q!==millCurrentQ);
-  if(others.length===0) others = MILL_QUESTIONS.filter(q=>q!==millCurrentQ);
-  if(others.length===0) others=[millCurrentQ];
-  millCurrentQ = others[Math.floor(Math.random()*others.length)];
-  document.getElementById("millAudienceChart").style.display="none";
-  millRenderQuestion();
+function millUseDouble(){
+  if(millUsedDouble || millJokerThisQ || millState!=="playing") return;
+  millUsedDouble = true; millJokerThisQ = true; millDoubleActive = true;
+  millUpdateJokers();
+  document.getElementById("millWaiting").textContent = "✌️ Çift Cevap aktif: iki seçim hakkın var.";
 }
 function millWalkAway(){
   if(!millWalkAllowed || millState!=="playing") return;
-  let banked="0₺";
-  for(let i=MILL_SAFE.length-1;i>=0;i--){ if(millLevel-1 >= MILL_SAFE[i]){ banked=MILL_LADDER[MILL_SAFE[i]]; break; } }
-  if(banked==="0₺") banked = MILL_LADDER[millLevel-1];
-  millEnd(null, banked);
+  millEnd(null, MILL_LADDER[millLevel-1]);   // çekilen kişi o ana kadar kazandığı parayı alır
 }
 function millEnd(won, amount){
   millState="ended";
@@ -3249,8 +3252,8 @@ const SCRAMBLE_WORDS_DEFAULTS = [
 ];
 const SCRAMBLE_WORDS = [];
 qbLoadLocal(SCRAMBLE_WORDS, "scrWordsV1", SCRAMBLE_WORDS_DEFAULTS);
-let scrPool = [], scrCurrent = null;
-function scrRefill(){ if(SCRAMBLE_WORDS.length===0) return null; if(scrPool.length===0) scrPool.push(...shuffle(SCRAMBLE_WORDS)); return scrPool.pop(); }
+let scrPool = [], scrCurrent = null, scrDone = 0;
+function scrRefill(){ if(SCRAMBLE_WORDS.length===0 || scrPool.length===0) return null; return scrPool.pop(); }
 function scrambleWord(word){
   const letters = word.split("");
   let arr, tries=0;
@@ -3261,13 +3264,39 @@ document.getElementById("scrStartBtn").addEventListener("click", ()=>{
   if(SCRAMBLE_WORDS.length===0){ alert("Soruları Düzenle bölümünde hiç kelime yok. Önce Soruları Düzenle > Karışık Kelimeler bölümünden kelime ekleyin."); return; }
   document.getElementById("scrSetupBar").style.display="none";
   document.getElementById("scrField").style.display="block";
-  scrPool = shuffle(SCRAMBLE_WORDS);
+  scrPool = shuffle(SCRAMBLE_WORDS); scrDone = 0;
   scrNext();
 });
+/* Konfeti: ekranın ortasından patlar, 2,6 sn sonra kaybolur */
+function confettiBurst(opts){
+  opts = opts || {};
+  if(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const cv = document.createElement("canvas");
+  cv.style.cssText = "position:fixed;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:9800;";
+  const dpr = window.devicePixelRatio || 1, W = window.innerWidth, H = window.innerHeight;
+  cv.width = W*dpr; cv.height = H*dpr; document.body.appendChild(cv);
+  const ctx = cv.getContext("2d"); ctx.scale(dpr, dpr);
+  const colors = ["#FF5A5F","#FFB400","#2EB872","#4C7BEA","#9B5DE5","#F15BB5","#00BBF9"], N = opts.count || 150, ps = [];
+  for(let i=0;i<N;i++) ps.push({ x:W*(0.25 + 0.5*Math.random()), y:H*0.5, vx:(Math.random()-.5)*15, vy:-9-Math.random()*11, w:6+Math.random()*7, h:9+Math.random()*10, r:Math.random()*6, vr:(Math.random()-.5)*.4, c:colors[i%colors.length] });
+  const t0 = performance.now(), DUR = 2600;
+  (function frame(now){
+    const el = now - t0; ctx.clearRect(0, 0, W, H);
+    ps.forEach(p=>{ p.vy += 0.38; p.x += p.vx; p.y += p.vy; p.vx *= 0.99; p.r += p.vr; ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r); ctx.globalAlpha = Math.max(0, 1 - el/DUR); ctx.fillStyle = p.c; ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h); ctx.restore(); });
+    if(el < DUR) requestAnimationFrame(frame); else cv.remove();
+  })(t0);
+}
 function scrNext(){
   scrCurrent = scrRefill();
-  if(!scrCurrent){ document.getElementById("scrCard").innerHTML = '<div class="scramble-reveal">Bankada kelime kalmadı.</div>'; return; }
+  if(!scrCurrent){ scrFinish(); return; }
+  scrDone++;
   scrRenderWord();
+}
+function scrFinish(){
+  scrCurrent = null;
+  document.getElementById("scrCard").innerHTML = `<div class="scramble-reveal correct" style="font-size:clamp(1.4rem,3vw,2.2rem);">🏁 Oyun bitti!<br><small>${scrDone} kelime tamamlandı</small></div>`
+    + `<div style="display:flex;justify-content:center;margin-top:16px;"><button class="start-btn" id="scrAgainBtn" style="margin-left:0;">🔄 Tekrar Oyna</button></div>`;
+  document.getElementById("scrAgainBtn").addEventListener("click", ()=>{ scrPool = shuffle(SCRAMBLE_WORDS); scrDone = 0; scrNext(); });
+  confettiBurst({count:200});
 }
 function scrRenderWord(){
   const tiles = scrambleWord(scrCurrent.w).map(ch=>`<span class="scramble-tile">${qbEscape(ch)}</span>`).join("");
@@ -3279,7 +3308,7 @@ function scrRenderWord(){
     <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:14px;">
       <button class="preset" id="scrHintBtn">💡 İpucu</button>
       <button class="start-btn" id="scrShowBtn" style="margin-left:0;">✅ Cevabı Göster</button>
-      <button class="preset" id="scrNextBtn">➡️ Sıradaki Kelime</button>
+      <button class="preset" id="scrNextBtn">${scrPool.length===0 ? "🏁 Oyunu Bitir" : "➡️ Sıradaki Kelime"}</button>
     </div>`;
   document.getElementById("scrHintBtn").addEventListener("click", scrShowHint);
   document.getElementById("scrShowBtn").addEventListener("click", scrShowAnswer);
@@ -3299,8 +3328,10 @@ function scrShowHint(){
 }
 function scrShowAnswer(){
   const reveal = document.getElementById("scrReveal");
+  if(reveal.classList.contains("correct")) return;
   reveal.classList.add("correct");
   reveal.textContent = "Doğru cevap: " + scrCurrent.w;
+  SFX.play("scr_ok"); confettiBurst();
 }
 
 /* ================= 5) BEN KİMİM? ================= */
@@ -4255,7 +4286,30 @@ let penState = "setup", penGoals = {1:0,2:0}, penKicks = {1:[],2:[]}, penN = 5, 
 let penPool = [], penCur = null, penTimers = [];
 
 function penTeamName(t){ return t===1 ? "Mavi Takım" : "Kırmızı Takım"; }
-function penClearTimers(){ penTimers.forEach(clearTimeout); penTimers = []; }
+function penClearTimers(){ penTimers.forEach(clearTimeout); penTimers = []; penTimerStop(); }
+/* ---- 15 saniyelik atış süresi: süre dolunca atış kaçmış sayılır, sıra karşıya geçer ---- */
+const PEN_TIME = 15;
+let penTickId = 0;
+function penTimerStop(){ if(penTickId){ clearInterval(penTickId); penTickId = 0; } }
+function penTimerStart(){
+  penTimerStop();
+  const el = document.getElementById("penTimer"), num = document.getElementById("penTimerN");
+  if(!el || !num) return;
+  let left = PEN_TIME; num.textContent = left; el.classList.remove("low");
+  penTickId = setInterval(()=>{
+    if(penState !== "aiming"){ penTimerStop(); return; }
+    left--; num.textContent = Math.max(left, 0);
+    el.classList.toggle("low", left <= 5);
+    if(left <= 0){ penTimerStop(); penTimeout(); }
+  }, 1000);
+}
+function penTimeout(){
+  if(penState !== "aiming") return;
+  penState = "shot";
+  document.querySelectorAll("#penZones .pen-zone").forEach(z=>{ z.disabled = true; });
+  const hint = document.getElementById("penHint"); if(hint) hint.style.display = "none";
+  penResolve(-1, false, true);
+}
 function penLater(fn, ms){ penTimers.push(setTimeout(fn, ms)); }
 
 /* ---- skor tablosu ---- */
@@ -4345,15 +4399,16 @@ function penRender(){
   const zones = it.o.map((text,i)=>`<button type="button" class="pen-zone" data-i="${i}">${tf ? "" : `<span class="pen-zl">${QB_LETTERS[i]}</span>`}<span class="pen-zt">${qbEscape(text)}</span></button>`).join("");
   panel.innerHTML = `<div class="panel-head"><span>${t===1?"🔵":"🔴"} ${penTeamName(t)} penaltı atıyor</span><span class="whl-cat-tag" style="background:${tf?"#E58E0A":"#3B7DDD"}">${tf?"Doğru / Yanlış":"Çoktan Seçmeli"}</span></div>`
     + `<div class="question">${qbEscape(it.q)}</div>`
-    + `<div class="pen-stage" id="penStage"><div class="pen-goal" id="penGoal"><div class="pen-zones${tf?" tf":""}" id="penZones">${zones}</div></div>`
+    + `<div class="pen-stage" id="penStage"><div class="pen-timer" id="penTimer">⏱️ <b id="penTimerN">15</b> sn</div><div class="pen-goal" id="penGoal"><div class="pen-zones${tf?" tf":""}" id="penZones">${zones}</div></div>`
     + `<div class="pen-spot"></div><div class="pen-keeper" id="penKeeper" style="left:50%;top:32%"><div class="pk-arc">${PEN_KEEPER_SVG}</div></div>`
     + `<div class="pen-player" id="penPlayer">🏃</div><div class="pen-ball" id="penBall" style="left:50%;top:86%">⚽</div></div>`
     + `<div class="ord-hint" id="penHint">${tf ? "İfade doğruysa sol, yanlışsa sağ köşeye vurun." : "Doğru cevabın olduğu köşeye vurun!"}</div><div id="penResult"></div>`;
   panel.querySelectorAll(".pen-zone").forEach(z=>z.addEventListener("click", ()=>penShoot(parseInt(z.dataset.i, 10))));
+  penTimerStart();
 }
 function penShoot(i){
   if(penState !== "aiming") return;
-  penState = "shot";
+  penState = "shot"; penTimerStop();
   const it = penCur, n = it.o.length, ok = (i === it.c), pos = penZonePos(n);
   let kz = i;
   if(ok){                                   // gol: kaleci başka bir köşeye uçar
@@ -4377,7 +4432,7 @@ function penShoot(i){
   if(!ok) penLater(()=>{ ball.classList.add("caught"); }, 680);
   penLater(()=>penResolve(i, ok), 950);
 }
-function penResolve(i, ok){
+function penResolve(i, ok, timedOut){
   if(penState !== "shot") return;
   penState = "result";
   const it = penCur, tf = it.o.length === 2, t = penTeam;
@@ -4386,10 +4441,10 @@ function penResolve(i, ok){
   if(!ok && zones[it.c]) zones[it.c].classList.add("reveal");
   penKicks[t].push(ok); if(ok) penGoals[t]++;
   if(ok){ const g = document.getElementById("penGoal"); if(g) g.classList.add("net"); }
-  SFX.play(ok ? "pen_goal" : "pen_save");
+  sfxPlayGroup(ok ? "goal" : "miss");
   penUpdateBoard();
   const ans = tf ? qbEscape(it.o[it.c]) : (QB_LETTERS[it.c] + ") " + qbEscape(it.o[it.c]));
-  let html = `<div class="pen-banner ${ok?"ok":"bad"}">${ok ? "⚽ GOOOL!" : "🧤 Kaleci kurtardı!"}</div>`;
+  let html = `<div class="pen-banner ${ok?"ok":"bad"}">${ok ? "⚽ GOOOL!" : (timedOut ? "⏱️ Süre doldu!" : "🧤 Kaleci kurtardı!")}</div>`;
   if(!ok) html += `<div class="pen-ans">Doğru cevap: <b>${ans}</b></div>`;
   const w = penWinner();
   const res = document.getElementById("penResult"); res.innerHTML = html;
@@ -4412,7 +4467,7 @@ function penEnd(winner){
 }
 function penReset(){
   penClearTimers();
-  ["pen_start","pen_goal","pen_save","pen_end"].forEach(id=>SFX.stop(id, 0.1));
+  ["pen_start","pen_goal","pen_goal2","pen_goal3","pen_goal4","pen_goal5","pen_save","pen_save2","pen_save3","pen_save4","pen_save5","pen_end"].forEach(id=>SFX.stop(id, 0.1));
   document.getElementById("overlayPen").classList.remove("show");
   penState = "setup"; penGoals = {1:0,2:0}; penKicks = {1:[],2:[]}; penTeam = 1; penCur = null; penPool = [];
   document.getElementById("penSetupBar").style.display = "flex";
@@ -4430,11 +4485,38 @@ function penFormToggle(sel){
 
 
 /* ================= SES MOTORU (düdük, taraftar, çark, halat + cihazdan ses yükleme) ================= */
+const SFX_GROUPS = {
+  goal:["pen_goal","pen_goal2","pen_goal3","pen_goal4","pen_goal5"],
+  miss:["pen_save","pen_save2","pen_save3","pen_save4","pen_save5"]
+};
+const sfxBag = {}, sfxLast = {};
+/* Gruptaki sesleri sırayla karıştırarak çalar; aynı ses art arda gelmez. */
+function sfxPlayGroup(name){
+  const list = SFX_GROUPS[name]; if(!list) return null;
+  const bag = sfxBag[name] || (sfxBag[name] = []);
+  if(!bag.length){
+    bag.push(...shuffle(list));
+    if(bag.length > 1 && bag[bag.length-1] === sfxLast[name]){ bag.unshift(bag.pop()); }
+  }
+  const id = bag.pop(); sfxLast[name] = id;
+  return SFX.play(id);
+}
 const SFX_SLOTS = [
   {id:"pen_start", game:"⚽ Penaltı", label:"Maç başlangıç düdüğü", loop:false},
-  {id:"pen_goal",  game:"⚽ Penaltı", label:"Gol olunca (GOOOL)", loop:false},
-  {id:"pen_save",  game:"⚽ Penaltı", label:"Gol kaçınca (Aaaa)", loop:false},
+  {id:"pen_goal",  game:"⚽ Penaltı", label:"Gol olunca 1 (GOOOL)", loop:false},
+  {id:"pen_save",  game:"⚽ Penaltı", label:"Gol kaçınca 1 (Aaaa)", loop:false},
   {id:"pen_end",   game:"⚽ Penaltı", label:"Maç sonu düdüğü", loop:false},
+  {id:"pen_goal2", game:"⚽ Penaltı", label:"Gol olunca 2 (fanfar)", loop:false},
+  {id:"pen_goal3", game:"⚽ Penaltı", label:"Gol olunca 3 (korna)", loop:false},
+  {id:"pen_goal4", game:"⚽ Penaltı", label:"Gol olunca 4 (çan)", loop:false},
+  {id:"pen_goal5", game:"⚽ Penaltı", label:"Gol olunca 5 (davul ve zil)", loop:false},
+  {id:"pen_save2", game:"⚽ Penaltı", label:"Gol kaçınca 2 (üzgün trombon)", loop:false},
+  {id:"pen_save3", game:"⚽ Penaltı", label:"Gol kaçınca 3 (hata zili)", loop:false},
+  {id:"pen_save4", game:"⚽ Penaltı", label:"Gol kaçınca 4 (vah vah)", loop:false},
+  {id:"pen_save5", game:"⚽ Penaltı", label:"Gol kaçınca 5 (düşüş)", loop:false},
+  {id:"scr_ok",    game:"🔤 Karışık Kelimeler", label:"Doğru cevap bulununca", loop:false},
+  {id:"sw_ok",     game:"🃏 Doğru/Yanlış Kartları", label:"Doğru cevap", loop:false},
+  {id:"sw_bad",    game:"🃏 Doğru/Yanlış Kartları", label:"Yanlış cevap", loop:false},
   {id:"whl_spin",  game:"🎡 Çarkıfelek", label:"Çark dönerken", loop:true},
   {id:"tug_loop",  game:"🪢 Halat Çekme", label:"Heyecan sesi (oyun boyunca)", loop:true},
   {id:"tug_end",   game:"🪢 Halat Çekme", label:"Oyun bitiş sesi", loop:false}
@@ -4701,6 +4783,46 @@ const SFX = {
         amp:[[0.08,a],[0.95,a*0.85],[1.5,0.0001]]});
       sh(1, 0.02, 0.55); sh(1.1, 0.06, 0.3); sh(0.9, 0.09, 0.3);
       this.swell(h, t, 1.5, 0.2, 800, 260);
+    } else if(id === "pen_goal2"){        // fanfar: yükselen trompet + alkış
+      [523.25, 659.25, 783.99, 1046.5].forEach((f,i)=>{ const a = t + i*0.13; this.osc(h, "sawtooth", f, a, a + 0.45, 0.14); this.osc(h, "square", f*2, a, a + 0.45, 0.035); });
+      this.osc(h, "sawtooth", 1046.5, t + 0.55, t + 1.6, 0.16); this.osc(h, "sawtooth", 1318.5, t + 0.55, t + 1.6, 0.11);
+      this.swell(h, t + 0.3, 2.2, 0.28, 900, 2200);
+    } else if(id === "pen_goal3"){        // korna (air horn) + tribün
+      [466.16, 587.33, 698.46].forEach(f=>{ this.osc(h, "sawtooth", f, t, t + 0.55, 0.12); this.osc(h, "sawtooth", f*1.012, t, t + 0.55, 0.09); this.osc(h, "sawtooth", f, t + 0.7, t + 1.5, 0.12); this.osc(h, "sawtooth", f*1.012, t + 0.7, t + 1.5, 0.09); });
+      this.swell(h, t + 0.1, 2.3, 0.26, 700, 1800);
+    } else if(id === "pen_goal4"){        // parıltılı çan arpejı + tribün
+      [1046.5, 1318.5, 1568, 2093, 1568, 2093].forEach((f,i)=>{ const a = t + i*0.11; this.osc(h, "sine", f, a, a + 0.9, 0.13); this.osc(h, "sine", f*2.76, a, a + 0.5, 0.04); });
+      this.swell(h, t + 0.2, 2.2, 0.24, 800, 2600);
+    } else if(id === "pen_goal5"){        // davul yuvarlanması + zil + tribün
+      for(let k=0;k<10;k++) this.drum(h, t + k*0.075, "snare", 0.25 + k*0.04);
+      this.drum(h, t + 0.8, "kick", 1);
+      const n = c.createBufferSource(); n.buffer = this.noiseBuf(1.4, "white");
+      const hp = c.createBiquadFilter(); hp.type = "highpass"; hp.frequency.value = 5500;
+      const gg = c.createGain(); gg.gain.setValueAtTime(0.0001, t + 0.8); gg.gain.linearRampToValueAtTime(0.45, t + 0.82); gg.gain.exponentialRampToValueAtTime(0.0001, t + 2.2);
+      n.connect(hp); hp.connect(gg); gg.connect(h.master); n.start(t + 0.8); n.stop(t + 2.3);
+      h.stops.push(()=>{ try{ n.stop(); }catch(e){} });
+      this.swell(h, t + 0.7, 2.0, 0.26, 800, 2200);
+    } else if(id === "pen_save2"){        // üzgün trombon
+      [[311.13, 0, 0.45], [293.66, 0.45, 0.9], [277.18, 0.9, 1.35]].forEach(k=>{ this.osc(h, "sawtooth", k[0], t + k[1], t + k[2], 0.15); });
+      const r = this.osc(h, "sawtooth", 261.63, t + 1.35, t + 2.5, 0.15); r.o.frequency.linearRampToValueAtTime(233, t + 2.5);
+      this.swell(h, t, 1.6, 0.14, 600, 250);
+    } else if(id === "pen_save3"){        // hata zili (buzzer) + homurtu
+      this.osc(h, "square", 150, t, t + 0.5, 0.18); this.osc(h, "square", 118, t + 0.6, t + 1.35, 0.18);
+      this.swell(h, t, 1.6, 0.2, 600, 240);
+    } else if(id === "pen_save4"){        // vah vah vah
+      [392, 349.23, 311.13].forEach((f,i)=>{ const a = t + i*0.5, r = this.osc(h, "triangle", f, a, a + 0.45, 0.22); r.o.frequency.linearRampToValueAtTime(f*0.9, a + 0.45); });
+      const r2 = this.osc(h, "triangle", 261.63, t + 1.5, t + 2.7, 0.22); r2.o.frequency.linearRampToValueAtTime(196, t + 2.7);
+    } else if(id === "pen_save5"){        // düşüş: boing + gümbürtü
+      const r = this.osc(h, "sine", 900, t, t + 0.9, 0.24); r.o.frequency.exponentialRampToValueAtTime(110, t + 0.9);
+      this.drum(h, t + 0.95, "kick", 1);
+      this.swell(h, t + 0.4, 1.4, 0.16, 500, 200);
+    } else if(id === "scr_ok"){           // kutlama: yükselen çan + parıltı
+      [659.25, 830.61, 987.77, 1318.5, 1661.2].forEach((f,i)=>{ const a = t + i*0.09; this.osc(h, "sine", f, a, a + 0.7, 0.13); this.osc(h, "sine", f*2, a, a + 0.35, 0.04); });
+      this.swell(h, t + 0.1, 1.6, 0.2, 1200, 3000);
+    } else if(id === "sw_ok"){            // ding
+      this.osc(h, "sine", 1318.5, t, t + 0.5, 0.2); this.osc(h, "sine", 1975.5, t + 0.07, t + 0.6, 0.1);
+    } else if(id === "sw_bad"){           // bzzt
+      this.osc(h, "square", 110, t, t + 0.2, 0.17); this.osc(h, "square", 92, t + 0.24, t + 0.65, 0.17);
     } else if(id === "whl_spin"){
       const D = (opts.dur || 4600)/1000, N = opts.ticks || 46;
       for(let k=1;k<=N;k++){
@@ -5035,6 +5157,7 @@ function swAnswer(choice){
   if(swBusy || swIdx >= swDeck.length) return;
   swBusy = true;
   const it = swDeck[swIdx], ok = (choice === it.c);
+  SFX.play(ok ? "sw_ok" : "sw_bad");
   const card = document.getElementById("swCard"), stage = document.getElementById("swStage"), stamp = document.getElementById("swStamp"), fb = document.getElementById("swFb");
   const dir = choice === 0 ? 1 : -1;
   stamp.textContent = choice === 0 ? "DOĞRU" : "YANLIŞ"; stamp.className = "sw-stamp " + (choice === 0 ? "yes" : "no"); stamp.style.opacity = 1;
@@ -6260,13 +6383,14 @@ function unitCtxUpdate(){
     if(!el){ el = document.createElement("div"); el.className = "unit-ctx"; wrap.insertBefore(el, wrap.querySelector(".game-title")); }
     if(label){
       el.style.display = "flex";
-      el.innerHTML = '<span>📚 '+qbEscape(label)+'</span><button type="button" class="unit-ctx-back">↩ Üniteye dön</button>';
+      el.innerHTML = '<span>📚 '+qbEscape(label)+'</span><button type="button" class="unit-ctx-back">'+(unitBackTo==="reader" ? "← Sunuma dön" : "↩ Üniteye dön")+'</button>';
       el.querySelector("button").onclick = unitGoBack;
     } else { el.style.display = "none"; el.innerHTML = ""; }
   });
 }
 let unitBackTo = "classes";
 function unitGoBack(){
+  if(unitBackTo === "reader" && slReturn){ slReturnToReader(); return; }
   unitLaunch = false;
   if(unitBackTo === "sorxadd"){ showView("sorxadd"); }
   else { sinifKeepNav = true; showView("classes"); }
@@ -6535,8 +6659,7 @@ function sinifRender(){
           + '<div class="act-buttons"><button class="act-play" data-act="eplay" data-game="'+g.id+'">▶ Oyna</button></div></div>';
       });
       html += '</div>';
-    }
-    if(unitTotal(un.id)>0){
+    } else if(unitTotal(un.id)>0){
       const gr = sinifActGrid(un.id);
       html += '<div class="sinif-section-title" style="margin-top:22px;">🎮 Etkinlikler — '+qbEscape(un.name)+'</div>'+UNIT_QUICK_BTN+gr.html;
     }
@@ -6558,7 +6681,7 @@ function sinifRender(){
 }
 
 /* ================= SORX: FİLTRELİ GÖRÜNÜM (Sınıf › Ders › Ünite › Alt Başlık › İçerik) ================= */
-function sxNorm(x){ return String(x||"").toLocaleLowerCase("tr-TR").replace(/â/g,"a").replace(/î/g,"i").replace(/û/g,"u").replace(/[^a-z0-9çğıöşü]/g, ""); }
+function sxNorm(x){ return String(x||"").toLocaleLowerCase("tr-TR").replace(/[^a-z0-9çğıöşüâîû]/g, ""); }
 function sxUnitNo(x){ const m = /(\d+)\s*\.?\s*ünite/i.exec(String(x||"")); return m ? m[1] : null; }
 /* Kitap / sunum ağaçları ayrı tutulduğu için sınıf, ders ve ünite adına göre eşleştirilir. */
 function sxLibUnit(sec, cl, co, u){
@@ -6760,10 +6883,9 @@ async function swiBase(srcId, g){
   let arr = null;
   if(firebaseHazir){
     const snap = await Promise.race([ fbDb.ref("dkabSorXQB/"+key).once("value"), new Promise((_,rej)=>setTimeout(()=>rej(new Error("zaman aşımı")), 8000)) ]);
-    const v = snap.val(); arr = (Array.isArray(v) && v.length) ? v : [];   // bulut cevap verdiyse tek doğru kaynak odur (silinmişse boş)
-  } else {
-    try{ const a = JSON.parse(localStorage.getItem(key)); if(Array.isArray(a) && a.length) arr = a; }catch(e){}
+    const v = snap.val(); if(Array.isArray(v) && v.length) arr = v;
   }
+  if(!arr){ try{ const a = JSON.parse(localStorage.getItem(key)); if(Array.isArray(a) && a.length) arr = a; }catch(e){} }
   if(!arr) arr = JSON.parse(JSON.stringify((UNIT_DEFAULTS[srcId] && UNIT_DEFAULTS[srcId][g]) || []));
   return arr;
 }
@@ -7571,7 +7693,7 @@ async function pdfOpen(blob, key){
     zoomer = {stage:v.stage, box:()=>v.box, mult:()=>v.mult, set:(m, a)=>pdfSetZoom(v, m, a)};
     bindZoomGestures(v.stage, zoomer);
     pdfLayoutBox(v, pdfInfo(v, 1)); v.box.dataset.n = 1;
-    await pdfShow(v, 1);
+    await pdfShow(v, slTakePending(1, v.n));
   }catch(e){
     console.warn("PDF açılamadı", e);
     if(!v.dead) pdfError();
@@ -7865,6 +7987,8 @@ async function pptxOpen(blob, key){
       mountInk();
     };
     ink.cur = ()=>cur; ink.goto = (k)=>show(k); ink.redraw = ()=>mountInk();
+    ink.count = N;
+    ink.titleOf = async (k)=>{ try{ await deck.ensure(k); const sd = deck.slides[k]; if(!sd) return ""; const d = document.createElement("div"); d.innerHTML = sd.html; return (d.textContent||"").replace(/\s+/g," ").trim().slice(0,60); }catch(e){ return ""; } };
     slideRefit = ()=>{
       const k = Math.max(0.05, Math.min((stage.clientWidth-24)/deck.w, (stage.clientHeight-24)/deck.h)) * mult;
       box.style.width = deck.w*k+"px"; box.style.height = deck.h*k+"px"; sl.style.transform = "scale("+k+")";
@@ -7897,7 +8021,7 @@ async function pptxOpen(blob, key){
       if(Math.abs(dx)>50 && Math.abs(dx)>Math.abs(dy)*1.5){ e.preventDefault(); show(dx<0 ? cur+1 : cur-1); }
     });
     inkSetTool(ink, "hand");
-    show(0); slideRefit();
+    show(slTakePending(0, N-1)); slideRefit();
   }catch(e){
     if(tk===officeTok){
       document.getElementById("libReader").classList.remove("pptxmode");
@@ -8133,6 +8257,211 @@ async function pptxRender(zip){
   return deck;
 }
 
+/* ================= SLAYTTAN OYUNA GEÇİŞ ================= */
+const SL_PATH = "dkabSorXSlideGames/";
+let slCtx = null, slMarks = [], slReturn = null, slPending = null, slSchedT = 0, slDlgSt = null;
+function slTakePending(lo, hi){ const p = slPending; slPending = null; return (typeof p === "number" && p >= lo && p <= hi) ? p : lo; }
+function slLibNames(sec, lunit){
+  const d = libData[sec]; if(!d) return null;
+  for(const cl of d.classes) for(const co of cl.courses) for(const un of co.units) if(un.id===lunit) return {cl:cl, co:co, un:un};
+  return null;
+}
+function slBegin(sec, unitId, it, kind){
+  slCtx = null; slMarks = [];
+  if(kind!=="pdf" && kind!=="pptx") return;
+  const nm = slLibNames(sec, unitId);
+  const unitKey = nm ? (sxUnitNo(nm.un.name) ? "u"+sxUnitNo(nm.un.name) : sxNorm(nm.un.name)) : unitId;
+  const v = document.querySelector(".view.active");
+  slCtx = {
+    sec:sec, lunit:unitId, resId:it.id, kind:kind, fileName:it.fileName||it.title||"",
+    key:[sec, nm ? nm.cl.name : "", unitKey, it.fileName||it.title||""].map(sxNorm).join("_").slice(0,240),
+    names: nm ? {cls:nm.cl.name, course:nm.co.name, unit:nm.un.name} : null,
+    from: v ? v.id.replace(/^view-/,"") : "classes"
+  };
+  const ctx = slCtx;
+  slLoad(ctx).then(m=>{ if(slCtx!==ctx) return; slMarks = m; slRefresh(); slRelocate(ctx); });
+  slRefresh();
+}
+function slEnd(){ slCtx = null; slMarks = []; slRefresh(); }
+async function slLoad(ctx){
+  let data = null;
+  try{
+    if(firebaseHazir){
+      const snap = await Promise.race([ fbDb.ref(SL_PATH+ctx.key).once("value"), new Promise((_,rej)=>setTimeout(()=>rej(new Error("t")), 6000)) ]);
+      data = snap.val();
+    }
+  }catch(e){}
+  if(!data){ try{ data = JSON.parse(localStorage.getItem("slideGames:"+ctx.key)); }catch(e){} }
+  return (data && Array.isArray(data.marks)) ? data.marks : [];
+}
+async function slSave(){
+  const ctx = slCtx; if(!ctx) return false;
+  const data = { marks: slMarks };
+  try{ localStorage.setItem("slideGames:"+ctx.key, JSON.stringify(data)); }catch(e){}
+  if(!firebaseHazir) return true;
+  try{
+    await Promise.race([ slMarks.length ? fbDb.ref(SL_PATH+ctx.key).set(data) : fbDb.ref(SL_PATH+ctx.key).remove(), new Promise((_,rej)=>setTimeout(()=>rej(new Error("t")), 8000)) ]);
+    return true;
+  }catch(e){ return false; }
+}
+function slCur(){ return (inkSess && typeof inkSess.cur === "function") ? inkSess.cur() : -1; }
+function slShowNo(c){ return slCtx && slCtx.kind==="pdf" ? c : c+1; }
+function slGameName(id){ const g = UNIT_GAMES.find(x=>x.id===id); return g ? g.name : id; }
+function slRefresh(){
+  const g = document.getElementById("slGame"), mk = document.getElementById("lrMark");
+  if(!g || !mk) return;
+  if(!slCtx || !inkSess || typeof inkSess.cur !== "function"){ g.hidden = true; mk.hidden = true; return; }
+  const c = slCur(), m = slMarks.find(x=>x.no===c);
+  mk.hidden = Auth.readOnly(); mk.classList.toggle("on", !!m);
+  if(m){ g.hidden = false; g.textContent = "🎮 " + slGameName(m.game) + " Oyna"; } else g.hidden = true;
+}
+function slSched(){ if(slSchedT) return; slSchedT = requestAnimationFrame(()=>{ slSchedT = 0; slRefresh(); }); }
+(function slInit(){
+  const body = document.getElementById("lrBody"), ind = document.getElementById("lrPageInd");
+  try{
+    const mo = new MutationObserver(slSched);
+    if(body) mo.observe(body, {childList:true, subtree:true, characterData:true});
+    if(ind) mo.observe(ind, {childList:true, subtree:true, characterData:true});
+  }catch(e){}
+  document.getElementById("slGame").addEventListener("click", ()=> slPlay());
+  document.getElementById("lrMark").addEventListener("click", ()=> slOpenDlg());
+})();
+async function slRelocate(ctx){
+  // Sunum yeniden yüklendiğinde slayt sırası kaymış olabilir: kayıtlı başlığa göre slaytı bul
+  for(let i=0; i<25 && slCtx===ctx && !(inkSess && inkSess.titleOf); i++) await new Promise(r=>setTimeout(r, 250));
+  if(slCtx!==ctx || !inkSess || !inkSess.titleOf) return;
+  let changed = false;
+  for(const m of slMarks){
+    if(!m.title) continue;
+    if((await inkSess.titleOf(m.no)) === m.title) continue;
+    const N = inkSess.count; let best = -1;
+    for(let d=1; d<N && best<0; d++){
+      for(const k of [m.no-d, m.no+d]){
+        if(slCtx!==ctx || !inkSess) return;
+        if(k<0 || k>=N) continue;
+        if((await inkSess.titleOf(k)) === m.title){ best = k; break; }
+      }
+    }
+    if(best>=0){ m.no = best; changed = true; }
+  }
+  if(changed && slCtx===ctx){ if(!Auth.readOnly()) slSave(); slRefresh(); }
+}
+function slToast(msg){
+  const t = document.createElement("div"); t.className = "sl-toast"; t.textContent = msg; document.body.appendChild(t);
+  setTimeout(()=>t.remove(), 3500);
+}
+/* işaretin ünite / alt başlığını bul: önce kimlikle, olmazsa adla */
+function slFind(cn, con, un, tn, ids){
+  const cls = sinifData.classes;
+  let cl = ids && cls.find(c=>c.id===ids.cl) || null;
+  if(!cl && cn){ const nm = /(\d+)/.exec(cn); cl = cls.find(c=>sxNorm(c.name)===sxNorm(cn)) || (nm ? cls.find(c=>{ const m = /(\d+)/.exec(c.name); return m && m[1]===nm[1]; }) : null) || null; }
+  if(!cl) return null;
+  let co = ids && cl.courses.find(c=>c.id===ids.co) || null;
+  if(!co && con) co = cl.courses.find(c=>sxNorm(c.name).includes(sxNorm(con)) || sxNorm(con).includes(sxNorm(c.name))) || null;
+  if(!co && cl.courses.length===1) co = cl.courses[0];
+  if(!co) return null;
+  let u = ids && co.units.find(x=>x.id===ids.un) || null;
+  if(!u && un){ const no = sxUnitNo(un); u = co.units.find(x=>sxNorm(x.name)===sxNorm(un)) || (no ? co.units.find(x=>sxUnitNo(x.name)===no) : null) || null; }
+  if(!u) return {cl:cl, co:co, un:null, tp:null};
+  let tp = ids && ids.tp ? (u.topics||[]).find(x=>x.id===ids.tp) || null : null;
+  if(!tp && tn){ const t = sxNorm(tn); tp = (u.topics||[]).find(x=>sxNorm(x.name)===t) || null; }
+  return {cl:cl, co:co, un:u, tp:tp};
+}
+function slTarget(m){ const r = slFind(m.cls, null, m.unit, m.topic, {cl:m.classId, co:m.courseId, un:m.unitId, tp:m.topicId}); return (r && r.un) ? r : null; }
+function slCurMark(){ return slMarks.find(x=>x.no===slCur()) || null; }
+async function slPlay(){
+  const m = slCurMark(); if(!m || !slCtx) return;
+  const t = slTarget(m);
+  if(!t){ slToast("Bu işaretin ünitesi bulunamadı. Yönetici hesabında 📌 ile işareti yeniden ayarlayın."); return; }
+  const g = m.game, topics = t.un.topics || [];
+  const ids = t.tp ? [t.tp.id] : (topics.length ? [t.un.id].concat(topics.map(x=>x.id)) : [t.un.id]);
+  const n = ids.reduce((sum,id)=>sum+unitCount(id, g), 0);
+  if(!n){ slToast("Bu "+(t.tp ? "başlıkta" : "ünitede")+" henüz soru yok ("+slGameName(g)+")."); return; }
+  slReturn = { sec:slCtx.sec, lunit:slCtx.lunit, resId:slCtx.resId, slide:slCur(), from:slCtx.from };
+  libReaderClose();
+  sinifNav = { classId:t.cl.id, courseId:t.co.id, unitId:t.un.id, topicId:t.tp ? t.tp.id : null };
+  try{
+    if(t.tp || !topics.length) unitOpen(g, false); else await unitOpenEval(g);
+  }catch(e){ console.error(e); }
+  unitBackTo = "reader"; unitCtxUpdate();
+}
+function slReturnToReader(){
+  const r = slReturn; slReturn = null; unitLaunch = false; unitBackTo = "classes";
+  if(!r) return;
+  slPending = r.slide;
+  const ok = ["classes","sunum","kitap"].includes(r.from) ? r.from : "classes";
+  sinifKeepNav = true; showView(ok);
+  resOpen(r.sec, r.lunit, r.resId, false);
+}
+function slBackHook(){
+  if(unitBackTo==="reader" && slReturn && qbSource){ unitGoBack(); return true; }
+  return false;
+}
+/* ---- 📌 işaretleme penceresi (yönetici) ---- */
+function slFill(sel, arr, selId, ph){
+  sel.innerHTML = '<option value="">'+ph+'</option>' + arr.map(x=>'<option value="'+x.id+'"'+(x.id===selId?" selected":"")+'>'+qbEscape(x.name)+'</option>').join("");
+}
+function slDlg(){
+  let o = document.getElementById("overlaySl"); if(o) return o;
+  o = document.createElement("div"); o.className = "overlay"; o.id = "overlaySl"; o.style.zIndex = "20000";
+  o.innerHTML = '<div class="win-card sl-card"><h2 style="margin:0 0 4px">📌 Slayda oyun ekle</h2><div class="sl-info" id="slInfo"></div>'
+    + '<label class="sl-lbl">Oyun<select id="slGameSel"></select></label>'
+    + '<label class="sl-lbl">Sınıf<select id="slClsSel"></select></label>'
+    + '<label class="sl-lbl">Ders<select id="slCoSel"></select></label>'
+    + '<label class="sl-lbl">Ünite<select id="slUnSel"></select></label>'
+    + '<label class="sl-lbl">Alt başlık (isteğe bağlı)<select id="slTpSel"></select></label>'
+    + '<div class="swi-actions"><button type="button" class="start-btn" id="slSaveBtn" style="margin-left:0">💾 Kaydet</button><button type="button" class="preset" id="slDelBtn">🗑️ Kaldır</button><button type="button" class="preset" id="slCancelBtn">Kapat</button></div></div>';
+  document.body.appendChild(o);
+  const $ = id=>o.querySelector("#"+id);
+  const cl = ()=>sinifData.classes.find(c=>c.id===$("slClsSel").value) || null;
+  const co = ()=>{ const c = cl(); return c ? (c.courses.find(x=>x.id===$("slCoSel").value) || null) : null; };
+  const un = ()=>{ const c = co(); return c ? (c.units.find(x=>x.id===$("slUnSel").value) || null) : null; };
+  const fillCo = ()=>{ const c = cl(); slFill($("slCoSel"), c ? c.courses : [], c && c.courses.length===1 ? c.courses[0].id : "", "Ders seçin"); fillUn(); };
+  const fillUn = ()=>{ const c = co(); slFill($("slUnSel"), c ? c.units : [], "", "Ünite seçin"); fillTp(); };
+  const fillTp = ()=>{ const u = un(); slFill($("slTpSel"), u ? (u.topics||[]) : [], "", "Tüm başlıklar (ünite genel)"); };
+  $("slClsSel").addEventListener("change", fillCo);
+  $("slCoSel").addEventListener("change", fillUn);
+  $("slUnSel").addEventListener("change", fillTp);
+  $("slCancelBtn").addEventListener("click", ()=> o.classList.remove("show"));
+  $("slDelBtn").addEventListener("click", async ()=>{
+    if(!slDlgSt) return;
+    slMarks = slMarks.filter(x=>x.no!==slDlgSt.cur);
+    o.classList.remove("show"); slRefresh();
+    if(!(await slSave())) slToast("Bu cihaza kaydedildi ama buluta yazılamadı; diğer cihazlarda görünmeyebilir.");
+  });
+  $("slSaveBtn").addEventListener("click", async ()=>{
+    if(!slDlgSt || !slCtx) return;
+    const game = $("slGameSel").value, c = cl(), k = co(), u = un();
+    if(!game){ slToast("Önce oyunu seçin."); return; }
+    if(!c || !k || !u){ slToast("Sınıf, ders ve üniteyi seçin."); return; }
+    const t = (u.topics||[]).find(x=>x.id===$("slTpSel").value) || null;
+    const mark = { no:slDlgSt.cur, title:slDlgSt.title||"", game:game, cls:c.name, unit:u.name, topic:t ? t.name : "", classId:c.id, courseId:k.id, unitId:u.id, topicId:t ? t.id : "" };
+    slMarks = slMarks.filter(x=>x.no!==mark.no).concat([mark]);
+    o.classList.remove("show"); slRefresh();
+    slToast(await slSave() ? "✅ Slayda oyun eklendi." : "Bu cihaza kaydedildi ama buluta yazılamadı; diğer cihazlarda görünmeyebilir.");
+  });
+  return o;
+}
+async function slOpenDlg(){
+  if(!slCtx || !inkSess) return;
+  const o = slDlg(), $ = id=>o.querySelector("#"+id);
+  const cur = slCur();
+  const title = inkSess.titleOf ? await inkSess.titleOf(cur) : "";
+  const m = slMarks.find(x=>x.no===cur) || null;
+  slDlgSt = { cur:cur, title:title };
+  $("slInfo").textContent = "Slayt " + slShowNo(cur) + (title ? " — " + title : "");
+  slFill($("slGameSel"), UNIT_GAMES.map(g=>({id:g.id, name:g.icon+" "+g.name})), m ? m.game : "", "Oyun seçin");
+  const nm = slCtx.names;
+  const f = m ? slFind(m.cls, null, m.unit, m.topic, {cl:m.classId, co:m.courseId, un:m.unitId, tp:m.topicId})
+              : (nm ? slFind(nm.cls, nm.course, nm.unit, null, null) : null);
+  slFill($("slClsSel"), sinifData.classes, f && f.cl ? f.cl.id : "", "Sınıf seçin");
+  const c = f && f.cl;
+  slFill($("slCoSel"), c ? c.courses : [], f && f.co ? f.co.id : "", "Ders seçin");
+  slFill($("slUnSel"), f && f.co ? f.co.units : [], f && f.un ? f.un.id : "", "Ünite seçin");
+  slFill($("slTpSel"), f && f.un ? (f.un.topics||[]) : [], f && f.tp ? f.tp.id : "", "Tüm başlıklar (ünite genel)");
+  $("slDelBtn").style.display = m ? "" : "none";
+  o.classList.add("show");
+}
 function libReaderOpen(title, blob, kind, fileName){
   libReaderClose(true);
   const url = URL.createObjectURL(blob);
@@ -8153,6 +8482,7 @@ function libReaderOpen(title, blob, kind, fileName){
   else if(kind==="legacy") officeMsg(/\.pp[ts]$/i.test(fileName||"") ? "📊" : "📝", "Bu dosya eski Office biçiminde (.doc / .ppt) olduğu için uygulama içinde gösterilemiyor. Word ya da PowerPoint’te “.docx / .pptx” olarak kaydedip yeniden ekleyin.", true);
 }
 function libReaderClose(silent){
+  slEnd();
   officeTok++; slideRefit = null; slideGo = null;
   if(inkSess){ inkSess.dead = true; inkSess = null; }
   zoomer = null;
@@ -8172,7 +8502,45 @@ function libReaderDownload(){
 let zoomer = null, zgLast = 0, zgSane = false;
 const zgRecent = ()=>performance.now() - zgLast < 450;
 const ZG_PINCH = false;   // İki parmakla büyütme KAPALI (tahtalardaki sahte dokunuşlar sorun çıkarıyordu). true yapılırsa yeniden açılır.
+/* El aracıyla tek parmak taşırken tahtanın sahte/titrek dokunuşları sunumu aniden kaydırmasın */
+function bindScrollGuard(stage, z){
+  const DEAD = 10, GHOST = 100;                      // titreme eşiği (px), tek karede "ışınlanma" eşiği (px)
+  let g = null;
+  const active = ()=> z.mult() > 1.001 && inkSess && inkSess.tool === "hand";
+  stage.addEventListener("touchstart", (e)=>{
+    if(e.touches.length !== 1 || !active()){ g = null; return; }
+    const t = e.touches[0];
+    g = { x:t.clientX, y:t.clientY, sl:stage.scrollLeft, st:stage.scrollTop, moved:false, t:performance.now() };
+  }, {passive:true});
+  stage.addEventListener("touchmove", (e)=>{
+    if(!g) return;
+    if(e.touches.length !== 1){ g = null; return; }
+    if(g.moved) return;                              // gerçek taşıma başladı: tarayıcının kaydırması devam eder
+    const t = e.touches[0], dist = Math.hypot(t.clientX-g.x, t.clientY-g.y);
+    if(dist < DEAD){                                 // titreme: kaydırma sayılmaz
+      if(e.cancelable) e.preventDefault();
+      stage.scrollLeft = g.sl; stage.scrollTop = g.st;
+      return;
+    }
+    if(performance.now() - g.t < 150 && dist > GHOST){   // dokunur dokunmaz çok uzağa atlama: sürücü hatası, yeni başlangıç say
+      if(e.cancelable) e.preventDefault();
+      g.x = t.clientX; g.y = t.clientY; g.sl = stage.scrollLeft; g.st = stage.scrollTop; g.t = performance.now();
+      stage.scrollLeft = g.sl; stage.scrollTop = g.st;
+      return;
+    }
+    g.moved = true;
+  }, {passive:false});
+  stage.addEventListener("scroll", ()=>{               // parmak oynamadığı hâlde sayfa kaydıysa geri al
+    if(!g || g.moved) return;
+    if(Math.abs(stage.scrollLeft - g.sl) > 3) stage.scrollLeft = g.sl;
+    if(Math.abs(stage.scrollTop - g.st) > 3) stage.scrollTop = g.st;
+  });
+  const end = ()=>{ g = null; };
+  stage.addEventListener("touchend", end, {passive:true});
+  stage.addEventListener("touchcancel", end, {passive:true});
+}
 function bindZoomGestures(stage, z){
+  bindScrollGuard(stage, z);
   const ptrs = new Map(), cands = new Map();
   let pinch = null, pan = null;
   const now = ()=>performance.now();
@@ -8396,13 +8764,23 @@ function inkDown(o, ic, e){
     }
     if(removed.length) inkRedraw(ic, o.w, list);
   };
+  const isLine = s.tool==="line", start = last.slice();
   if(s.tool==="pen"){
     cur = {c:inkColor, w:PEN_W*u, p:[last]}; list.push(cur);
     inkDraw(ctx, cur, k);
+  } else if(isLine){
+    cur = {c:inkColor, w:PEN_W*u, p:[start.slice(), start.slice()]}; list.push(cur);
+    inkRedraw(ic, o.w, list);
   } else erase(last);
   const move = (ev)=>{
     if(s.dead || !ic.isConnected) return;
     const q = pt(ev);
+    if(cur && isLine){
+      // düz çizgi: başlangıçtan bitişe tek doğru; yatay/dikeye 5° kala tam yatay/dikey olur
+      let x = q[0], y = q[1]; const dx = x-start[0], dy = y-start[1], tn = 0.0875;
+      if(Math.abs(dy) <= Math.abs(dx)*tn) y = start[1]; else if(Math.abs(dx) <= Math.abs(dy)*tn) x = start[0];
+      cur.p[1] = [x, y]; inkRedraw(ic, o.w, list); last = q; return;
+    }
     if(cur){
       if(Math.abs(q[0]-last[0]) + Math.abs(q[1]-last[1]) < 0.4*u) return;
       cur.p.push(q);
@@ -8417,6 +8795,10 @@ function inkDown(o, ic, e){
     ic.removeEventListener("pointerup", up);
     ic.removeEventListener("pointercancel", up);
     s.cancel = null;
+    if(isLine && cur){
+      const l = cur.p[1], sdx = l[0]-start[0], sdy = l[1]-start[1];
+      if(Math.sqrt(sdx*sdx+sdy*sdy) < 3*u){ const i = list.indexOf(cur); if(i>=0) list.splice(i,1); inkRedraw(ic, o.w, list); cur = null; }   // yanlışlıkla dokunma: çizgi çizme
+    }
     if(cur) s.undo.push({key:o.key, add:cur});
     else if(removed.length) s.undo.push({key:o.key, rem:removed});
   };
@@ -8448,11 +8830,12 @@ function inkSetTool(s, t){
   s.tool = t;
   const rd = document.getElementById("libReader");
   rd.classList.toggle("inkmode", t!=="hand");
-  rd.classList.toggle("inkpen", t==="pen");
+  rd.classList.toggle("inkpen", t==="pen" || t==="line");
   if(s.stage){
     s.stage.classList.toggle("inking", t!=="hand");
     s.stage.classList.toggle("t-pen", t==="pen");
     s.stage.classList.toggle("t-eraser", t==="eraser");
+    s.stage.classList.toggle("t-line", t==="line");
   }
   document.querySelectorAll("#lrTools .lr-tb").forEach(b=>b.classList.toggle("on", b.dataset.tool===t));
   document.documentElement.style.overscrollBehavior = (t!=="hand") ? "none" : "";   // kalemle yazarken sayfanın çekilip kaymasını engelle
@@ -8521,7 +8904,7 @@ async function resOpen(sec, unitId, id, download){
     if(!blob){ alert("Dosya açılamadı (indirilemedi veya bozuk). İnternet bağlantınızı kontrol edip tekrar deneyin."); return; }
     if(!download){
       const vk = libViewerKind(blob, it.fileName);
-      if(vk){ libReaderOpen(it.title, blob, vk, it.fileName); return; }
+      if(vk){ slBegin(sec, unitId, it, vk); libReaderOpen(it.title, blob, vk, it.fileName); return; }
     }
     const objUrl = URL.createObjectURL(blob);
     if(download){
@@ -8542,7 +8925,7 @@ async function resOpen(sec, unitId, id, download){
   const blob = rec.blob.type ? rec.blob : new Blob([rec.blob], {type:guessMime(it.fileName)});
   if(!download){
     const vk = libViewerKind(blob, it.fileName);
-    if(vk){ libReaderOpen(it.title, blob, vk, it.fileName); return; }
+    if(vk){ slBegin(sec, unitId, it, vk); libReaderOpen(it.title, blob, vk, it.fileName); return; }
   }
   const url = URL.createObjectURL(blob);
   if(download){
@@ -8731,6 +9114,7 @@ qbRenderPanel("tug");
   /* true: uygulama içinde bir adım geri gidildi; false: geri gidilecek yer yok (ana sayfa) */
   function handleBack(){
     if(closeLayer()) return true;
+    if(typeof slBackHook === "function" && slBackHook()) return true;
     var cur = activeView();
     if(levelUp(cur)) return true;
     if(stack.length){ goTo(stack.pop()); return true; }
