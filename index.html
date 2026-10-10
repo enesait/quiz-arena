@@ -1167,6 +1167,53 @@
   .pl-summary{ font-size:1.05rem; margin:6px 2px 10px; }
   #view-plickers .pl-result-chip{ font-size:.95rem; }
   @media (min-width:1200px){ #view-plickers .pl-result-chip{ font-size:1.1rem; } #view-plickers .audience-chart{ height:300px; } }
+  /* ---- Plickers: soru kaynağı + tahta sunum ekranı ---- */
+  .pl-qhead{ display:flex; gap:10px; flex-wrap:wrap; margin:12px 0; }
+  .pl-qhead .preset.on{ outline:2px solid #6C5CE7; }
+  .pl-qlist{ display:flex; flex-direction:column; gap:6px; }
+  .pl-q{ text-align:left; border:1.5px solid #E3E7EF; background:#fff; border-radius:12px; padding:10px 14px; font:600 .95rem 'Manrope',sans-serif; cursor:pointer; color:var(--text-strong); }
+  .pl-q.active{ border-color:#6C5CE7; background:#F5F3FF; }
+  .pl-board{ position:fixed; inset:0; z-index:9500; background:#F4F6FB; display:none; flex-direction:column; }
+  .pl-board.show{ display:flex; }
+  .plb-main{ flex:1; display:flex; gap:14px; padding:14px; min-height:0; }
+  .plb-left{ flex:1 1 100%; min-width:0; overflow:auto; background:#fff; border-radius:22px; padding:clamp(16px,3vw,44px); }
+  .pl-board[data-view="scan"] .plb-left{ flex:0 0 40%; }
+  .plb-right{ display:none; flex:1 1 60%; min-width:0; overflow:auto; background:#fff; border-radius:22px; padding:12px; }
+  .pl-board[data-view="scan"] .plb-right{ display:block; }
+  .plb-q{ font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:clamp(1.6rem,4.2vw,3.8rem); line-height:1.25; margin-bottom:.6em; color:#1B2433; }
+  .plb-opt{ display:flex; gap:.6em; align-items:flex-start; padding:.4em .7em; border-radius:16px; margin:.3em 0; font-size:clamp(1.3rem,3.3vw,3rem); border:3px solid transparent; color:#2A3347; }
+  .plb-opt.correct{ background:#E1F6EA; border-color:#2EB872; }
+  .plb-l{ font-weight:800; color:#6C5CE7; min-width:1.4em; }
+  .pl-board[data-view="scan"] .plb-q{ font-size:clamp(1rem,1.9vw,1.9rem); }
+  .pl-board[data-view="scan"] .plb-opt{ font-size:clamp(.95rem,1.6vw,1.6rem); }
+  .plb-hint{ color:var(--muted); font-weight:600; font-size:1.1rem; }
+  .plb-roster{ display:grid; grid-template-columns:repeat(3,1fr); gap:6px; }
+  .plb-st{ display:flex; justify-content:space-between; align-items:center; gap:6px; padding:.4em .65em; border-radius:10px; background:#EDF0F5; color:#6B7488; font-weight:700; font-size:clamp(.78rem,1.45vw,1.3rem); }
+  .plb-st .nm{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .plb-st.read, .plb-st.ok{ background:#2EB872; color:#fff; }
+  .plb-st.bad{ background:#E0524A; color:#fff; }
+  .plc-title{ font-family:'Space Grotesk'; font-weight:700; font-size:clamp(1.3rem,2.6vw,2.2rem); margin-bottom:14px; } .plc-title small{ color:var(--muted); font-weight:600; font-size:.6em; }
+  .plc-cols{ display:grid; grid-template-columns:repeat(4,1fr); gap:clamp(8px,2vw,28px); align-items:start; }
+  .plc-col{ text-align:center; min-width:0; }
+  .plc-num{ font-weight:800; font-size:clamp(1.2rem,2.6vw,2.4rem); }
+  .plc-barwrap{ height:clamp(120px,24vh,260px); display:flex; align-items:flex-end; justify-content:center; }
+  .plc-bar{ width:70%; background:#6C5CE7; border-radius:12px 12px 4px 4px; transition:height .3s; } .plc-bar.ok{ background:#2EB872; } .plc-bar.bad{ background:#E0524A; }
+  .plc-let{ font-weight:800; font-size:clamp(1.3rem,2.8vw,2.6rem); margin:6px 0; } .plc-let.ok{ color:#2EB872; }
+  .plc-names{ font-weight:600; font-size:clamp(.7rem,1.3vw,1.15rem); color:#3A4357; line-height:1.35; text-align:center; } .plc-names.two{ column-count:2; }
+  .plb-cam{ position:fixed; right:12px; bottom:84px; width:min(34vw,340px); z-index:6; display:none; border-radius:14px; overflow:hidden; box-shadow:0 10px 30px rgba(0,0,0,.35); background:#000; }
+  .plb-cam video{ width:100%; display:block; }
+  .plb-bar{ display:flex; gap:8px; align-items:center; overflow-x:auto; padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px)); background:#fff; border-top:1px solid #E3E7EF; }
+  .plb-bar button{ flex:0 0 auto; border:0; border-radius:12px; padding:10px 14px; background:#EEF1F7; color:var(--text-strong); font:800 .95rem 'Manrope',sans-serif; cursor:pointer; white-space:nowrap; }
+  .plb-bar button.on{ background:#6C5CE7; color:#fff; }
+  .plb-bar .plb-close{ background:#FDE7E7; color:#B42318; margin-left:auto; }
+  .plb-idx{ font-weight:800; color:var(--muted); white-space:nowrap; }
+  .plb-info{ font-weight:700; color:var(--muted); font-size:.85rem; white-space:nowrap; }
+  @media (min-width:1200px){ .plb-bar button{ padding:14px 22px; font-size:1.2rem; } }
+  @media (max-width:700px){
+    .pl-board[data-view="scan"] .plb-main{ flex-direction:column; }
+    .pl-board[data-view="scan"] .plb-left{ flex:0 0 auto; max-height:30vh; }
+    .plb-roster{ grid-template-columns:repeat(2,1fr); }
+  }
 </style>
 </head>
 <body class="auth-locked">
@@ -1695,7 +1742,7 @@
         <div class="game-topbar"><button class="home-link" data-view="home">🏠 Ana Sayfa</button><span></span></div>
         <h1 class="game-title">🃏 Plickers Modu</h1>
         <div class="subtitle">Öğrenciler kağıt kartlarını çevirerek cevap verir, kamera okur.</div>
-        <div class="pl-note">🧪 Bu bir prototiptir. Kamera tek seferde tek kart okuyor (öğrenciler sırayla/gruplar halinde kameraya gösterir), gerçek Plickers gibi tüm sınıfı tek karede okumaz. İlk kullanımda "Kalibrasyon" düğmesiyle bir kartı test edip harflerin doğru çıktığından emin olun.</div>
+        <div class="pl-note">Öğrenciler kartlarını çevirir; <b>kartın üstünde kalan harf</b> cevaptır. Soruyu seçip <b>Sunum Ekranı</b>nı tahtada açın, öğretmen telefonunda da aynı ekranı açıp <b>Kamerayı Okut</b>a basın.</div>
 
         <div class="pl-tabs">
           <button class="pl-tab active" data-pltab="setup">1) Kartları Hazırla</button>
@@ -1718,39 +1765,12 @@
 
         <!-- SESSION TAB -->
         <div class="pl-panel" id="plSession" style="display:none;">
-          <div class="setup-bar">
-            <span class="lbl">❓ Soru:</span>
-            <input type="text" id="plQuestionInput" placeholder="Soruyu yazın veya rastgele seçin" style="flex:1; min-width:220px; padding:8px 12px; border-radius:10px; border:2px solid #E1E7EF; font-family:'Manrope'; font-weight:600;">
-            <button class="preset" id="plRandomQBtn">🎲 Rastgele Soru</button>
+          <div class="sx-panel" id="plSrc"></div>
+          <div class="pl-qhead">
+            <button class="preset" id="plGenBtn">🎓 Genel Kültür bankası</button>
+            <button class="start-btn" id="plOpenBoard" style="margin-left:0;">📺 Sunum Ekranını Aç</button>
           </div>
-          <div class="field">
-            <div class="options" id="plOptionsGrid"></div>
-          </div>
-          <div class="field">
-            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
-              <button class="start-btn" id="plCameraBtn" style="margin-left:0;">📷 Kamerayı Başlat</button>
-              <div class="pl-calib-row">
-                <span class="lbl">Kalibrasyon:</span>
-                <button class="preset" id="plCalibBtn">↻ 90° Döndür</button>
-                <span id="plCalibVal" style="font-family:'Space Grotesk'; font-weight:700;">0°</span>
-              </div>
-            </div>
-            <div class="pl-video-wrap">
-              <video id="plVideo" autoplay playsinline muted></video>
-              <canvas id="plCanvas" style="display:none;"></canvas>
-              <div id="plScanFlash" class="pl-scan-flash"></div>
-            </div>
-            <div id="plScanInfo" class="pl-scan-info"></div>
-          </div>
-          <div class="field">
-            <div class="mill-topline">
-              <span class="mill-name">Cevaplayan: <b id="plAnsweredCount">0</b> / <span id="plTotalCount">0</span></span>
-              <span style="display:flex;gap:8px;flex-wrap:wrap;"><button class="preset" id="plRevealBtn">✅ Cevabı Göster</button><button class="preset" id="plEndRoundBtn">🔄 Yeni Tur (Sıfırla)</button></span>
-            </div>
-            <div id="plSummary" class="pl-summary"></div>
-            <div class="audience-chart" id="plResultsChart" style="display:none;"></div>
-            <div id="plResultsList" class="pl-results-list"></div>
-          </div>
+          <div id="plQList" class="pl-qlist"></div>
         </div>
       </div>
     </section>
@@ -3485,7 +3505,7 @@ function plRenderCards(){
       new QRCode(document.getElementById("qr-"+st.id), { text: "PLK|"+st.id, width:260, height:260, correctLevel: QRCode.CorrectLevel.M });
     }
   });
-  document.getElementById("plTotalCount").textContent = plRoster.length;
+  const tc = document.getElementById("plTotalCount"); if(tc) tc.textContent = plRoster.length;
 }
 document.getElementById("plGenerateBtn").addEventListener("click", ()=>{
   const lines = document.getElementById("plRosterInput").value.split("\n").map(s=>s.trim()).filter(Boolean);
@@ -3510,21 +3530,29 @@ if(document.getElementById("plRosterInput") && plRoster.length){
 plRenderCards();
 plRosterAttachSync();
 
-/* ---- Soru / canlı eşleşme (tahta ve öğretmen telefonu Firebase üzerinden aynı oturumu paylaşır) ---- */
+/* ---- Plickers: soru seçimi (SorX), tahta sunum ekranı, canlı eşleşme ---- */
 const PL_LIVE = "dkabSorXPlickers";
-let plQuestion = { q:"", o:null, c:null }, plShowAns = false, plLiveOn = false;
-function plLiveWriteQuestion(){
-  if(!firebaseHazir) return;
-  fbDb.ref(PL_LIVE+"/question").set({ q:plQuestion.q||"", o:plQuestion.o||null, c:(plQuestion.c===null||plQuestion.c===undefined)?null:plQuestion.c, ts:Date.now() }).catch(()=>{});
+let plQuestion = { q:"", o:null, c:null }, plShowAns = false, plShowResult = false, plView = "question", plLiveOn = false;
+let plQueue = [], plQIdx = -1, plListTok = 0;
+let plSrc = { classId:"", courseId:"", unitId:"", topicId:"", general:false };
+let plDet = null, plBusy = false, plStreak = {}, plWake = null;
+const plCrop = document.createElement("canvas");
+const plNum = id => parseInt(String(id).replace(/\D/g,""), 10) || 0;
+
+function plSetState(pt){
+  if("question" in pt) plQuestion = pt.question || { q:"", o:null, c:null };
+  if("answers" in pt) plAnswers = pt.answers || {};
+  if("showAnswer" in pt) plShowAns = !!pt.showAnswer;
+  if("showResult" in pt) plShowResult = !!pt.showResult;
+  if("view" in pt) plView = pt.view;
+  plBoardRender();
+  if(firebaseHazir){
+    const u = Object.assign({}, pt, { ts:Date.now() });
+    if(u.question && (u.question.c===null || u.question.c===undefined)) u.question = { q:u.question.q||"", o:u.question.o||null };
+    fbDb.ref(PL_LIVE).update(u).catch(()=>{});
+  }
 }
 function plLiveSetAnswer(id, idx){ if(firebaseHazir) fbDb.ref(PL_LIVE+"/answers/"+id).set(idx).catch(()=>{}); }
-function plLiveSetReveal(){ if(firebaseHazir) fbDb.ref(PL_LIVE+"/showAnswer").set(!!plShowAns).catch(()=>{}); }
-function plLiveReset(){
-  plAnswers = {}; plStreak = {}; plShowAns = false;
-  if(firebaseHazir) fbDb.ref(PL_LIVE+"/answers").remove().catch(()=>{});
-  plLiveSetReveal();
-  plRenderOptions(); plRenderResults();
-}
 function plLiveAttach(){
   if(!firebaseHazir || plLiveOn) return;
   plLiveOn = true;
@@ -3532,66 +3560,167 @@ function plLiveAttach(){
     const v = snap.val() || {};
     plAnswers = {};
     Object.keys(v.answers||{}).forEach(id=>{ const n = Number(v.answers[id]); if(n>=0 && n<=3) plAnswers[id] = n; });
-    plShowAns = !!v.showAnswer;
-    if(v.question){
-      plQuestion = { q:v.question.q||"", o:Array.isArray(v.question.o) ? v.question.o : null, c:(typeof v.question.c==="number") ? v.question.c : null };
-      const inp = document.getElementById("plQuestionInput"); if(inp && document.activeElement!==inp) inp.value = plQuestion.q;
-    }
-    plRenderOptions(); plRenderResults();
+    plShowAns = !!v.showAnswer; plShowResult = !!v.showResult; plView = v.view || "question";
+    plQuestion = v.question ? { q:v.question.q||"", o:Array.isArray(v.question.o) ? v.question.o : null, c:(typeof v.question.c==="number") ? v.question.c : null } : { q:"", o:null, c:null };
+    plBoardRender();
   }, e=>console.error("Plickers canlı eşleşme hatası:", e));
 }
-document.getElementById("plQuestionInput").addEventListener("input", (e)=>{
-  plQuestion = { q:e.target.value, o:null, c:null }; plShowAns = false;
-  plRenderOptions();
-  clearTimeout(plQuestionInput_t); plQuestionInput_t = setTimeout(plLiveWriteQuestion, 600);
-});
-var plQuestionInput_t = 0;
-document.getElementById("plRandomQBtn").addEventListener("click", ()=>{
-  const plPool = TUG_QUESTIONS.filter(x=>x.o.length === 4);
-  if(!plPool.length){ alert("Plickers kartları yalnızca A–D şıklarını içerir; 4 şıklı soru bulunamadı."); return; }
-  const q = plPool[Math.floor(Math.random()*plPool.length)];
-  plQuestion = { q:q.q, o:q.o.slice(), c:q.c }; plShowAns = false;
-  plAnswers = {}; plStreak = {};
-  document.getElementById("plQuestionInput").value = q.q;
-  if(firebaseHazir){ fbDb.ref(PL_LIVE+"/answers").remove().catch(()=>{}); plLiveSetReveal(); }
-  plLiveWriteQuestion();
-  plRenderOptions(); plRenderResults();
-});
-function plRenderOptions(){
-  const grid = document.getElementById("plOptionsGrid"); grid.innerHTML = "";
-  const letters = ["A","B","C","D"], opts = plQuestion.o;
-  if(!opts) return;
-  opts.forEach((text,i)=>{
-    const div = document.createElement("div");
-    div.className = "opt"; div.style.cursor = "default";
-    div.innerHTML = `<span class="letter">${letters[i]}</span><span>${text}</span>`;
-    if(plShowAns && plQuestion.c===i) div.style.boxShadow = "0 0 0 3px var(--ok) inset";
-    grid.appendChild(div);
-  });
+function plRenderResults(){ plBoardRender(); }
+
+/* ---- soru kaynağı: Sınıf › Ders › Ünite › Alt başlık ya da Genel Kültür bankası ---- */
+function plSrcRender(){
+  const box = document.getElementById("plSrc"); if(!box) return;
+  const classes = sinifData.classes;
+  const cl = classes.find(c=>c.id===plSrc.classId) || null;
+  let co = cl ? (cl.courses.find(c=>c.id===plSrc.courseId) || null) : null;
+  if(cl && !co && cl.courses.length===1){ co = cl.courses[0]; plSrc.courseId = co.id; }
+  const un = co ? (co.units.find(u=>u.id===plSrc.unitId) || null) : null;
+  const tp = un ? ((un.topics||[]).find(x=>x.id===plSrc.topicId) || null) : null;
+  const opts = (arr, sel, ph)=> '<option value="">'+ph+'</option>' + arr.map(x=>'<option value="'+x.id+'"'+(x.id===sel?" selected":"")+'>'+qbEscape(x.name)+'</option>').join("");
+  const f = (ico,key,html,val,en)=> '<label class="sx-field'+(val?" has":"")+(en?"":" dis")+'"><span class="sx-ico">'+ico+'</span><select data-plsrc="'+key+'" '+(en?"":"disabled")+'>'+html+'</select></label>';
+  box.innerHTML = '<div class="sx-head"><span>🎯 Soru Kaynağı (Çoktan Seçmeli)</span></div><div class="sx-selects">'
+    + f("🏫","classId",opts(classes, plSrc.classId, "Sınıf Seçiniz"), plSrc.classId, true)
+    + f("📖","courseId",opts(cl?cl.courses:[], plSrc.courseId, "Ders Seçiniz"), plSrc.courseId, !!cl)
+    + f("📚","unitId",opts(co?co.units:[], plSrc.unitId, "Ünite Seçiniz"), plSrc.unitId, !!co)
+    + f("🗂️","topicId",opts(un?(un.topics||[]):[], plSrc.topicId, "Alt Başlık (tümü)"), plSrc.topicId, !!(un && (un.topics||[]).length))
+    + '</div>';
+  document.getElementById("plGenBtn").classList.toggle("on", plSrc.general);
 }
-document.getElementById("plRevealBtn").addEventListener("click", ()=>{
-  if(plQuestion.c===null){ alert("Cevabı göstermek için 🎲 Rastgele Soru ile soru seçin; elle yazılan soruda doğru cevap bilinmiyor."); return; }
-  plShowAns = !plShowAns; plLiveSetReveal(); plRenderOptions(); plRenderResults();
+document.getElementById("plSrc").addEventListener("change", (e)=>{
+  const k = e.target && e.target.dataset ? e.target.dataset.plsrc : null; if(!k) return;
+  plSrc.general = false; plSrc[k] = e.target.value;
+  if(k==="classId"){ plSrc.courseId = ""; plSrc.unitId = ""; plSrc.topicId = ""; }
+  else if(k==="courseId"){ plSrc.unitId = ""; plSrc.topicId = ""; }
+  else if(k==="unitId"){ plSrc.topicId = ""; }
+  plSrcRender(); plLoadList();
 });
+document.getElementById("plGenBtn").addEventListener("click", ()=>{ plSrc = { classId:"", courseId:"", unitId:"", topicId:"", general:true }; plSrcRender(); plLoadList(); });
+async function plLoadList(){
+  const list = document.getElementById("plQList"), tok = ++plListTok;
+  let ids = [];
+  if(!plSrc.general){
+    const cl = sinifData.classes.find(c=>c.id===plSrc.classId), co = cl && cl.courses.find(c=>c.id===plSrc.courseId), un = co && co.units.find(u=>u.id===plSrc.unitId);
+    if(!un){ plQueue = []; plQIdx = -1; list.innerHTML = '<div class="sinif-empty">Sınıf, ders ve üniteyi seçin ya da Genel Kültür bankasını kullanın.</div>'; return; }
+    const tp = (un.topics||[]).find(x=>x.id===plSrc.topicId);
+    ids = tp ? [tp.id] : [un.id].concat((un.topics||[]).map(x=>x.id));
+  }
+  list.innerHTML = '<div class="swi-sum">⏳ Sorular okunuyor…</div>';
+  let all = [];
+  try{
+    if(plSrc.general){
+      let a = null; try{ a = JSON.parse(localStorage.getItem("mcQuestionsV1")); }catch(e){}
+      all = (Array.isArray(a) && a.length) ? a : MC_QUESTIONS_DEFAULTS;
+    } else {
+      for(const id of ids){ let a = []; try{ a = await swiBase(id, "mc"); }catch(e){ a = await unitFetchQuestions(id, "mc"); } all = all.concat(a); }
+    }
+  }catch(e){ all = []; }
+  if(tok !== plListTok) return;
+  plQueue = all.filter(x=>x && Array.isArray(x.o) && x.o.length===4 && typeof x.c==="number" && x.c>=0 && x.c<4);
+  plQIdx = -1; plListRender();
+}
+function plListRender(){
+  const list = document.getElementById("plQList");
+  if(!plQueue.length){ list.innerHTML = '<div class="sinif-empty">Bu kaynakta 4 şıklı çoktan seçmeli soru yok. (Plickers kartları yalnızca A–D içerir.)</div>'; return; }
+  list.innerHTML = '<div class="swi-sum">📋 '+plQueue.length+' soru — birine dokunarak seçin</div>' + plQueue.map((q,i)=>'<button type="button" class="pl-q'+(i===plQIdx?" active":"")+'" data-i="'+i+'"><b>'+(i+1)+'.</b> '+qbEscape(q.q)+'</button>').join("");
+}
+document.getElementById("plQList").addEventListener("click", (e)=>{
+  const b = e.target.closest(".pl-q"); if(!b) return;
+  plPickQuestion(parseInt(b.dataset.i, 10));
+});
+function plPickQuestion(i){
+  if(i<0 || i>=plQueue.length) return;
+  plQIdx = i; plStreak = {};
+  const q = plQueue[i];
+  plSetState({ question:{ q:q.q, o:q.o.slice(), c:q.c }, answers:null, showAnswer:false, showResult:false, view:"question" });
+  plListRender();
+}
+
+/* ---- tahta sunum ekranı (tahta ve telefonda aynı ekran) ---- */
+function plBoardEl(){
+  let b = document.getElementById("plBoard"); if(b) return b;
+  b = document.createElement("div"); b.id = "plBoard"; b.className = "pl-board";
+  b.innerHTML = '<div class="plb-main"><div class="plb-left" id="plbLeft"></div><div class="plb-right" id="plbRight"></div></div>'
+    + '<div class="plb-cam" id="plbCam"><video id="plVideo" autoplay playsinline muted></video><canvas id="plCanvas" style="display:none;"></canvas><div id="plScanFlash" class="pl-scan-flash"></div></div>'
+    + '<div class="plb-bar">'
+    + '<button type="button" data-pb="prev">◀</button><span class="plb-idx" id="plbIdx"></span><button type="button" data-pb="next">▶</button>'
+    + '<button type="button" data-pb="q">📝 Soru</button>'
+    + '<button type="button" data-pb="cam" id="plbCamBtn">📷 Kamerayı Okut</button>'
+    + '<button type="button" data-pb="reveal" id="plbRevealBtn">✅ Cevabı Göster</button>'
+    + '<button type="button" data-pb="result" id="plbResultBtn">✔ Doğru / Yanlış</button>'
+    + '<button type="button" data-pb="chart" id="plbChartBtn">📊 Grafik</button>'
+    + '<button type="button" data-pb="reset">🔄 Yeni Tur</button>'
+    + '<span class="plb-info" id="plScanInfo"></span>'
+    + '<button type="button" data-pb="close" class="plb-close">✕ Kapat</button></div>';
+  document.body.appendChild(b);
+  b.addEventListener("click", (e)=>{
+    const t = e.target.closest("[data-pb]"); if(!t) return;
+    const a = t.dataset.pb;
+    if(a==="prev") plPickQuestion(plQIdx-1);
+    else if(a==="next") plPickQuestion(plQIdx+1);
+    else if(a==="q") plSetState({ view:"question" });
+    else if(a==="cam") plToggleCamera();
+    else if(a==="reveal"){ if(plQuestion.c===null){ alert("Önce Soru Kaynağından bir soru seçin."); return; } plSetState({ showAnswer:!plShowAns }); }
+    else if(a==="result"){ if(plQuestion.c===null){ alert("Önce Soru Kaynağından bir soru seçin."); return; } const on = !plShowResult; plSetState({ showResult:on, showAnswer:on ? true : plShowAns }); }
+    else if(a==="chart") plSetState({ view: plView==="chart" ? "question" : "chart" });
+    else if(a==="reset"){ plStreak = {}; plSetState({ answers:null, showAnswer:false, showResult:false, view:"question" }); }
+    else if(a==="close") plCloseBoard();
+  });
+  return b;
+}
+function plOpenBoard(){ plBoardEl().classList.add("show"); plBoardRender(); }
+function plCloseBoard(){
+  if(plScanning) plToggleCamera();
+  const b = document.getElementById("plBoard"); if(b) b.classList.remove("show");
+}
+document.getElementById("plOpenBoard").addEventListener("click", plOpenBoard);
+
+function plBoardRender(){
+  const b = document.getElementById("plBoard"); if(!b || !b.classList.contains("show")) return;
+  const letters = ["A","B","C","D"], q = plQuestion;
+  b.dataset.view = plView;
+  const reveal = plShowAns && q.c !== null && q.c !== undefined;
+  const left = document.getElementById("plbLeft"), right = document.getElementById("plbRight");
+  if(plView==="chart"){
+    const counts = [0,0,0,0], names = [[],[],[],[]];
+    plRoster.slice().sort((x,y)=>plNum(x.id)-plNum(y.id)).forEach(st=>{ const a = plAnswers[st.id]; if(a!==undefined){ counts[a]++; names[a].push(st.name); } });
+    const max = Math.max(1, ...counts);
+    left.innerHTML = '<div class="plc-title">📊 Cevap Dağılımı <small>(' + Object.keys(plAnswers).length + ' / ' + plRoster.length + ' öğrenci)</small></div><div class="plc-cols">' + counts.map((c,i)=>{
+      const cls = reveal ? (q.c===i ? "ok" : "bad") : "";
+      return '<div class="plc-col"><div class="plc-num">'+c+'</div><div class="plc-barwrap"><div class="plc-bar '+cls+'" style="height:'+Math.max(4, Math.round(c/max*100))+'%"></div></div><div class="plc-let '+cls+'">'+letters[i]+'</div><div class="plc-names'+(names[i].length>12?" two":"")+'">'+names[i].map(n=>qbEscape(n)).join("<br>")+'</div></div>';
+    }).join("") + '</div>';
+    right.innerHTML = "";
+  } else {
+    if(!q.q){ left.innerHTML = '<div class="plc-title">Soru seçilmedi</div><div class="plb-hint">Plickers Modu › Canlı Oturum bölümünden soru kaynağını ve bir soruyu seçin.</div>'; }
+    else left.innerHTML = '<div class="plb-q">'+qbEscape(q.q)+'</div>' + (q.o ? q.o.map((t,i)=>'<div class="plb-opt'+(reveal && q.c===i ? " correct":"")+'"><span class="plb-l">'+letters[i]+'</span><span>'+qbEscape(t)+'</span></div>').join("") : "");
+    if(plView==="scan"){
+      right.innerHTML = '<div class="plb-roster">' + plRoster.slice().sort((x,y)=>plNum(x.id)-plNum(y.id)).map(st=>{
+        const a = plAnswers[st.id]; let cls = "";
+        if(a!==undefined) cls = (plShowResult && q.c!==null && q.c!==undefined) ? (a===q.c ? "ok" : "bad") : "read";
+        return '<div class="plb-st '+cls+'"><span class="nm">'+qbEscape(st.name)+'</span><b>'+plNum(st.id)+'</b></div>';
+      }).join("") + '</div>';
+    } else right.innerHTML = "";
+  }
+  const idx = document.getElementById("plbIdx"); if(idx) idx.textContent = plQueue.length ? ((plQIdx+1)+" / "+plQueue.length) : "";
+  const set = (id,on)=>{ const e = document.getElementById(id); if(e) e.classList.toggle("on", !!on); };
+  set("plbCamBtn", plScanning); set("plbRevealBtn", plShowAns); set("plbResultBtn", plShowResult); set("plbChartBtn", plView==="chart");
+}
 
 /* ---- Kamera: aynı karede birden çok kart okuma ---- */
-let plDet = null, plBusy = false, plStreak = {}, plWake = null;
-const plCrop = document.createElement("canvas");
-document.getElementById("plCameraBtn").addEventListener("click", plToggleCamera);
 async function plToggleCamera(){
-  const video = document.getElementById("plVideo"), btn = document.getElementById("plCameraBtn");
+  const video = document.getElementById("plVideo"), cam = document.getElementById("plbCam");
   if(plScanning){
     plScanning = false;
     if(plStream) plStream.getTracks().forEach(t=>t.stop());
     try{ if(plWake){ plWake.release(); plWake = null; } }catch(e){}
-    video.style.display = "none"; btn.textContent = "📷 Kamerayı Başlat";
+    cam.style.display = "none"; plBoardRender();
     return;
   }
   try{
     plStream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:"environment", width:{ideal:1920}, height:{ideal:1080} } });
-    video.srcObject = plStream; video.style.display = "block";
-    btn.textContent = "⏹ Kamerayı Durdur"; plScanning = true; plStreak = {};
+    video.srcObject = plStream; cam.style.display = "block";
+    plScanning = true; plStreak = {};
     try{ if(navigator.wakeLock) plWake = await navigator.wakeLock.request("screen"); }catch(e){}
+    plSetState({ view:"scan" });
     setTimeout(plScanLoop, 200);
   }catch(e){ alert("Kameraya erişilemedi: " + e.message); }
 }
@@ -3611,13 +3740,14 @@ async function plDetector(){
   plDet = false; return plDet;
 }
 function plRead(code){
-  // QR'ın dönüklüğünden şıkkı bul (A üst, B sağ, C alt, D sol); eğik tutulmuş kartlar elenir
+  // Plickers mantığı: kartta yukarıda kalan harf cevaptır (A üst, B sağ, C alt, D sol).
+  // Kart saat yönünde 90° çevrilince QR'ın üst kenarı aşağı bakar; üstte kalan harf bir önceki olur.
   if(!code || !code.data || code.data.indexOf("PLK|")!==0) return null;
   const loc = code.location, id = code.data.split("|")[1];
   const dx = loc.topRightFinderPattern.x - loc.topLeftFinderPattern.x, dy = loc.topRightFinderPattern.y - loc.topLeftFinderPattern.y;
-  const angle = ((Math.atan2(dy,dx)*180/Math.PI) + 360) % 360, adj = (angle - plCalibOffset + 360) % 360;
-  const idx = Math.round(adj/90) % 4, dev = Math.abs(adj - Math.round(adj/90)*90);
-  return { id:id, idx:(dev <= 32 ? idx : null) };
+  const angle = ((Math.atan2(dy,dx)*180/Math.PI) + 360) % 360;
+  const k = Math.round(angle/90), dev = Math.abs(angle - k*90);
+  return { id:id, idx:(dev <= 32 ? (4 - (k%4)) % 4 : null) };
 }
 async function plScanFrame(){
   const video = document.getElementById("plVideo"), canvas = document.getElementById("plCanvas");
@@ -3642,7 +3772,6 @@ async function plScanFrame(){
       if(r) reads.push(r);
     }
   } else if(window.jsQR){
-    // yedek: bulunan kartı beyaza boyayıp sıradakini ara (kareyi en çok 6 kart)
     const im = ctx.getImageData(0, 0, W, H), d = im.data;
     for(let n=0; n<6; n++){
       const code = jsQR(d, W, H, {inversionAttempts:"dontInvert"}); if(!code) break;
@@ -3667,55 +3796,16 @@ function plApplyReads(reads){
     }
   });
   const info = document.getElementById("plScanInfo");
-  if(info) info.textContent = "Bu karede " + seen + " kart görüldü • Okunan: " + Object.keys(plAnswers).length + " / " + plRoster.length;
-  if(changed){ plFlashScan(); plRenderResults(); }
+  if(info) info.textContent = "Karede " + seen + " kart • Okunan " + Object.keys(plAnswers).length + "/" + plRoster.length;
+  if(changed){ plFlashScan(); plBoardRender(); }
 }
 function plFlashScan(){
-  const el = document.getElementById("plScanFlash");
+  const el = document.getElementById("plScanFlash"); if(!el) return;
   el.classList.add("show"); setTimeout(()=>el.classList.remove("show"), 250);
 }
-function plRenderResults(){
-  const letters = ["A","B","C","D"], counts = [0,0,0,0];
-  Object.values(plAnswers).forEach(idx=>{ if(idx>=0 && idx<=3) counts[idx]++; });
-  const answered = Object.keys(plAnswers).length, total = plRoster.length;
-  document.getElementById("plAnsweredCount").textContent = answered;
-  document.getElementById("plTotalCount").textContent = total;
-  const reveal = plShowAns && plQuestion.c !== null;
-  const chart = document.getElementById("plResultsChart");
-  if(total === 0){ chart.style.display = "none"; }
-  else {
-    chart.style.display = "flex"; chart.innerHTML = "";
-    const max = Math.max(1, ...counts);
-    counts.forEach((c,i)=>{
-      const wrap = document.createElement("div"); wrap.className = "audience-bar-wrap";
-      const pct = Math.round((c/max)*100);
-      const col = reveal ? (plQuestion.c===i ? "background:var(--ok);" : "background:#E5A3A0;") : "";
-      wrap.innerHTML = `<span class="audience-pct">${c}</span><div class="audience-bar" style="height:${Math.max(pct,4)}%;${col}"></div><span class="audience-pct">${letters[i]}</span>`;
-      chart.appendChild(wrap);
-    });
-  }
-  let ok = 0, bad = 0;
-  if(reveal) Object.values(plAnswers).forEach(a=>{ if(a===plQuestion.c) ok++; else bad++; });
-  const sum = document.getElementById("plSummary");
-  if(sum) sum.innerHTML = total ? (reveal ? `✅ Doğru: <b>${ok}</b> • ❌ Yanlış: <b>${bad}</b> • ` : "") + `⏳ Okunmayan: <b>${total-answered}</b>` : "";
-  const list = document.getElementById("plResultsList"); list.innerHTML = "";
-  plRoster.forEach(st=>{
-    const chip = document.createElement("div"); chip.className = "pl-result-chip";
-    const ans = plAnswers[st.id];
-    if(ans !== undefined){
-      const mark = reveal ? (ans===plQuestion.c ? "✅ " : "❌ ") : "";
-      chip.innerHTML = `${mark}${st.name}<span class="ans">→ ${letters[ans]}</span>`;
-      if(reveal) chip.style.background = ans===plQuestion.c ? "#E1F6EA" : "#FDE8E6";
-    } else chip.innerHTML = `${st.name}<span style="color:#C3CAD4;"> — </span>`;
-    list.appendChild(chip);
-  });
-}
-document.getElementById("plCalibBtn").addEventListener("click", ()=>{
-  plCalibOffset = (plCalibOffset + 90) % 360;
-  document.getElementById("plCalibVal").textContent = plCalibOffset+"°";
-});
-document.getElementById("plEndRoundBtn").addEventListener("click", plLiveReset);
-plRenderResults();
+plSrcRender();
+plListRender();
+plBoardRender();
 plLiveAttach();
 document.querySelector('.nav-item[data-view="plickers"]').addEventListener("click", plLiveAttach);
 
@@ -8499,6 +8589,8 @@ function slReturnToReader(){
   resOpen(r.sec, r.lunit, r.resId, false);
 }
 function slBackHook(){
+  const pb = document.getElementById("plBoard");
+  if(pb && pb.classList.contains("show")){ plCloseBoard(); return true; }
   if(unitBackTo==="reader" && slReturn && qbSource){ unitGoBack(); return true; }
   return false;
 }
