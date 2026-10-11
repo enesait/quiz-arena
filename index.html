@@ -3803,11 +3803,12 @@ function plFlashScan(){
   const el = document.getElementById("plScanFlash"); if(!el) return;
   el.classList.add("show"); setTimeout(()=>el.classList.remove("show"), 250);
 }
-plSrcRender();
-plListRender();
 plBoardRender();
 plLiveAttach();
-document.querySelector('.nav-item[data-view="plickers"]').addEventListener("click", plLiveAttach);
+/* Soru kaynağı kutuları sınıf listesine (sinifData) bakar; o dosyada daha aşağıda tanımlandığı için sayfa açılırken değil, Plickers açılınca çizilir */
+function plOnOpen(){ plLiveAttach(); plSrcRender(); plListRender(); }
+document.querySelector('.nav-item[data-view="plickers"]').addEventListener("click", plOnOpen);
+document.querySelectorAll('[data-pltab="session"]').forEach(b=>b.addEventListener("click", plOnOpen));
 
 /* ================= 6) ÇARKIFELEK ================= */
 const WHEEL_CATS = [
