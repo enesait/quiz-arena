@@ -1230,6 +1230,19 @@
   .plb-st.read{ background:#4C7BEA; color:#fff; }
   .plb-st .lt{ font-style:normal; font-weight:900; background:rgba(255,255,255,.28); border-radius:8px; padding:0 .45em; margin-left:auto; margin-right:.5em; }
   .plb-st.ok .lt, .plb-st.bad .lt{ background:rgba(255,255,255,.3); }
+  /* ---- Plickers: şıkların yanında canlı grafik + kamera isim etiketleri ---- */
+  .plb-opt{ align-items:center; }
+  .plb-t{ flex:1; min-width:0; }
+  .plb-cnt{ flex:0 0 38%; display:flex; align-items:center; gap:.6em; }
+  .plb-track{ flex:1; height:.9em; background:#EDF0F5; border-radius:99px; overflow:hidden; }
+  .plb-track i{ display:block; height:100%; background:#4C7BEA; border-radius:99px; transition:width .25s; }
+  .plb-track i.ok{ background:#2EB872; } .plb-track i.bad{ background:#E5A3A0; }
+  .plb-cnt b{ min-width:1.6em; text-align:right; font-size:1.1em; color:#2A3347; }
+  .pl-board[data-view="scan"] .plb-cnt{ flex-basis:34%; }
+  .pls-labels{ position:absolute; inset:0; pointer-events:none; overflow:hidden; }
+  .pls-lab{ position:absolute; transform:translateX(-50%); display:flex; align-items:center; gap:.45em; padding:.25em .7em; border-radius:999px; background:rgba(20,24,34,.82); color:#fff; font-weight:800; white-space:nowrap; text-shadow:none; }
+  .pls-lab i{ width:.7em; height:.7em; border-radius:50%; background:#E0524A; display:inline-block; }
+  .pls-lab.ok i{ background:#2EB872; } .pls-lab.warn i{ background:#F59E0B; }
 </style>
 </head>
 <body class="auth-locked">
@@ -3549,7 +3562,7 @@ plRosterAttachSync();
 
 /* ---- Plickers: soru seçimi (SorX), tahta sunum ekranı, canlı eşleşme ---- */
 const PL_LIVE = "dkabSorXPlickers";
-let plQuestion = { q:"", o:null, c:null }, plShowAns = false, plShowResult = false, plView = "question", plLiveOn = false;
+let plQuestion = { q:"", o:null, c:null }, plShowAns = false, plShowResult = false, plShowChart = false, plView = "question", plLiveOn = false;
 let plQueue = [], plQIdx = -1, plListTok = 0;
 let plSrc = { classId:"", courseId:"", unitId:"", topicId:"", general:false };
 let plDet = null, plBusy = false, plStreak = {}, plWake = null, plLastSeen = 0;
@@ -3561,6 +3574,7 @@ function plSetState(pt){
   if("answers" in pt) plAnswers = pt.answers || {};
   if("showAnswer" in pt) plShowAns = !!pt.showAnswer;
   if("showResult" in pt) plShowResult = !!pt.showResult;
+  if("showChart" in pt) plShowChart = !!pt.showChart;
   if("view" in pt) plView = pt.view;
   plBoardRender();
   if(firebaseHazir){
@@ -3577,7 +3591,7 @@ function plLiveAttach(){
     const v = snap.val() || {};
     plAnswers = {};
     Object.keys(v.answers||{}).forEach(id=>{ const n = Number(v.answers[id]); if(n>=0 && n<=3) plAnswers[id] = n; });
-    plShowAns = !!v.showAnswer; plShowResult = !!v.showResult; plView = v.view || "question";
+    plShowAns = !!v.showAnswer; plShowResult = !!v.showResult; plShowChart = !!v.showChart; plView = v.view || "question";
     plQuestion = v.question ? { q:v.question.q||"", o:Array.isArray(v.question.o) ? v.question.o : null, c:(typeof v.question.c==="number") ? v.question.c : null } : { q:"", o:null, c:null };
     plBoardRender();
   }, e=>console.error("Plickers canlı eşleşme hatası:", e));
@@ -3648,7 +3662,7 @@ function plPickQuestion(i){
   if(i<0 || i>=plQueue.length) return;
   plQIdx = i; plStreak = {};
   const q = plQueue[i];
-  plSetState({ question:{ q:q.q, o:q.o.slice(), c:q.c }, answers:null, showAnswer:false, showResult:false, view:"question" });
+  plSetState({ question:{ q:q.q, o:q.o.slice(), c:q.c }, answers:null, showAnswer:false, showResult:false, showChart:false, view:"question" });
   plListRender();
 }
 
@@ -3676,8 +3690,8 @@ function plBoardEl(){
     else if(a==="cam") plSetState({ view: plView==="scan" ? "question" : "scan" });
     else if(a==="reveal"){ if(plQuestion.c===null){ alert("Önce Soru Kaynağından bir soru seçin."); return; } plSetState({ showAnswer:!plShowAns }); }
     else if(a==="result"){ if(plQuestion.c===null){ alert("Önce Soru Kaynağından bir soru seçin."); return; } const on = !plShowResult; plSetState({ showResult:on, showAnswer:on ? true : plShowAns }); }
-    else if(a==="chart") plSetState({ view: plView==="chart" ? "question" : "chart" });
-    else if(a==="reset"){ plStreak = {}; plSetState({ answers:null, showAnswer:false, showResult:false, view:"question" }); }
+    else if(a==="chart") plSetState({ showChart:!plShowChart });
+    else if(a==="reset"){ plStreak = {}; plSetState({ answers:null, showAnswer:false, showResult:false, showChart:false, view:"question" }); }
     else if(a==="close") plCloseBoard();
   });
   return b;
@@ -3694,37 +3708,36 @@ function plBoardRender(){
   b.dataset.view = plView;
   const reveal = plShowAns && q.c !== null && q.c !== undefined;
   const left = document.getElementById("plbLeft"), right = document.getElementById("plbRight");
-  if(plView==="chart"){
-    const counts = [0,0,0,0], names = [[],[],[],[]];
-    plRoster.slice().sort((x,y)=>plNum(x.id)-plNum(y.id)).forEach(st=>{ const a = plAnswers[st.id]; if(a!==undefined){ counts[a]++; names[a].push(st.name); } });
-    const max = Math.max(1, ...counts);
-    left.innerHTML = '<div class="plc-title">📊 Cevap Dağılımı <small>(' + Object.keys(plAnswers).length + ' / ' + plRoster.length + ' öğrenci)</small></div><div class="plc-cols">' + counts.map((c,i)=>{
+  const counts = [0,0,0,0];
+  Object.values(plAnswers).forEach(a=>{ if(a>=0 && a<=3) counts[a]++; });
+  const max = Math.max(1, ...counts);
+  if(!q.q){ left.innerHTML = '<div class="plc-title">Soru seçilmedi</div><div class="plb-hint">Plickers Modu › Canlı Oturum bölümünden soru kaynağını ve bir soruyu seçin.</div>'; }
+  else left.innerHTML = '<div class="plb-q">'+qbEscape(q.q)+'</div>' + (q.o ? q.o.map((t,i)=>{
+    let bar = "";
+    if(plShowChart){
       const cls = reveal ? (q.c===i ? "ok" : "bad") : "";
-      return '<div class="plc-col"><div class="plc-num">'+c+'</div><div class="plc-barwrap"><div class="plc-bar '+cls+'" style="height:'+Math.max(4, Math.round(c/max*100))+'%"></div></div><div class="plc-let '+cls+'">'+letters[i]+'</div><div class="plc-names'+(names[i].length>12?" two":"")+'">'+names[i].map(n=>qbEscape(n)).join("<br>")+'</div></div>';
+      bar = '<span class="plb-cnt"><span class="plb-track"><i class="'+cls+'" style="width:'+Math.round(counts[i]/max*100)+'%"></i></span><b>'+counts[i]+'</b></span>';
+    }
+    return '<div class="plb-opt'+(reveal && q.c===i ? " correct" : "")+'"><span class="plb-l">'+letters[i]+'</span><span class="plb-t">'+qbEscape(t)+'</span>'+bar+'</div>';
+  }).join("") : "");
+  if(plView==="scan"){
+    right.innerHTML = '<div class="plb-roster">' + plRoster.slice().sort((x,y)=>plNum(x.id)-plNum(y.id)).map(st=>{
+      const a = plAnswers[st.id]; let cls = "";
+      if(a!==undefined) cls = (plShowResult && q.c!==null && q.c!==undefined) ? (a===q.c ? "ok" : "bad") : "read";
+      const lt = (a!==undefined && plShowAns) ? '<i class="lt">'+letters[a]+'</i>' : "";
+      return '<div class="plb-st '+cls+'"><span class="nm">'+qbEscape(st.name)+'</span>'+lt+'<b>'+plNum(st.id)+'</b></div>';
     }).join("") + '</div>';
-    right.innerHTML = "";
-  } else {
-    if(!q.q){ left.innerHTML = '<div class="plc-title">Soru seçilmedi</div><div class="plb-hint">Plickers Modu › Canlı Oturum bölümünden soru kaynağını ve bir soruyu seçin.</div>'; }
-    else left.innerHTML = '<div class="plb-q">'+qbEscape(q.q)+'</div>' + (q.o ? q.o.map((t,i)=>'<div class="plb-opt'+(reveal && q.c===i ? " correct":"")+'"><span class="plb-l">'+letters[i]+'</span><span>'+qbEscape(t)+'</span></div>').join("") : "");
-    if(plView==="scan"){
-      right.innerHTML = '<div class="plb-roster">' + plRoster.slice().sort((x,y)=>plNum(x.id)-plNum(y.id)).map(st=>{
-        const a = plAnswers[st.id]; let cls = "";
-        if(a!==undefined) cls = (plShowResult && q.c!==null && q.c!==undefined) ? (a===q.c ? "ok" : "bad") : "read";
-        const lt = (a!==undefined && plShowAns) ? '<i class="lt">'+letters[a]+'</i>' : "";
-        return '<div class="plb-st '+cls+'"><span class="nm">'+qbEscape(st.name)+'</span>'+lt+'<b>'+plNum(st.id)+'</b></div>';
-      }).join("") + '</div>';
-    } else right.innerHTML = "";
-  }
+  } else right.innerHTML = "";
   const idx = document.getElementById("plbIdx"); if(idx) idx.textContent = plQueue.length ? ((plQIdx+1)+" / "+plQueue.length) : "";
   const set = (id,on)=>{ const e = document.getElementById(id); if(e) e.classList.toggle("on", !!on); };
-  set("plbCamBtn", plView==="scan"); set("plbRevealBtn", plShowAns); set("plbResultBtn", plShowResult); set("plbChartBtn", plView==="chart");
+  set("plbCamBtn", plView==="scan"); set("plbRevealBtn", plShowAns); set("plbResultBtn", plShowResult); set("plbChartBtn", plShowChart);
 }
 
 /* ---- Telefon: tam ekran tarayıcı (soru görünmez) ---- */
 function plScannerEl(){
   let o = document.getElementById("plScanner"); if(o) return o;
   o = document.createElement("div"); o.id = "plScanner"; o.className = "pl-scanner";
-  o.innerHTML = '<video id="plVideo" autoplay playsinline muted></video><canvas id="plCanvas" style="display:none;"></canvas><div id="plScanFlash" class="pl-scan-flash"></div>'
+  o.innerHTML = '<video id="plVideo" autoplay playsinline muted></video><canvas id="plCanvas" style="display:none;"></canvas><div id="plLabels" class="pls-labels"></div><div id="plScanFlash" class="pl-scan-flash"></div>'
     + '<div class="pls-top"><b id="plScanCount">0 / 0</b><span id="plScanInfo"></span></div>'
     + '<div class="pls-last" id="plScanLast"></div>'
     + '<div class="pls-bottom"><input type="range" id="plZoom" style="display:none;" aria-label="Yakınlaştır"><button type="button" id="plsStop">⏹ Bitir</button></div>';
@@ -3762,6 +3775,7 @@ function plScannerClose(){
   if(plStream) plStream.getTracks().forEach(t=>t.stop());
   try{ if(plWake){ plWake.release(); plWake = null; } }catch(e){}
   const o = document.getElementById("plScanner"); if(o) o.classList.remove("show");
+  const lb = document.getElementById("plLabels"); if(lb) lb.innerHTML = "";
 }
 function plScanCountUpdate(){
   const c = document.getElementById("plScanCount");
@@ -3809,7 +3823,7 @@ function plDecodeBox(canvas, bb, W, H){
     cctx.drawImage(canvas, x, y, w, h, 0, 0, cw, ch);
     const im = cctx.getImageData(0, 0, cw, ch);
     const r = plRead(window.jsQR ? jsQR(im.data, cw, ch, {inversionAttempts:t.inv}) : null);
-    if(r) return r;
+    if(r){ r.bb = bb; return r; }
   }
   return null;
 }
@@ -3829,14 +3843,29 @@ async function plScanFrame(){
     const im = ctx.getImageData(0, 0, W, H), d = im.data;
     for(let n=0; n<6; n++){
       const code = jsQR(d, W, H, {inversionAttempts:"dontInvert"}); if(!code) break;
-      const r = plRead(code); if(r) reads.push(r);
+      const r = plRead(code);
       const L = code.location, xs = [L.topLeftCorner.x, L.topRightCorner.x, L.bottomLeftCorner.x, L.bottomRightCorner.x], ys = [L.topLeftCorner.y, L.topRightCorner.y, L.bottomLeftCorner.y, L.bottomRightCorner.y];
       const x0 = Math.max(0, Math.floor(Math.min(...xs)-10)), x1 = Math.min(W-1, Math.ceil(Math.max(...xs)+10)), y0 = Math.max(0, Math.floor(Math.min(...ys)-10)), y1 = Math.min(H-1, Math.ceil(Math.max(...ys)+10));
+      if(r){ r.bb = { x:x0, y:y0, width:x1-x0, height:y1-y0 }; reads.push(r); }
       for(let yy=y0; yy<=y1; yy++) for(let xx=x0; xx<=x1; xx++){ const o = (yy*W+xx)*4; d[o] = d[o+1] = d[o+2] = 255; }
     }
     plLastSeen = reads.length;
   }
   plApplyReads(reads);
+  plLabelsRender(reads, W, H);
+}
+/* Kartın üzerinde öğrenci adı: nokta kırmızı = görüldü, yeşil = cevap kaydedildi, turuncu = kart eğik */
+function plLabelsRender(reads, W, H){
+  const host = document.getElementById("plLabels"), box = document.getElementById("plScanner");
+  if(!host || !box) return;
+  const cw = box.clientWidth, ch = box.clientHeight, scale = Math.max(cw/W, ch/H), ox = (cw - W*scale)/2, oy = (ch - H*scale)/2;
+  host.innerHTML = reads.map(r=>{
+    const st = plRoster.find(x=>x.id===r.id); if(!st || !r.bb) return "";
+    const bx = r.bb.x*scale + ox, by = r.bb.y*scale + oy, bw = r.bb.width*scale, bh = r.bb.height*scale;
+    const state = r.idx === null ? "warn" : (plAnswers[r.id] === r.idx ? "ok" : "pend");
+    const fs = Math.max(12, Math.min(26, bh*0.3));
+    return '<div class="pls-lab '+state+'" style="left:'+(bx+bw/2)+'px;top:'+Math.max(80, by - fs*2.3)+'px;font-size:'+fs+'px;"><i></i>'+qbEscape(st.name)+'</div>';
+  }).join("");
 }
 function plApplyReads(reads){
   let changed = false, lastName = "";
