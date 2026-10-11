@@ -1214,6 +1214,22 @@
     .pl-board[data-view="scan"] .plb-left{ flex:0 0 auto; max-height:30vh; }
     .plb-roster{ grid-template-columns:repeat(2,1fr); }
   }
+  /* ---- Plickers: telefon tarayıcısı ---- */
+  .pl-scanner{ position:fixed; inset:0; z-index:9600; background:#000; display:none; }
+  .pl-scanner.show{ display:block; }
+  .pl-scanner video{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+  .pl-scanner .pl-scan-flash{ position:absolute; inset:0; pointer-events:none; box-shadow:inset 0 0 0 0 rgba(66,133,244,0); transition:box-shadow .15s; }
+  .pl-scanner .pl-scan-flash.show{ box-shadow:inset 0 0 0 14px rgba(66,133,244,.85); }
+  .pls-top{ position:absolute; top:calc(14px + env(safe-area-inset-top,0px)); left:12px; right:12px; display:flex; justify-content:space-between; align-items:center; gap:10px; color:#fff; font-weight:800; text-shadow:0 1px 4px rgba(0,0,0,.7); }
+  .pls-top b{ font-size:1.6rem; background:rgba(0,0,0,.5); padding:6px 16px; border-radius:14px; }
+  .pls-top span{ background:rgba(0,0,0,.5); padding:6px 12px; border-radius:12px; font-size:.95rem; }
+  .pls-last{ position:absolute; top:calc(76px + env(safe-area-inset-top,0px)); left:0; right:0; text-align:center; color:#fff; font-weight:800; font-size:1.2rem; text-shadow:0 1px 4px rgba(0,0,0,.8); }
+  .pls-bottom{ position:absolute; left:0; right:0; bottom:calc(22px + env(safe-area-inset-bottom,0px)); display:flex; flex-direction:column; align-items:center; gap:14px; }
+  .pls-bottom input[type=range]{ width:70%; }
+  .pls-bottom button{ border:0; border-radius:999px; padding:16px 38px; background:#E0524A; color:#fff; font:800 1.15rem 'Manrope',sans-serif; box-shadow:0 6px 0 #A23A34; }
+  .plb-st.read{ background:#4C7BEA; color:#fff; }
+  .plb-st .lt{ font-style:normal; font-weight:900; background:rgba(255,255,255,.28); border-radius:8px; padding:0 .45em; margin-left:auto; margin-right:.5em; }
+  .plb-st.ok .lt, .plb-st.bad .lt{ background:rgba(255,255,255,.3); }
 </style>
 </head>
 <body class="auth-locked">
@@ -1768,7 +1784,8 @@
           <div class="sx-panel" id="plSrc"></div>
           <div class="pl-qhead">
             <button class="preset" id="plGenBtn">🎓 Genel Kültür bankası</button>
-            <button class="start-btn" id="plOpenBoard" style="margin-left:0;">📺 Sunum Ekranını Aç</button>
+            <button class="start-btn" id="plOpenBoard" style="margin-left:0;">📺 Sunum Ekranı (tahta)</button>
+            <button class="start-btn" id="plOpenScanner" style="margin-left:0;background:#2EB872;box-shadow:0 5px 0 #1E8A55;">📷 Tarayıcı (telefon)</button>
           </div>
           <div id="plQList" class="pl-qlist"></div>
         </div>
@@ -3535,7 +3552,7 @@ const PL_LIVE = "dkabSorXPlickers";
 let plQuestion = { q:"", o:null, c:null }, plShowAns = false, plShowResult = false, plView = "question", plLiveOn = false;
 let plQueue = [], plQIdx = -1, plListTok = 0;
 let plSrc = { classId:"", courseId:"", unitId:"", topicId:"", general:false };
-let plDet = null, plBusy = false, plStreak = {}, plWake = null;
+let plDet = null, plBusy = false, plStreak = {}, plWake = null, plLastSeen = 0;
 const plCrop = document.createElement("canvas");
 const plNum = id => parseInt(String(id).replace(/\D/g,""), 10) || 0;
 
@@ -3640,7 +3657,6 @@ function plBoardEl(){
   let b = document.getElementById("plBoard"); if(b) return b;
   b = document.createElement("div"); b.id = "plBoard"; b.className = "pl-board";
   b.innerHTML = '<div class="plb-main"><div class="plb-left" id="plbLeft"></div><div class="plb-right" id="plbRight"></div></div>'
-    + '<div class="plb-cam" id="plbCam"><video id="plVideo" autoplay playsinline muted></video><canvas id="plCanvas" style="display:none;"></canvas><div id="plScanFlash" class="pl-scan-flash"></div></div>'
     + '<div class="plb-bar">'
     + '<button type="button" data-pb="prev">◀</button><span class="plb-idx" id="plbIdx"></span><button type="button" data-pb="next">▶</button>'
     + '<button type="button" data-pb="q">📝 Soru</button>'
@@ -3649,7 +3665,6 @@ function plBoardEl(){
     + '<button type="button" data-pb="result" id="plbResultBtn">✔ Doğru / Yanlış</button>'
     + '<button type="button" data-pb="chart" id="plbChartBtn">📊 Grafik</button>'
     + '<button type="button" data-pb="reset">🔄 Yeni Tur</button>'
-    + '<span class="plb-info" id="plScanInfo"></span>'
     + '<button type="button" data-pb="close" class="plb-close">✕ Kapat</button></div>';
   document.body.appendChild(b);
   b.addEventListener("click", (e)=>{
@@ -3658,7 +3673,7 @@ function plBoardEl(){
     if(a==="prev") plPickQuestion(plQIdx-1);
     else if(a==="next") plPickQuestion(plQIdx+1);
     else if(a==="q") plSetState({ view:"question" });
-    else if(a==="cam") plToggleCamera();
+    else if(a==="cam") plSetState({ view: plView==="scan" ? "question" : "scan" });
     else if(a==="reveal"){ if(plQuestion.c===null){ alert("Önce Soru Kaynağından bir soru seçin."); return; } plSetState({ showAnswer:!plShowAns }); }
     else if(a==="result"){ if(plQuestion.c===null){ alert("Önce Soru Kaynağından bir soru seçin."); return; } const on = !plShowResult; plSetState({ showResult:on, showAnswer:on ? true : plShowAns }); }
     else if(a==="chart") plSetState({ view: plView==="chart" ? "question" : "chart" });
@@ -3669,7 +3684,6 @@ function plBoardEl(){
 }
 function plOpenBoard(){ plBoardEl().classList.add("show"); plBoardRender(); }
 function plCloseBoard(){
-  if(plScanning) plToggleCamera();
   const b = document.getElementById("plBoard"); if(b) b.classList.remove("show");
 }
 document.getElementById("plOpenBoard").addEventListener("click", plOpenBoard);
@@ -3696,34 +3710,64 @@ function plBoardRender(){
       right.innerHTML = '<div class="plb-roster">' + plRoster.slice().sort((x,y)=>plNum(x.id)-plNum(y.id)).map(st=>{
         const a = plAnswers[st.id]; let cls = "";
         if(a!==undefined) cls = (plShowResult && q.c!==null && q.c!==undefined) ? (a===q.c ? "ok" : "bad") : "read";
-        return '<div class="plb-st '+cls+'"><span class="nm">'+qbEscape(st.name)+'</span><b>'+plNum(st.id)+'</b></div>';
+        const lt = (a!==undefined && plShowAns) ? '<i class="lt">'+letters[a]+'</i>' : "";
+        return '<div class="plb-st '+cls+'"><span class="nm">'+qbEscape(st.name)+'</span>'+lt+'<b>'+plNum(st.id)+'</b></div>';
       }).join("") + '</div>';
     } else right.innerHTML = "";
   }
   const idx = document.getElementById("plbIdx"); if(idx) idx.textContent = plQueue.length ? ((plQIdx+1)+" / "+plQueue.length) : "";
   const set = (id,on)=>{ const e = document.getElementById(id); if(e) e.classList.toggle("on", !!on); };
-  set("plbCamBtn", plScanning); set("plbRevealBtn", plShowAns); set("plbResultBtn", plShowResult); set("plbChartBtn", plView==="chart");
+  set("plbCamBtn", plView==="scan"); set("plbRevealBtn", plShowAns); set("plbResultBtn", plShowResult); set("plbChartBtn", plView==="chart");
 }
 
-/* ---- Kamera: aynı karede birden çok kart okuma ---- */
-async function plToggleCamera(){
-  const video = document.getElementById("plVideo"), cam = document.getElementById("plbCam");
-  if(plScanning){
-    plScanning = false;
-    if(plStream) plStream.getTracks().forEach(t=>t.stop());
-    try{ if(plWake){ plWake.release(); plWake = null; } }catch(e){}
-    cam.style.display = "none"; plBoardRender();
-    return;
-  }
-  try{
-    plStream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:"environment", width:{ideal:1920}, height:{ideal:1080} } });
-    video.srcObject = plStream; cam.style.display = "block";
-    plScanning = true; plStreak = {};
-    try{ if(navigator.wakeLock) plWake = await navigator.wakeLock.request("screen"); }catch(e){}
-    plSetState({ view:"scan" });
-    setTimeout(plScanLoop, 200);
-  }catch(e){ alert("Kameraya erişilemedi: " + e.message); }
+/* ---- Telefon: tam ekran tarayıcı (soru görünmez) ---- */
+function plScannerEl(){
+  let o = document.getElementById("plScanner"); if(o) return o;
+  o = document.createElement("div"); o.id = "plScanner"; o.className = "pl-scanner";
+  o.innerHTML = '<video id="plVideo" autoplay playsinline muted></video><canvas id="plCanvas" style="display:none;"></canvas><div id="plScanFlash" class="pl-scan-flash"></div>'
+    + '<div class="pls-top"><b id="plScanCount">0 / 0</b><span id="plScanInfo"></span></div>'
+    + '<div class="pls-last" id="plScanLast"></div>'
+    + '<div class="pls-bottom"><input type="range" id="plZoom" style="display:none;" aria-label="Yakınlaştır"><button type="button" id="plsStop">⏹ Bitir</button></div>';
+  document.body.appendChild(o);
+  o.querySelector("#plsStop").addEventListener("click", plScannerClose);
+  o.querySelector("#plZoom").addEventListener("input", (e)=>{
+    try{ const tr = plStream.getVideoTracks()[0]; tr.applyConstraints({ advanced:[{ zoom:Number(e.target.value) }] }); }catch(x){}
+  });
+  return o;
 }
+async function plScannerOpen(){
+  const o = plScannerEl(), video = o.querySelector("#plVideo");
+  if(!plRoster.length){ alert("Önce 1) Kartları Hazırla bölümünden öğrenci listesini oluşturun."); return; }
+  try{
+    plStream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:"environment", width:{ideal:3840}, height:{ideal:2160} } });
+  }catch(e){
+    try{ plStream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:"environment", width:{ideal:1920}, height:{ideal:1080} } }); }
+    catch(e2){ alert("Kameraya erişilemedi: " + e2.message); return; }
+  }
+  video.srcObject = plStream; o.classList.add("show");
+  plScanning = true; plStreak = {};
+  try{
+    const tr = plStream.getVideoTracks()[0], cap = tr.getCapabilities ? tr.getCapabilities() : {};
+    const z = o.querySelector("#plZoom");
+    if(cap.zoom){ z.min = cap.zoom.min; z.max = cap.zoom.max; z.step = cap.zoom.step || 0.1; z.value = cap.zoom.min; z.style.display = "block"; } else z.style.display = "none";
+    if(cap.focusMode && cap.focusMode.includes("continuous")) tr.applyConstraints({ advanced:[{ focusMode:"continuous" }] });
+  }catch(e){}
+  try{ if(navigator.wakeLock) plWake = await navigator.wakeLock.request("screen"); }catch(e){}
+  plScanCountUpdate();
+  plSetState({ view:"scan" });                    // tahta okutma görünümüne geçsin
+  setTimeout(plScanLoop, 200);
+}
+function plScannerClose(){
+  plScanning = false;
+  if(plStream) plStream.getTracks().forEach(t=>t.stop());
+  try{ if(plWake){ plWake.release(); plWake = null; } }catch(e){}
+  const o = document.getElementById("plScanner"); if(o) o.classList.remove("show");
+}
+function plScanCountUpdate(){
+  const c = document.getElementById("plScanCount");
+  if(c) c.textContent = Object.keys(plAnswers).length + " / " + plRoster.length;
+}
+document.getElementById("plOpenScanner").addEventListener("click", plScannerOpen);
 function plScanLoop(){
   if(!plScanning) return;
   if(!plBusy){ plBusy = true; plScanFrame().catch(e=>console.warn(e)).then(()=>{ plBusy = false; }); }
@@ -3747,11 +3791,31 @@ function plRead(code){
   const dx = loc.topRightFinderPattern.x - loc.topLeftFinderPattern.x, dy = loc.topRightFinderPattern.y - loc.topLeftFinderPattern.y;
   const angle = ((Math.atan2(dy,dx)*180/Math.PI) + 360) % 360;
   const k = Math.round(angle/90), dev = Math.abs(angle - k*90);
-  return { id:id, idx:(dev <= 32 ? (4 - (k%4)) % 4 : null) };
+  return { id:id, idx:(dev <= 40 ? (4 - (k%4)) % 4 : null) };
+}
+function plDecodeBox(canvas, bb, W, H){
+  // bulunan kutuyu kırp, küçükse büyüt; okunamazsa daha geniş kenar boşluğu ve ters renk dene
+  const cctx = plCrop.getContext("2d", {willReadFrequently:true});
+  const tries = [ {pad:0.3, inv:"dontInvert"}, {pad:0.6, inv:"attemptBoth"} ];
+  for(const t of tries){
+    const pad = Math.max(bb.width, bb.height)*t.pad;
+    const x = Math.max(0, Math.floor(bb.x-pad)), y = Math.max(0, Math.floor(bb.y-pad));
+    const w = Math.min(W-x, Math.ceil(bb.width+2*pad)), h = Math.min(H-y, Math.ceil(bb.height+2*pad));
+    if(w < 8 || h < 8) continue;
+    const m = Math.max(w,h), sc = m < 220 ? Math.min(4, 280/m) : Math.min(1, 420/m);
+    const cw = Math.max(1, Math.round(w*sc)), ch = Math.max(1, Math.round(h*sc));
+    plCrop.width = cw; plCrop.height = ch;
+    cctx.imageSmoothingEnabled = true;
+    cctx.drawImage(canvas, x, y, w, h, 0, 0, cw, ch);
+    const im = cctx.getImageData(0, 0, cw, ch);
+    const r = plRead(window.jsQR ? jsQR(im.data, cw, ch, {inversionAttempts:t.inv}) : null);
+    if(r) return r;
+  }
+  return null;
 }
 async function plScanFrame(){
   const video = document.getElementById("plVideo"), canvas = document.getElementById("plCanvas");
-  if(!(video.readyState === video.HAVE_ENOUGH_DATA && video.videoWidth)) return;
+  if(!video || !(video.readyState === video.HAVE_ENOUGH_DATA && video.videoWidth)) return;
   const W = video.videoWidth, H = video.videoHeight;
   canvas.width = W; canvas.height = H;
   const ctx = canvas.getContext("2d", {willReadFrequently:true});
@@ -3759,18 +3823,8 @@ async function plScanFrame(){
   const reads = [], det = await plDetector();
   if(det){
     const boxes = await det.detect(canvas);
-    const cctx = plCrop.getContext("2d", {willReadFrequently:true});
-    for(const b of boxes){
-      const bb = b.boundingBox, pad = Math.max(bb.width, bb.height)*0.3;
-      const x = Math.max(0, Math.floor(bb.x-pad)), y = Math.max(0, Math.floor(bb.y-pad));
-      const w = Math.min(W-x, Math.ceil(bb.width+2*pad)), h = Math.min(H-y, Math.ceil(bb.height+2*pad));
-      const sc = Math.min(1, 360/Math.max(w,h)), cw = Math.max(1, Math.round(w*sc)), ch = Math.max(1, Math.round(h*sc));
-      plCrop.width = cw; plCrop.height = ch;
-      cctx.drawImage(canvas, x, y, w, h, 0, 0, cw, ch);
-      const im = cctx.getImageData(0, 0, cw, ch);
-      const r = plRead(window.jsQR ? jsQR(im.data, cw, ch, {inversionAttempts:"dontInvert"}) : null);
-      if(r) reads.push(r);
-    }
+    for(const b of boxes){ const r = plDecodeBox(canvas, b.boundingBox, W, H); if(r) reads.push(r); }
+    plLastSeen = boxes.length;
   } else if(window.jsQR){
     const im = ctx.getImageData(0, 0, W, H), d = im.data;
     for(let n=0; n<6; n++){
@@ -3780,24 +3834,29 @@ async function plScanFrame(){
       const x0 = Math.max(0, Math.floor(Math.min(...xs)-10)), x1 = Math.min(W-1, Math.ceil(Math.max(...xs)+10)), y0 = Math.max(0, Math.floor(Math.min(...ys)-10)), y1 = Math.min(H-1, Math.ceil(Math.max(...ys)+10));
       for(let yy=y0; yy<=y1; yy++) for(let xx=x0; xx<=x1; xx++){ const o = (yy*W+xx)*4; d[o] = d[o+1] = d[o+2] = 255; }
     }
+    plLastSeen = reads.length;
   }
   plApplyReads(reads);
 }
 function plApplyReads(reads){
-  let changed = false, seen = 0;
+  let changed = false, lastName = "";
   reads.forEach(r=>{
-    if(!plRoster.find(s=>s.id===r.id)) return;
-    seen++;
+    const st = plRoster.find(x=>x.id===r.id); if(!st) return;
     if(r.idx === null) return;
     const prev = plStreak[r.id];
     plStreak[r.id] = (prev && prev.idx===r.idx) ? { idx:r.idx, n:prev.n+1 } : { idx:r.idx, n:1 };
     if(plStreak[r.id].n >= 2 && plAnswers[r.id] !== r.idx){      // aynı şık iki kez üst üste okununca kabul
-      plAnswers[r.id] = r.idx; plLiveSetAnswer(r.id, r.idx); changed = true;
+      plAnswers[r.id] = r.idx; plLiveSetAnswer(r.id, r.idx); changed = true; lastName = st.name;
     }
   });
   const info = document.getElementById("plScanInfo");
-  if(info) info.textContent = "Karede " + seen + " kart • Okunan " + Object.keys(plAnswers).length + "/" + plRoster.length;
-  if(changed){ plFlashScan(); plBoardRender(); }
+  if(info) info.textContent = "Karede " + plLastSeen + " kart";
+  plScanCountUpdate();
+  if(changed){
+    plFlashScan(); plBoardRender();
+    try{ if(navigator.vibrate) navigator.vibrate(60); }catch(e){}
+    const l = document.getElementById("plScanLast"); if(l) l.textContent = "✓ " + lastName;
+  }
 }
 function plFlashScan(){
   const el = document.getElementById("plScanFlash"); if(!el) return;
@@ -8590,6 +8649,8 @@ function slReturnToReader(){
   resOpen(r.sec, r.lunit, r.resId, false);
 }
 function slBackHook(){
+  const ps = document.getElementById("plScanner");
+  if(ps && ps.classList.contains("show")){ plScannerClose(); return true; }
   const pb = document.getElementById("plBoard");
   if(pb && pb.classList.contains("show")){ plCloseBoard(); return true; }
   if(unitBackTo==="reader" && slReturn && qbSource){ unitGoBack(); return true; }
