@@ -392,11 +392,12 @@
   .pl-card-name{ font-family:'Space Grotesk'; font-weight:700; font-size:0.8rem; margin-bottom:14px; }
   .pl-card-qrwrap{ position:relative; width:150px; height:150px; margin:0 auto; }
   .pl-card-qrwrap canvas, .pl-card-qrwrap img{ width:100%; height:100%; display:block; }
-  .pl-letter{ position:absolute; font-family:'Space Grotesk'; font-weight:800; font-size:0.9rem; color: var(--violet-dark); }
-  .pl-letter.top{ top:-20px; left:50%; transform:translateX(-50%); }
-  .pl-letter.right{ right:-20px; top:50%; transform:translateY(-50%); }
-  .pl-letter.bottom{ bottom:-20px; left:50%; transform:translateX(-50%); }
-  .pl-letter.left{ left:-20px; top:50%; transform:translateY(-50%); }
+  .pl-letter{ position:absolute; font-family:'Space Grotesk'; font-weight:800; font-size:1.1rem; line-height:1; color: var(--violet-dark); }
+  .pl-card-qrwrap canvas, .pl-card-qrwrap img{ image-rendering:pixelated; }
+  .pl-letter.top{ top:-22px; left:50%; transform:translateX(-50%); }
+  .pl-letter.right{ right:-22px; top:50%; transform:translateY(-50%) rotate(90deg); }
+  .pl-letter.bottom{ bottom:-22px; left:50%; transform:translateX(-50%) rotate(180deg); }
+  .pl-letter.left{ left:-22px; top:50%; transform:translateY(-50%) rotate(-90deg); }
   .pl-video-wrap{ position:relative; margin-top:14px; max-width:480px; }
   .pl-video-wrap video{ width:100%; border-radius:14px; display:none; background:#000; }
   .pl-scan-flash{ position:absolute; inset:0; border-radius:14px; pointer-events:none; opacity:0; transition:opacity 0.2s; }
@@ -406,26 +407,6 @@
   .pl-result-chip .ans{ color: var(--violet-dark); margin-left:4px; }
   .pl-calib-row{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
 
-  @media print{
-    body *{ visibility:hidden; }
-    #plCardsGrid, #plCardsGrid *{ visibility:visible; }
-    #plCardsGrid{ position:absolute; top:0; left:0; width:100%; display:block; }
-    #plCardsGrid .pl-card{
-      display:flex; flex-direction:column; align-items:center; justify-content:center;
-      width:100%; height:46vh; box-sizing:border-box;
-      border:2px dashed #999; border-radius:0;
-      margin:0 0 3vh 0; padding:40px 10px;
-      page-break-inside: avoid;
-    }
-    #plCardsGrid .pl-card:nth-of-type(2n){ page-break-after: always; }
-    #plCardsGrid .pl-card-name{ font-size:1.4rem; margin-bottom:26px; }
-    #plCardsGrid .pl-card-qrwrap{ width:260px; height:260px; }
-    #plCardsGrid .pl-letter{ font-size:1.5rem; }
-    #plCardsGrid .pl-letter.top{ top:-34px; }
-    #plCardsGrid .pl-letter.right{ right:-34px; }
-    #plCardsGrid .pl-letter.bottom{ bottom:-34px; }
-    #plCardsGrid .pl-letter.left{ left:-34px; }
-  }
   .nav-item[data-view="questionbank"] .nav-icon{ background: var(--amber-soft); }
   .pic-emoji img{ max-width:100%; max-height:170px; border-radius:14px; object-fit:cover; box-shadow:0 4px 0 rgba(20,30,45,0.08); }
 
@@ -585,26 +566,6 @@
   .qb-emoji-badge{ font-size:1.3rem; margin-right:6px; }
   .qb-empty{ text-align:center; color:#8C9BAA; font-weight:700; padding:26px 10px; }
 
-  @media print{
-    body *{ visibility:hidden; }
-    #plCardsGrid, #plCardsGrid *{ visibility:visible; }
-    #plCardsGrid{ position:absolute; top:0; left:0; width:100%; display:block; }
-    #plCardsGrid .pl-card{
-      display:flex; flex-direction:column; align-items:center; justify-content:center;
-      width:100%; height:46vh; box-sizing:border-box;
-      border:2px dashed #999; border-radius:0;
-      margin:0 0 3vh 0; padding:40px 10px;
-      page-break-inside: avoid;
-    }
-    #plCardsGrid .pl-card:nth-of-type(2n){ page-break-after: always; }
-    #plCardsGrid .pl-card-name{ font-size:1.4rem; margin-bottom:26px; }
-    #plCardsGrid .pl-card-qrwrap{ width:260px; height:260px; }
-    #plCardsGrid .pl-letter{ font-size:1.5rem; }
-    #plCardsGrid .pl-letter.top{ top:-34px; }
-    #plCardsGrid .pl-letter.right{ right:-34px; }
-    #plCardsGrid .pl-letter.bottom{ bottom:-34px; }
-    #plCardsGrid .pl-letter.left{ left:-34px; }
-  }
   #qbTabs{ flex-wrap:wrap; }
   .qb-form textarea{ font-family:'Manrope'; font-weight:600; font-size:0.92rem; padding:9px 11px; border-radius:10px; border:2px solid #E1E7EF; color:var(--ink); resize:vertical; min-height:96px; line-height:1.45; }
   .qb-card-hint{ margin-top:8px; font-family:'Manrope'; font-weight:600; font-size:0.85rem; color:var(--muted); }
@@ -1243,6 +1204,35 @@
   .pls-lab{ position:absolute; transform:translateX(-50%); display:flex; align-items:center; gap:.45em; padding:.25em .7em; border-radius:999px; background:rgba(20,24,34,.82); color:#fff; font-weight:800; white-space:nowrap; text-shadow:none; }
   .pls-lab i{ width:.7em; height:.7em; border-radius:50%; background:#E0524A; display:inline-block; }
   .pls-lab.ok i{ background:#2EB872; } .pls-lab.warn i{ background:#F59E0B; }
+  .pls-up{ position:absolute; top:calc(14px + env(safe-area-inset-top,0px)); left:12px; display:flex; flex-direction:column; align-items:center; gap:2px; color:#fff; z-index:2; }
+  .pls-up span{ width:44px; height:44px; border-radius:50%; background:rgba(0,0,0,.55); display:grid; place-items:center; font-size:1.6rem; transition:transform .1s; }
+  .pls-up small{ font-size:.65rem; font-weight:700; background:rgba(0,0,0,.5); padding:1px 6px; border-radius:8px; }
+  .pls-top{ left:80px !important; }
+  .pls-row{ display:flex; gap:12px; }
+  .pls-bottom button.alt{ background:rgba(40,46,60,.9); box-shadow:0 6px 0 #11141C; }
+  /* ---- Plickers kartı: yazdırma (A4, 2 ya da 4 kart/sayfa, büyük karekod, dönük harfler) ---- */
+  .pl-page{ display:contents; }
+  @page{ size:A4 portrait; margin:8mm; }
+  @media print{
+    body *{ visibility:hidden; }
+    #plCardsGrid, #plCardsGrid *{ visibility:visible; }
+    #plCardsGrid{ position:absolute; top:0; left:0; width:194mm; display:block; margin:0; }
+    #plCardsGrid .pl-page{ display:flex; flex-wrap:wrap; align-content:flex-start; gap:5mm; width:194mm; height:281mm; page-break-after:always; break-after:page; overflow:hidden; }
+    #plCardsGrid .pl-card{ position:relative; display:block; box-sizing:border-box; height:137mm; border:1px dashed #999; border-radius:0; margin:0; padding:0; background:#fff; page-break-inside:avoid; }
+    #plCardsGrid .pl-card-name{ position:absolute; top:3mm; left:4mm; margin:0; font-size:10pt; text-align:left; }
+    #plCardsGrid .pl-card-qrwrap{ position:absolute; left:50%; top:50%; margin:0; transform:translate(-50%,-50%); }
+    #plCardsGrid .pl-card-qrwrap canvas, #plCardsGrid .pl-card-qrwrap img{ width:100%; height:100%; image-rendering:pixelated; }
+    body.pl-print-2 #plCardsGrid .pl-card{ width:194mm; }
+    body.pl-print-2 #plCardsGrid .pl-card-qrwrap{ width:100mm; height:100mm; }
+    body.pl-print-2 #plCardsGrid .pl-letter{ font-size:30pt; }
+    body.pl-print-2 #plCardsGrid .pl-letter.top{ top:-13mm; } body.pl-print-2 #plCardsGrid .pl-letter.bottom{ bottom:-13mm; }
+    body.pl-print-2 #plCardsGrid .pl-letter.right{ right:-13mm; } body.pl-print-2 #plCardsGrid .pl-letter.left{ left:-13mm; }
+    body.pl-print-4 #plCardsGrid .pl-card{ width:94.5mm; }
+    body.pl-print-4 #plCardsGrid .pl-card-qrwrap{ width:62mm; height:62mm; }
+    body.pl-print-4 #plCardsGrid .pl-letter{ font-size:22pt; }
+    body.pl-print-4 #plCardsGrid .pl-letter.top{ top:-10mm; } body.pl-print-4 #plCardsGrid .pl-letter.bottom{ bottom:-10mm; }
+    body.pl-print-4 #plCardsGrid .pl-letter.right{ right:-10mm; } body.pl-print-4 #plCardsGrid .pl-letter.left{ left:-10mm; }
+  }
 </style>
 </head>
 <body class="auth-locked">
@@ -1785,6 +1775,7 @@
             <textarea id="plRosterInput" rows="8" class="pl-roster-box" placeholder="Ahmet Yılmaz&#10;Ayşe Kaya&#10;Mehmet Demir&#10;..."></textarea>
             <div style="display:flex; gap:10px; margin-top:12px; flex-wrap:wrap;">
               <button class="start-btn" id="plGenerateBtn" style="margin-left:0;">🎴 Kartları Oluştur</button>
+              <select class="preset" id="plPrintSize" aria-label="Kart boyutu"><option value="2">A4'te 2 kart (büyük, önerilen)</option><option value="4">A4'te 4 kart (küçük)</option></select>
               <button class="preset" id="plPrintBtn">🖨️ Yazdır</button>
               <button class="preset" id="plClearBtn">🗑️ Sınıfı Sıfırla</button>
             </div>
@@ -3532,7 +3523,7 @@ function plRenderCards(){
       </div>`;
     grid.appendChild(card);
     if(window.QRCode){
-      new QRCode(document.getElementById("qr-"+st.id), { text: "PLK|"+st.id, width:260, height:260, correctLevel: QRCode.CorrectLevel.M });
+      new QRCode(document.getElementById("qr-"+st.id), { text: "PLK|"+st.id, width:640, height:640, correctLevel: QRCode.CorrectLevel.M });
     }
   });
   const tc = document.getElementById("plTotalCount"); if(tc) tc.textContent = plRoster.length;
@@ -3545,7 +3536,28 @@ document.getElementById("plGenerateBtn").addEventListener("click", ()=>{
   plRenderCards();
   plRenderResults();
 });
-document.getElementById("plPrintBtn").addEventListener("click", ()=> window.print());
+/* Yazdırırken kartları sayfalara böl (2 ya da 4 kart/sayfa); yazdırınca eski dizilime dön */
+function plPrint(){
+  const n = parseInt(document.getElementById("plPrintSize").value, 10) === 4 ? 4 : 2;
+  const grid = document.getElementById("plCardsGrid");
+  const cards = Array.prototype.slice.call(grid.children).filter(c=>c.classList.contains("pl-card"));
+  if(!cards.length){ alert("Önce öğrenci listesini girip Kartları Oluştur'a basın."); return; }
+  document.body.classList.add("pl-print-"+n);
+  const pages = [];
+  for(let i=0; i<cards.length; i+=n){
+    const pg = document.createElement("div"); pg.className = "pl-page";
+    cards.slice(i, i+n).forEach(c=>pg.appendChild(c));
+    grid.appendChild(pg); pages.push(pg);
+  }
+  const restore = ()=>{
+    window.removeEventListener("afterprint", restore);
+    pages.forEach(pg=>{ while(pg.firstChild) grid.insertBefore(pg.firstChild, pg); pg.remove(); });
+    document.body.classList.remove("pl-print-2", "pl-print-4");
+  };
+  window.addEventListener("afterprint", restore);
+  setTimeout(()=>window.print(), 80);
+}
+document.getElementById("plPrintBtn").addEventListener("click", plPrint);
 document.getElementById("plClearBtn").addEventListener("click", ()=>{
   if(!confirm("Sınıf listesi ve tüm kartlar silinsin mi?")) return;
   plRoster = []; plAnswers = {};
@@ -3566,6 +3578,32 @@ let plQuestion = { q:"", o:null, c:null }, plShowAns = false, plShowResult = fal
 let plQueue = [], plQIdx = -1, plListTok = 0;
 let plSrc = { classId:"", courseId:"", unitId:"", topicId:"", general:false };
 let plDet = null, plBusy = false, plStreak = {}, plWake = null, plLastSeen = 0;
+let plGrav = null, plGravOk = false, plUpOffset = 0;
+const plIOS = /iPad|iPhone|iPod/.test(navigator.userAgent||"");
+/* Gerçek "yukarı"yı telefonun yerçekimi sensöründen bul: telefon dikey/yatay/ekran dönmesi açık-kapalı fark etmez */
+function plScreenAngle(){
+  let a = (screen.orientation && typeof screen.orientation.angle === "number") ? screen.orientation.angle : ((360 - (window.orientation||0)) % 360);
+  return ((Math.round(a/90)*90) % 360 + 360) % 360;
+}
+function plUpDelta(){
+  // gerçek yukarının, kamera görüntüsünün üstünden saat yönünde kaç derece döndüğü (+ elle yön ayarı)
+  const off = plUpOffset;
+  if(!plGrav || !plGravOk) return off;
+  let ax = plGrav.x, ay = plGrav.y;
+  if(plIOS){ ax = -ax; ay = -ay; }                       // iOS işareti tersine bildirir
+  const th = plScreenAngle();
+  let sx, sy;
+  if(th===0){ sx = ax; sy = ay; } else if(th===90){ sx = -ay; sy = ax; } else if(th===180){ sx = -ax; sy = -ay; } else { sx = ay; sy = -ax; }
+  if(Math.hypot(sx, sy) < 3) return off;                 // telefon düz tutuluyor: yön belirsiz
+  const phi = (Math.atan2(-sy, sx)*180/Math.PI + 360) % 360;
+  return ((phi - 270 + off) % 360 + 360) % 360;
+}
+function plMotion(e){
+  const g = e.accelerationIncludingGravity; if(!g || g.x===null || g.x===undefined) return;
+  plGrav = plGrav ? { x:plGrav.x*0.8+g.x*0.2, y:plGrav.y*0.8+g.y*0.2, z:plGrav.z*0.8+(g.z||0)*0.2 } : { x:g.x, y:g.y, z:g.z||0 };
+  plGravOk = true;
+  const ar = document.getElementById("plUpArrow"); if(ar) ar.style.transform = "rotate(" + plUpDelta() + "deg)";
+}
 const plCrop = document.createElement("canvas");
 const plNum = id => parseInt(String(id).replace(/\D/g,""), 10) || 0;
 
@@ -3740,9 +3778,14 @@ function plScannerEl(){
   o.innerHTML = '<video id="plVideo" autoplay playsinline muted></video><canvas id="plCanvas" style="display:none;"></canvas><div id="plLabels" class="pls-labels"></div><div id="plScanFlash" class="pl-scan-flash"></div>'
     + '<div class="pls-top"><b id="plScanCount">0 / 0</b><span id="plScanInfo"></span></div>'
     + '<div class="pls-last" id="plScanLast"></div>'
-    + '<div class="pls-bottom"><input type="range" id="plZoom" style="display:none;" aria-label="Yakınlaştır"><button type="button" id="plsStop">⏹ Bitir</button></div>';
+    + '<div class="pls-up" id="plUpWrap"><span id="plUpArrow">⬆</span><small>gerçek yukarı</small></div>'
+    + '<div class="pls-bottom"><input type="range" id="plZoom" style="display:none;" aria-label="Yakınlaştır"><div class="pls-row"><button type="button" id="plUpRot" class="alt">↻ Yön</button><button type="button" id="plsStop">⏹ Bitir</button></div></div>';
   document.body.appendChild(o);
   o.querySelector("#plsStop").addEventListener("click", plScannerClose);
+  o.querySelector("#plUpRot").addEventListener("click", ()=>{
+    plUpOffset = (plUpOffset + 90) % 360; plStreak = {};
+    const ar = document.getElementById("plUpArrow"); if(ar) ar.style.transform = "rotate(" + plUpDelta() + "deg)";
+  });
   o.querySelector("#plZoom").addEventListener("input", (e)=>{
     try{ const tr = plStream.getVideoTracks()[0]; tr.applyConstraints({ advanced:[{ zoom:Number(e.target.value) }] }); }catch(x){}
   });
@@ -3751,6 +3794,11 @@ function plScannerEl(){
 async function plScannerOpen(){
   const o = plScannerEl(), video = o.querySelector("#plVideo");
   if(!plRoster.length){ alert("Önce 1) Kartları Hazırla bölümünden öğrenci listesini oluşturun."); return; }
+  try{
+    if(typeof DeviceMotionEvent !== "undefined" && typeof DeviceMotionEvent.requestPermission === "function"){ await DeviceMotionEvent.requestPermission(); }   // iPhone: izin ister
+  }catch(e){}
+  plGrav = null; plGravOk = false;
+  window.addEventListener("devicemotion", plMotion);
   try{
     plStream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:"environment", width:{ideal:3840}, height:{ideal:2160} } });
   }catch(e){
@@ -3772,6 +3820,7 @@ async function plScannerOpen(){
 }
 function plScannerClose(){
   plScanning = false;
+  window.removeEventListener("devicemotion", plMotion);
   if(plStream) plStream.getTracks().forEach(t=>t.stop());
   try{ if(plWake){ plWake.release(); plWake = null; } }catch(e){}
   const o = document.getElementById("plScanner"); if(o) o.classList.remove("show");
@@ -3803,7 +3852,7 @@ function plRead(code){
   if(!code || !code.data || code.data.indexOf("PLK|")!==0) return null;
   const loc = code.location, id = code.data.split("|")[1];
   const dx = loc.topRightFinderPattern.x - loc.topLeftFinderPattern.x, dy = loc.topRightFinderPattern.y - loc.topLeftFinderPattern.y;
-  const angle = ((Math.atan2(dy,dx)*180/Math.PI) + 360) % 360;
+  const angle = (((Math.atan2(dy,dx)*180/Math.PI) - plUpDelta()) % 360 + 360) % 360;
   const k = Math.round(angle/90), dev = Math.abs(angle - k*90);
   return { id:id, idx:(dev <= 40 ? (4 - (k%4)) % 4 : null) };
 }
