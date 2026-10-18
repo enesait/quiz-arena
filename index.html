@@ -7056,7 +7056,7 @@ function sinifRender(){
         const n = ids.reduce((s,id)=>s+unitCount(id, g.id), 0);
         html += '<div class="act-card"><div class="act-head"><span class="act-icon">'+g.icon+'</span><span>'+g.name+'</span></div>'
           + '<div class="act-count">'+(n>0 ? n+' '+g.noun : 'Başlıklardaki sorular birleşir')+'</div>'
-          + '<div class="act-buttons"><button class="act-play" data-act="eplay" data-game="'+g.id+'">▶ Oyna</button><button class="act-edit" data-act="bank" data-game="'+g.id+'">📝 Üniteye doğrudan eklenenler</button></div></div>';
+          + '<div class="act-buttons"><button class="act-play" data-act="eplay" data-game="'+g.id+'">▶ Oyna</button></div></div>';
       });
       html += '</div>';
     } else if(unitTotal(un.id)>0){
@@ -7113,16 +7113,107 @@ function sxGamesHtml(cl, co, u, tp, singleUnit){
       const n = ids.reduce((sum,id)=>sum+unitCount(id, g.id), 0);
       html += '<div class="act-card"><div class="act-head"><span class="act-icon">'+g.icon+'</span><span>'+g.name+'</span></div>'
         + '<div class="act-count">'+(n>0 ? n+' '+g.noun : 'Henüz soru yok')+'</div>'
-        + '<div class="act-buttons"><button class="act-play" data-act="eplay" data-game="'+g.id+'" '+(n===0?"disabled":"")+'>▶ Oyna</button><button class="act-edit" data-act="bank" data-game="'+g.id+'">📝 Üniteye doğrudan eklenenler</button></div></div>';
+        + '<div class="act-buttons"><button class="act-play" data-act="eplay" data-game="'+g.id+'" '+(n===0?"disabled":"")+'>▶ Oyna</button></div></div>';
     });
     html += '</div>';
     html += '<div class="sx-note">Alt başlığa göre etkinlikler için yukarıdan alt başlık seçin.</div>';
+    if(!Auth.readOnly() && UNIT_GAMES.some(g=>unitCount(u.id, g.id)>0)){
+      html += '<div style="margin:6px 0 0;"><button type="button" class="sx-direct-btn" data-direct-unit="'+u.id+'" style="background:none;border:none;padding:4px 0;font:inherit;font-size:0.78rem;color:var(--muted);opacity:.7;text-decoration:underline;cursor:pointer;">Üniteye doğrudan eklenenler</button></div>';
+    }
   } else {
     const gr = sinifActGrid(u.id);
     html += '<div class="sx-sub">🎮 Etkinlikler</div><div class="sx-ctx" '+sxCtx(cl,co,u,null)+'>'+quick+gr.html+'</div>';
   }
   return html;
 }
+
+/* ---- Üniteye doğrudan eklenen soruları tek pencerede göster / sil ---- */
+let directState = { unitId:null, lists:{}, changed:false };
+function directLabel(it){
+  if(it==null) return "";
+  if(typeof it==="string") return it;
+  const ks = ["q","w","word","kelime","title","text","name","answer"];
+  for(const k of ks){ if(typeof it[k]==="string" && it[k]) return it[k]; }
+  for(const k in it){ if(typeof it[k]==="string" && it[k] && k!=="id" && k!=="img" && k!=="emoji" && k!=="level" && k!=="cat" && k!=="layout") return it[k]; }
+  return "(içerik)";
+}
+function directWrite(unitId, game, arr){
+  const key = "unitQ:"+unitId+":"+game;
+  if(!arr.length){
+    try{ localStorage.removeItem(key); }catch(e){}
+    if(firebaseHazir){ fbDb.ref("dkabSorXQB/"+key).remove().catch(()=>{}); fbDb.ref("dkabSorXQBN/"+key).remove().catch(()=>{}); }
+    if(typeof qbCloudCounts !== "undefined") delete qbCloudCounts[key];
+    return;
+  }
+  try{ localStorage.setItem(key, JSON.stringify(arr)); }catch(e){}
+  if(firebaseHazir){ fbDb.ref("dkabSorXQB/"+key).set(arr).catch(()=>{}); fbDb.ref("dkabSorXQBN/"+key).set(arr.length).catch(()=>{}); }
+  if(typeof qbCloudCounts !== "undefined") qbCloudCounts[key] = arr.length;
+}
+function directRender(){
+  const box = document.getElementById("directBox"); if(!box) return;
+  const e = qbEscape, st = directState;
+  const games = UNIT_GAMES.filter(g=>(st.lists[g.id]||[]).length);
+  let h = '<div style="font-weight:800;font-size:1.05rem;margin-bottom:4px;">Üniteye doğrudan eklenen sorular</div>'
+    + '<div style="color:var(--muted);font-size:0.85rem;margin-bottom:12px;">Alt başlık seçilmeden doğrudan üniteye eklenenler. Ünite Değerlendirme\'de bunlar da karışık gelir.</div>';
+  if(!games.length){
+    h += '<div style="padding:14px 0;">Üniteye doğrudan eklenmiş soru yok.</div>';
+  } else {
+    games.forEach(g=>{
+      const arr = st.lists[g.id];
+      h += '<div style="border:1px solid #E1E7EF;border-radius:14px;padding:10px 12px;margin-bottom:10px;">'
+        + '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">'
+        + '<b>'+g.icon+' '+e(g.name)+' <span style="color:var(--muted);font-weight:600;">('+arr.length+')</span></b>'
+        + '<button type="button" data-d="game" data-game="'+g.id+'" style="border:1px solid #F3B0AA;background:#FFF1F0;color:#C93A2D;border-radius:10px;padding:5px 10px;font:inherit;font-size:0.8rem;font-weight:700;cursor:pointer;">Bunların hepsini sil</button></div>'
+        + '<ol style="margin:8px 0 0;padding-left:0;list-style:none;">'
+        + arr.map((it,i)=>{ let s = String(directLabel(it)); if(s.length>90) s = s.slice(0,90)+"…";
+            return '<li style="display:flex;gap:8px;align-items:flex-start;padding:4px 0;border-top:1px solid #F0F2F6;font-size:0.85rem;"><span style="flex:1;">'+e(s)+'</span><button type="button" data-d="one" data-game="'+g.id+'" data-i="'+i+'" title="Sil" style="border:none;background:none;cursor:pointer;font-size:1rem;">🗑️</button></li>'; }).join("")
+        + '</ol></div>';
+    });
+  }
+  h += '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;">'
+    + (games.length ? '<button type="button" data-d="all" style="border:none;background:#FB5B4B;color:#fff;border-radius:12px;padding:9px 14px;font:inherit;font-weight:800;cursor:pointer;">Hepsini sil</button>' : '')
+    + '<button type="button" data-d="close" style="border:1px solid #E1E7EF;background:#fff;border-radius:12px;padding:9px 14px;font:inherit;font-weight:700;cursor:pointer;">Kapat</button></div>';
+  box.innerHTML = h;
+}
+function directClose(){
+  const ov = document.getElementById("directOv"); if(ov) ov.remove();
+  if(directState.changed){ directState.changed = false; try{ sxRender(); }catch(e){} }
+}
+async function directOpen(unitId){
+  const old = document.getElementById("directOv"); if(old) old.remove();
+  const ov = document.createElement("div"); ov.id = "directOv";
+  ov.style.cssText = "position:fixed;inset:0;z-index:9999;background:rgba(20,30,45,.5);display:flex;align-items:center;justify-content:center;padding:14px;";
+  ov.innerHTML = '<div style="background:#fff;border-radius:18px;max-width:640px;width:100%;max-height:88vh;overflow:auto;padding:18px;"><div id="directBox">Yükleniyor…</div></div>';
+  document.body.appendChild(ov);
+  directState = { unitId:unitId, lists:{}, changed:false };
+  const res = await Promise.all(UNIT_GAMES.map(g=>unitFetchQuestions(unitId, g.id)));
+  UNIT_GAMES.forEach((g,i)=>{ directState.lists[g.id] = (res[i]||[]).slice(); });
+  directRender();
+}
+document.addEventListener("click", (ev)=>{
+  const b = ev.target && ev.target.closest ? ev.target.closest(".sx-direct-btn") : null;
+  if(b){ ev.preventDefault(); directOpen(b.dataset.directUnit); return; }
+  const ov = document.getElementById("directOv"); if(!ov) return;
+  if(ev.target === ov){ directClose(); return; }
+  const d = ev.target.closest ? ev.target.closest("[data-d]") : null; if(!d) return;
+  const st = directState, act = d.dataset.d, game = d.dataset.game;
+  if(act==="close"){ directClose(); }
+  else if(act==="one"){
+    const arr = st.lists[game]; if(!arr) return;
+    arr.splice(Number(d.dataset.i), 1); directWrite(st.unitId, game, arr); st.changed = true; directRender();
+  }
+  else if(act==="game"){
+    const g = UNIT_GAMES.find(x=>x.id===game);
+    if(!confirm((g?g.name:"Bu etkinlik")+" için doğrudan eklenen "+(st.lists[game]||[]).length+" sorunun hepsi silinsin mi?")) return;
+    st.lists[game] = []; directWrite(st.unitId, game, []); st.changed = true; directRender();
+  }
+  else if(act==="all"){
+    const n = UNIT_GAMES.reduce((s,g)=>s+(st.lists[g.id]||[]).length, 0);
+    if(!confirm("Üniteye doğrudan eklenen "+n+" kaydın hepsi silinsin mi? Alt başlıklardaki sorulara dokunulmaz.")) return;
+    UNIT_GAMES.forEach(g=>{ st.lists[g.id] = []; directWrite(st.unitId, g.id, []); });
+    st.changed = true; directRender();
+  }
+});
 function sxResHtml(sec, cl, co, u, strict){
   const lu = sxLibUnit(sec, cl, co, u), title = (sec==="kitap" ? "📚 Ders Kitapları (PDF)" : "📽️ Ders Sunumları");
   if(!lu) return strict ? '<div class="sx-sub">'+title+'</div><div class="sinif-empty">Bu ünite için eşleşen kaynak bulunamadı (ünite adı '+(sec==="kitap"?"Ders Kitapları":"Ders Sunumları")+' bölümünde farklı olabilir).</div>' : "";
