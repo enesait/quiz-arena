@@ -7056,7 +7056,7 @@ function sinifRender(){
         const n = ids.reduce((s,id)=>s+unitCount(id, g.id), 0);
         html += '<div class="act-card"><div class="act-head"><span class="act-icon">'+g.icon+'</span><span>'+g.name+'</span></div>'
           + '<div class="act-count">'+(n>0 ? n+' '+g.noun : 'Başlıklardaki sorular birleşir')+'</div>'
-          + '<div class="act-buttons"><button class="act-play" data-act="eplay" data-game="'+g.id+'">▶ Oyna</button></div></div>';
+          + '<div class="act-buttons"><button class="act-play" data-act="eplay" data-game="'+g.id+'">▶ Oyna</button><button class="act-edit" data-act="bank" data-game="'+g.id+'">📝 Üniteye doğrudan eklenenler</button></div></div>';
       });
       html += '</div>';
     } else if(unitTotal(un.id)>0){
@@ -7113,7 +7113,7 @@ function sxGamesHtml(cl, co, u, tp, singleUnit){
       const n = ids.reduce((sum,id)=>sum+unitCount(id, g.id), 0);
       html += '<div class="act-card"><div class="act-head"><span class="act-icon">'+g.icon+'</span><span>'+g.name+'</span></div>'
         + '<div class="act-count">'+(n>0 ? n+' '+g.noun : 'Henüz soru yok')+'</div>'
-        + '<div class="act-buttons"><button class="act-play" data-act="eplay" data-game="'+g.id+'" '+(n===0?"disabled":"")+'>▶ Oyna</button></div></div>';
+        + '<div class="act-buttons"><button class="act-play" data-act="eplay" data-game="'+g.id+'" '+(n===0?"disabled":"")+'>▶ Oyna</button><button class="act-edit" data-act="bank" data-game="'+g.id+'">📝 Üniteye doğrudan eklenenler</button></div></div>';
     });
     html += '</div>';
     html += '<div class="sx-note">Alt başlığa göre etkinlikler için yukarıdan alt başlık seçin.</div>';
