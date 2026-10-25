@@ -532,6 +532,13 @@
   body.role-ogretmen [data-act="add"], body.role-ogretmen [data-act="rename"], body.role-ogretmen [data-act="delete"], body.role-ogretmen [data-act="bank"], body.role-ogretmen [data-act="quick"],
   body.role-ogretmen [data-act="toggle-edit"], body.role-ogretmen [data-act="pick-file"], body.role-ogretmen [data-act="add-link"], body.role-ogretmen [data-act="res-rename"], body.role-ogretmen [data-act="res-delete"],
   body.role-ogretmen [data-act="backup"], body.role-ogretmen [data-act="restore-pick"], body.role-ogretmen #plRosterInput, body.role-ogretmen #plGenerateBtn, body.role-ogretmen #plClearBtn{ display:none !important; }
+  body.role-ogrenci .nav-item[data-view="kitap"], body.role-ogrenci .nav-item[data-view="sunum"], body.role-ogrenci .nav-item[data-view="sounds"], body.role-ogrenci .nav-item[data-view="plickers"],
+  body.role-ogrenci .nav-section-label:has(+ .nav-item[data-view="plickers"]), body.role-ogrenci .nav-section-label:has(+ .nav-item[data-view="kitap"]),
+  body.role-ogrenci .nav-item[data-view="questionbank"], body.role-ogrenci .nav-item[data-view="sorxadd"],
+  body.role-ogrenci .sinif-add, body.role-ogrenci .sinif-backup, body.role-ogrenci .lib-add, body.role-ogrenci .lib-edit-btn, body.role-ogrenci .act-quick,
+  body.role-ogrenci [data-act="add"], body.role-ogrenci [data-act="rename"], body.role-ogrenci [data-act="delete"], body.role-ogrenci [data-act="bank"], body.role-ogrenci [data-act="quick"],
+  body.role-ogrenci [data-act="toggle-edit"], body.role-ogrenci [data-act="pick-file"], body.role-ogrenci [data-act="add-link"], body.role-ogrenci [data-act="res-rename"], body.role-ogrenci [data-act="res-delete"],
+  body.role-ogrenci [data-act="backup"], body.role-ogrenci [data-act="restore-pick"], body.role-ogrenci #plRosterInput, body.role-ogrenci #plGenerateBtn, body.role-ogrenci #plClearBtn{ display:none !important; }
   .adm-card{ background:#fff; border:2px solid #E1E7EF; border-radius:16px; padding:14px 16px; margin-bottom:14px; }
   .adm-title{ font-family:'Space Grotesk'; font-weight:700; font-size:1.05rem; color:var(--ink); margin-bottom:8px; }
   .adm-help{ font-family:'Manrope'; font-weight:600; font-size:0.84rem; color:var(--muted); line-height:1.45; margin-bottom:10px; }
@@ -1014,7 +1021,7 @@
   .gk-tile[data-view="multiple"] .gk-ic{ background:#F1F3F9; }
   .gk-tile[data-view="scramble"] .gk-ic{ background:#F1F3F9; }
   .gk-tile[data-view="benkim"] .gk-ic{ background:#F1F3F9; }
-  body.role-ogretmen .gk-tile[data-view="questionbank"]{ display:none; }
+  body.role-ogretmen .gk-tile[data-view="questionbank"], body.role-ogrenci .gk-tile[data-view="questionbank"]{ display:none; }
   .nav-item[data-view="gk"] .nav-icon{ background:#E7EEFF; }
   @media (max-width:600px){ #view-gk{ padding:22px 14px 30px; } .gk-grid{ grid-template-columns:repeat(2,1fr); gap:10px; } .gk-tile{ font-size:.95rem; padding:18px 8px 16px; } .gk-ic{ width:60px; height:60px; font-size:2rem; } }
   @media (min-width:1200px){ .gk-wrap{ zoom:1.25; } }
@@ -2014,9 +2021,9 @@ maintAttachSync();
 
 /* ================= GİRİŞ VE YETKİ ================= */
 const AUTH_KEY = "authUsersV1", AUTH_SESSION = "authSessionV1", AUTH_PATRON_DEFAULT = "NUSMİDSA";
-const AUTH_ROLE_LABEL = { patron:"Patron", yonetici:"Yönetici", ogretmen:"Öğretmen" };
-const AUTH_ROLE_ICON = { patron:"👑", yonetici:"🛡️", ogretmen:"🎓" };
-const Auth = { user:null, role(){ return this.user ? this.user.role : null; }, readOnly(){ return this.role() === "ogretmen"; } };
+const AUTH_ROLE_LABEL = { patron:"Patron", yonetici:"Yönetici", ogretmen:"Öğretmen", ogrenci:"Öğrenci" };
+const AUTH_ROLE_ICON = { patron:"👑", yonetici:"🛡️", ogretmen:"🎓", ogrenci:"🧒" };
+const Auth = { user:null, role(){ return this.user ? this.user.role : null; }, readOnly(){ return this.role() === "ogretmen" || this.role() === "ogrenci"; } };
 function authNorm(s){ return String(s == null ? "" : s).trim().toLocaleUpperCase("tr"); }             // şifrede büyük/küçük harf ayrımı yok
 function authNameKey(s){ return String(s == null ? "" : s).trim().replace(/\s+/g," ").toLocaleLowerCase("tr"); }
 
@@ -2027,7 +2034,7 @@ function authNameKey(s){ return String(s == null ? "" : s).trim().replace(/\s+/g
     if(self !== window.localStorage || !Auth.user) return false;
     if(key === AUTH_SESSION) return false; // oturum bilgisi (giriş açık kalsın) her zaman yazılabilir
     if(key === "*" || key === AUTH_KEY) return Auth.user.role !== "patron";
-    return Auth.user.role === "ogretmen";
+    return Auth.user.role === "ogretmen" || Auth.user.role === "ogrenci";
   };
   P.setItem = function(k, v){ if(deny(this, k)) return; return oSet.call(this, k, v); };
   P.removeItem = function(k){ if(deny(this, k)) return; return oRem.call(this, k); };
@@ -2040,7 +2047,7 @@ function authLoad(){
   if(!d || typeof d !== "object") d = {};
   if(!d.patron || typeof d.patron.pw !== "string" || !d.patron.pw) d.patron = { pw: AUTH_PATRON_DEFAULT, name: "Patron" };
   if(typeof d.patron.name !== "string" || !d.patron.name.trim()) d.patron.name = "Patron";
-  d.users = Array.isArray(d.users) ? d.users.filter(u=>u && u.id && u.name && (u.role === "yonetici" || u.role === "ogretmen") && typeof u.pw === "string" && u.pw) : [];
+  d.users = Array.isArray(d.users) ? d.users.filter(u=>u && u.id && u.name && (u.role === "yonetici" || u.role === "ogretmen" || u.role === "ogrenci") && typeof u.pw === "string" && u.pw) : [];
   return d;
 }
 let authSyncOn = false;
@@ -2106,6 +2113,7 @@ try{
 /* Dosya erişimi: genel anahtar kapalıysa herkes, ayrıca patron tek tek öğretmenleri de kapatabilir */
 function filesBlocked(){
   if(filesDisabled) return true;
+  if(Auth.role() === "ogrenci") return true;
   if(Auth.role() !== "ogretmen") return false;
   const u = authData.users.find(x=>x.id === Auth.user.id);
   return !!(u && u.filesOff);
@@ -2120,7 +2128,7 @@ function authAllowView(view){
 function authApply(){
   const r = Auth.role(), b = document.body;
   b.classList.toggle("auth-locked", !Auth.user);
-  ["patron","yonetici","ogretmen"].forEach(x=>b.classList.toggle("role-" + x, r === x));
+  ["patron","yonetici","ogretmen","ogrenci"].forEach(x=>b.classList.toggle("role-" + x, r === x));
   document.getElementById("authGate").style.display = Auth.user ? "none" : "flex";
   const chip = document.getElementById("authChip");
   chip.style.display = Auth.user ? "flex" : "none";
@@ -2243,10 +2251,11 @@ function adminRender(){
     + '<div class="adm-card"><div class="adm-title">➕ Kullanıcı ekle</div>'
     + '<div class="adm-help">Kullanıcı eklenince şifre otomatik oluşur. İsterseniz sonradan değiştirebilirsiniz.</div>'
     + '<div class="adm-add"><input type="text" id="admNewName" placeholder="Kullanıcı adı" maxlength="30" autocomplete="off">'
-    + '<select id="admNewRole"><option value="ogretmen">🎓 Öğretmen (yalnızca kullanır)</option><option value="yonetici">🛡️ Yönetici (her şeyi düzenler)</option></select>'
+    + '<select id="admNewRole"><option value="ogretmen">🎓 Öğretmen (yalnızca kullanır)</option><option value="yonetici">🛡️ Yönetici (her şeyi düzenler)</option><option value="ogrenci">🧒 Öğrenci (yalnızca yarışmalara katılır)</option></select>'
     + '<button type="button" class="adm-btn" data-adm="add">Ekle</button></div></div>'
     + '<div class="adm-card"><div class="adm-title">🛡️ Yöneticiler</div>' + list("yonetici") + '</div>'
     + '<div class="adm-card"><div class="adm-title">🎓 Öğretmenler</div>' + list("ogretmen") + '</div>'
+    + '<div class="adm-card"><div class="adm-title">🧒 Öğrenciler</div>' + list("ogrenci") + '</div>'
     + '<div class="adm-card"><div class="adm-title">💾 Hesapları başka cihaza taşı</div>'
     + '<div class="adm-help">Hesaplar bu tarayıcıda saklanır. Başka bir cihazda aynı kullanıcılarla giriş için dosyaya aktarın, o cihazda içe aktarın. Dosyada şifreler açık yazar, güvenli saklayın.</div>'
     + '<div class="adm-add"><button type="button" class="adm-btn" data-adm="export">💾 Hesapları dışa aktar</button><button type="button" class="adm-btn" data-adm="import-pick">📂 Hesapları içe aktar</button>'
@@ -2353,7 +2362,7 @@ function admImport(input){
       if(!p || p.type !== "sinifyarismalari-hesaplar" || !p.data) throw new Error("bad");
       const d = p.data;
       if(!d.patron || typeof d.patron.pw !== "string" || d.patron.pw.length < 4 || !Array.isArray(d.users)) throw new Error("bad");
-      const users = d.users.filter(u=>u && u.id && u.name && (u.role === "yonetici" || u.role === "ogretmen") && typeof u.pw === "string" && u.pw.length >= 4);
+      const users = d.users.filter(u=>u && u.id && u.name && (u.role === "yonetici" || u.role === "ogretmen" || u.role === "ogrenci") && typeof u.pw === "string" && u.pw.length >= 4);
       if(!confirm("Dosyadaki hesaplar (" + users.length + " kullanıcı ve patron şifresi) mevcut hesapların yerine geçecek. Devam edilsin mi?")) return;
       const patronName = (typeof d.patron.name === "string" && d.patron.name.trim()) ? d.patron.name.trim() : "Patron";
       authData = { patron:{ pw:d.patron.pw, name:patronName }, users:users };
