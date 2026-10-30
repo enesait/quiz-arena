@@ -2001,16 +2001,6 @@ try{
   firebaseHazir = true;
 }catch(e){ console.error("Firebase başlatılamadı, veriler yalnızca bu cihazda saklanacak:", e); }
 
-/* Anonim oturum açılınca (en geç 5 sn sonra) verilen işi bir kez çalıştırır.
-   Böylece bulut okumaları, oturum hazır olmadan başlayıp reddedilmez. */
-function fbAuthReady(fn){
-  if(!firebaseHazir){ fn(); return; }
-  let done = false;
-  const run = ()=>{ if(done) return; done = true; try{ fn(); }catch(e){ console.error(e); } };
-  try{ firebase.auth().onAuthStateChanged(u=>{ if(u) run(); }); }catch(e){ run(); }
-  setTimeout(run, 5000);
-}
-
 /* ---- Acil kısıtlama anahtarı: patron açarsa, dosya açma/indirme/ekleme (maliyetli olan
    kısım) geçici olarak kapanır; yarışma soruları (ucuz, metin ağırlıklı) etkilenmez. ---- */
 let filesDisabled = false;
@@ -6689,9 +6679,9 @@ function sinifAttachSync(){
     sinifData = sinifNormalizeTree(v);
     try{ localStorage.setItem(SINIF_KEY, JSON.stringify(sinifData)); }catch(e){}
     sinifRender();
-  }, e=>{ console.error("Sınıf ağacı senkronizasyon hatası:", e); sinifSyncOn = false; setTimeout(sinifAttachSync, 5000); });
+  }, e=>console.error("Sınıf ağacı senkronizasyon hatası:", e));
 }
-fbAuthReady(sinifAttachSync);
+sinifAttachSync();
 function sinifId(prefix){ return prefix + Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
 
 function unitPathLabel(unitId){
@@ -7742,14 +7732,14 @@ function libAttachSync(sec){
     libData[sec] = libNormalizeTree(v);
     try{ localStorage.setItem(LIB[sec].key, JSON.stringify(libData[sec])); }catch(e){}
     libRender(sec);
-  }, e=>{ console.error("Senkronizasyon hatası:", e); libSyncOn[sec] = false; setTimeout(()=>libAttachSync(sec), 5000); });
+  }, e=>console.error("Senkronizasyon hatası:", e));
   fbDb.ref("dkabSorXLib/"+sec+"/res").on("value", snap=>{
     resCache[sec] = snap.val() || {};
     libRender(sec);
     libMigrateBlobs();
   }, e=>console.error("Kaynak senkronizasyon hatası:", e));
 }
-Object.keys(LIB).forEach(sec=>{ libData[sec] = libLoad(sec); libNav[sec] = {classId:null, courseId:null, unitId:null}; fbAuthReady(()=>libAttachSync(sec)); });
+Object.keys(LIB).forEach(sec=>{ libData[sec] = libLoad(sec); libNav[sec] = {classId:null, courseId:null, unitId:null}; libAttachSync(sec); });
 
 /* ---- Dosya içeriği ayrı düğümde: liste hafif kalır, içerik yalnızca "Aç"/"İndir"de inip cihazda önbelleğe alınır ---- */
 const blobMem = new Map();
@@ -8003,7 +7993,7 @@ function pdfjsLoad(){
 
 let pv = null;                       // açık PDF oturumu
 let libReaderUrl = null, libReaderName = "";
-const PDF_PAD = 12, PDF_MIN = 1, PDF_MAX = 4;   // 1 = ekrana sığdırılmış tek sayfa
+const PDF_PAD = 12, PDF_MIN = 1, PDF_MAX = 10;   // 1 = ekrana sığdırılmış tek sayfa
 
 function pdfInfo(v, n){ return v.pg[n] || (v.pg[n] = {n:n, w:v.w1, h:v.h1, el:null, ink:null, qrShown:false}); }
 function pdfScaleOf(v, p){
