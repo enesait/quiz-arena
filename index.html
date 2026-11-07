@@ -558,7 +558,7 @@
   .adm-btn{ border:2px solid #E1E7EF; background:#F6F7FB; border-radius:10px; padding:8px 11px; font-family:'Space Grotesk'; font-weight:700; font-size:0.85rem; color:var(--ink); cursor:pointer; }
   .adm-btn.danger{ color:#B91C1C; }
   .adm-add{ display:flex; flex-wrap:wrap; gap:8px; }
-  .adm-add input, .adm-add select{ flex:1 1 150px; min-width:0; box-sizing:border-box; font-family:'Manrope'; font-weight:700; font-size:0.95rem; padding:10px 12px; border-radius:10px; border:2px solid #E1E7EF; color:var(--ink); background:#fff; }
+  .adm-add input, .adm-add select{ flex:1 1 150px; min-width:0; max-width:100%; box-sizing:border-box; font-family:'Manrope'; font-weight:700; font-size:0.95rem; padding:10px 12px; border-radius:10px; border:2px solid #E1E7EF; color:var(--ink); background:#fff; }
   .adm-empty{ font-family:'Manrope'; font-weight:600; font-size:0.88rem; color:var(--muted); padding:6px 0; }
   .act-quick{ display:flex; flex-direction:column; align-items:center; gap:2px; width:100%; margin:0 0 14px; background:var(--violet); color:#fff; border:none; border-radius:14px; padding:12px 16px; font-family:'Space Grotesk'; font-weight:700; font-size:1rem; cursor:pointer; box-shadow:0 4px 0 var(--violet-dark); }
   .act-quick small{ font-family:'Manrope'; font-weight:600; font-size:0.75rem; opacity:0.9; }
@@ -2325,7 +2325,7 @@ function adminRender(){
     + '<div class="adm-card"><div class="adm-title">➕ Kullanıcı ekle</div>'
     + '<div class="adm-help">Kullanıcı eklenince şifre otomatik oluşur. İsterseniz sonradan değiştirebilirsiniz.</div>'
     + '<div class="adm-add"><input type="text" id="admNewName" placeholder="Kullanıcı adı" maxlength="30" autocomplete="off">'
-    + '<select id="admNewRole"><option value="ogretmen">🎓 Öğretmen (yalnızca kullanır)</option><option value="yonetici">🛡️ Yönetici (her şeyi düzenler)</option><option value="ogrenci">🧒 Öğrenci (yalnızca sizin açtığınız oyunları oynar)</option></select>'
+    + '<select id="admNewRole"><option value="ogretmen">🎓 Öğretmen (yalnızca kullanır)</option><option value="yonetici">🛡️ Yönetici (her şeyi düzenler)</option><option value="ogrenci">🧒 Öğrenci (seçtiğiniz oyunlar)</option></select>'
     + '<button type="button" class="adm-btn" data-adm="add">Ekle</button></div></div>'
     + '<div class="adm-card"><div class="adm-title">🛡️ Yöneticiler</div>' + list("yonetici") + '</div>'
     + '<div class="adm-card"><div class="adm-title">🎓 Öğretmenler</div>' + list("ogretmen") + '</div>'
