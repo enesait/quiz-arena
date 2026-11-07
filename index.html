@@ -544,6 +544,14 @@
   .adm-help{ font-family:'Manrope'; font-weight:600; font-size:0.84rem; color:var(--muted); line-height:1.45; margin-bottom:10px; }
   .adm-row{ display:flex; flex-wrap:wrap; align-items:center; gap:8px 12px; padding:10px 0; border-top:1px solid #EEF1F6; }
   .adm-row:first-of-type{ border-top:none; }
+  .adm-games{ background:#F6F8FC; border:1px solid #E1E7EF; border-radius:12px; padding:10px 12px; margin:0 0 6px; }
+  .adm-games-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:6px 12px; margin:6px 0 10px; }
+  .adm-game{ display:flex; align-items:center; gap:8px; font-family:'Manrope'; font-weight:700; font-size:0.88rem; color:var(--ink); cursor:pointer; padding:4px 2px; }
+  .adm-game input{ width:18px; height:18px; accent-color:#6C63F5; cursor:pointer; }
+  .gk-tile.game-locked, .act-card.game-locked{ position:relative; opacity:.55; filter:grayscale(.85); }
+  .gk-tile.game-locked{ cursor:not-allowed; }
+  .gl-badge{ position:absolute; top:8px; right:10px; font-size:1.15rem; }
+  .act-play.game-locked{ background:#9AA3B2 !important; cursor:not-allowed; }
   .adm-name{ flex:1 1 140px; min-width:0; font-family:'Manrope'; font-weight:800; font-size:0.95rem; color:var(--ink); word-break:break-word; }
   .adm-pwbox{ display:flex; flex-wrap:wrap; gap:6px; align-items:center; flex:2 1 300px; }
   .adm-pw{ flex:1 1 120px; min-width:0; box-sizing:border-box; font-family:'Space Grotesk'; font-weight:700; font-size:1rem; letter-spacing:.05em; padding:9px 12px; border-radius:10px; border:2px solid #E1E7EF; color:var(--ink); }
@@ -2001,6 +2009,16 @@ try{
   firebaseHazir = true;
 }catch(e){ console.error("Firebase başlatılamadı, veriler yalnızca bu cihazda saklanacak:", e); }
 
+/* Anonim oturum açılınca (en geç 5 sn sonra) verilen işi bir kez çalıştırır.
+   Böylece bulut okumaları, oturum hazır olmadan başlayıp reddedilmez. */
+function fbAuthReady(fn){
+  if(!firebaseHazir){ fn(); return; }
+  let done = false;
+  const run = ()=>{ if(done) return; done = true; try{ fn(); }catch(e){ console.error(e); } };
+  try{ firebase.auth().onAuthStateChanged(u=>{ if(u) run(); }); }catch(e){ run(); }
+  setTimeout(run, 5000);
+}
+
 /* ---- Acil kısıtlama anahtarı: patron açarsa, dosya açma/indirme/ekleme (maliyetli olan
    kısım) geçici olarak kapanır; yarışma soruları (ucuz, metin ağırlıklı) etkilenmez. ---- */
 let filesDisabled = false;
@@ -2068,6 +2086,7 @@ function authAttachSync(){
     authData.users = Array.isArray(authData.users) ? authData.users : [];
     try{ localStorage.setItem(AUTH_KEY, JSON.stringify(authData)); }catch(e){}
     if(document.getElementById("adminBody")) adminRender();
+    if(typeof gamesApplyLocks === "function") gamesApplyLocks();
   }, e=>console.error("Hesap senkronizasyon hatası:", e));
 }
 
@@ -2125,6 +2144,51 @@ function authAllowView(view){
   if(r === "ogretmen" && (view === "questionbank" || view === "sorxadd")) return false;
   return true;
 }
+/* Oyun erişimi: öğrenci yalnızca patronun seçtiği oyunları oynayabilir (user.allowedGames). Varsayılan: hepsi kapalı. */
+function gameAllowed(gameId){
+  if(Auth.role() !== "ogrenci") return true;
+  const u = authData.users.find(x=>x.id === Auth.user.id);
+  return !!(u && Array.isArray(u.allowedGames) && u.allowedGames.indexOf(gameId) >= 0);
+}
+function gameAllowedView(view){
+  let list; try{ list = UNIT_GAMES; }catch(e){ return true; }
+  const g = list.find(x=>x.view === view);
+  return !g || gameAllowed(g.id);
+}
+function gameLockedMsg(){ alert("🔒 Bu oyun şu an kapalı. Öğretmeninizden açmasını isteyin."); }
+function gamesApplyLocks(){
+  let list; try{ list = UNIT_GAMES; }catch(e){ return; }
+  const st = Auth.role() === "ogrenci";
+  document.querySelectorAll(".gk-tile[data-view]").forEach(el=>{
+    const g = list.find(x=>x.view === el.dataset.view); if(!g) return;
+    const lock = st && !gameAllowed(g.id);
+    if(el.classList.contains("game-locked") !== lock) el.classList.toggle("game-locked", lock);
+    const b = el.querySelector(".gl-badge");
+    if(lock && !b){ const n = document.createElement("span"); n.className = "gl-badge"; n.textContent = "🔒"; el.appendChild(n); }
+    else if(!lock && b) b.remove();
+  });
+  document.querySelectorAll(".act-play[data-game]").forEach(btn=>{
+    const lock = st && !gameAllowed(btn.dataset.game);
+    if(btn.classList.contains("game-locked") !== lock) btn.classList.toggle("game-locked", lock);
+    const card = btn.closest(".act-card");
+    if(card && card.classList.contains("game-locked") !== lock) card.classList.toggle("game-locked", lock);
+    if(lock && !btn.dataset.orig){ btn.dataset.orig = btn.textContent; btn.textContent = "🔒 Kapalı"; }
+    else if(!lock && btn.dataset.orig){ btn.textContent = btn.dataset.orig; delete btn.dataset.orig; }
+  });
+}
+// Kilitli oyuna tıklama (ilk savunma hattı; showView ve unitOpen içinde de kontrol var)
+document.addEventListener("click", (e)=>{
+  if(Auth.role() !== "ogrenci" || !e.target || !e.target.closest) return;
+  const t = e.target.closest(".gk-tile[data-view], .act-play[data-game]"); if(!t) return;
+  let ok = true;
+  if(t.dataset.game) ok = gameAllowed(t.dataset.game); else ok = gameAllowedView(t.dataset.view);
+  if(!ok){ e.stopPropagation(); e.preventDefault(); gameLockedMsg(); }
+}, true);
+(function gamesLockWatch(){
+  const c = document.querySelector(".content"); if(!c || !window.MutationObserver) return;
+  new MutationObserver(()=>gamesApplyLocks()).observe(c, { childList:true, subtree:true });
+  window.addEventListener("load", gamesApplyLocks);
+})();
 function authApply(){
   const r = Auth.role(), b = document.body;
   b.classList.toggle("auth-locked", !Auth.user);
@@ -2136,6 +2200,7 @@ function authApply(){
   if(!Auth.user) setTimeout(()=>{ const u = document.getElementById("authUser"); if(u) u.focus(); }, 50);
   msgUpdateBadge();
   msgPollSync();
+  gamesApplyLocks();
 }
 
 let authFails = 0, authLockUntil = 0;
@@ -2216,7 +2281,8 @@ document.addEventListener("click", (e)=>{
 }, true);
 
 /* ---- Yönetim sayfası (yalnızca patron) ---- */
-function admRow(id, icon, name, pw, canDelete, filesOff, canRename){
+let admGamesOpen = null;
+function admRow(id, icon, name, pw, canDelete, filesOff, canRename, gamesCount){
   const e = qbEscape;
   if(canRename === undefined) canRename = canDelete;
   return '<div class="adm-row" data-id="' + e(id) + '"><div class="adm-name">' + icon + ' ' + e(name)
@@ -2227,8 +2293,16 @@ function admRow(id, icon, name, pw, canDelete, filesOff, canRename){
     + '<button type="button" class="adm-btn" data-adm="gen" data-id="' + e(id) + '">🎲 Yeni</button>'
     + '<button type="button" class="adm-btn" data-adm="copy" data-id="' + e(id) + '" title="Kullanıcı adı ve şifreyi kopyala">📋</button>'
     + (filesOff === undefined ? '' : '<button type="button" class="adm-btn' + (filesOff ? ' danger' : '') + '" data-adm="toggle-user-files" data-id="' + e(id) + '" title="Bu öğretmenin dosya açma/indirme/ekleme erişimini aç/kapat">' + (filesOff ? '🔒 Dosya: Kapalı' : '📂 Dosya: Açık') + '</button>')
+    + (gamesCount === undefined ? '' : '<button type="button" class="adm-btn' + (admGamesOpen === id ? ' danger' : '') + '" data-adm="games" data-id="' + e(id) + '" title="Bu öğrencinin oynayabileceği oyunları seç">🎮 Oyunlar (' + gamesCount + '/' + UNIT_GAMES.length + ')</button>')
     + (canDelete ? '<button type="button" class="adm-btn danger" data-adm="del" data-id="' + e(id) + '" title="Sil">🗑️</button>' : '')
     + '</div></div>';
+}
+function admAllowed(u){ return (Array.isArray(u.allowedGames) ? u.allowedGames : []).filter(id=>UNIT_GAMES.some(g=>g.id === id)); }
+function admGamesPanel(u){
+  const on = admAllowed(u), e = qbEscape;
+  return '<div class="adm-games"><div class="adm-help">' + e(u.name) + ' yalnızca işaretli oyunları oynayabilir. İşaretsiz oyunlar öğrencide 🔒 kilitli görünür. Değişiklik anında kaydedilir.</div>'
+    + '<div class="adm-games-grid">' + UNIT_GAMES.map(g=>'<label class="adm-game"><input type="checkbox" data-gm="' + g.id + '" data-id="' + e(u.id) + '"' + (on.indexOf(g.id) >= 0 ? ' checked' : '') + '> ' + g.icon + ' ' + e(g.name) + '</label>').join("") + '</div>'
+    + '<div class="adm-add"><button type="button" class="adm-btn" data-adm="games-all" data-id="' + e(u.id) + '">✅ Hepsini aç</button><button type="button" class="adm-btn danger" data-adm="games-none" data-id="' + e(u.id) + '">🔒 Hepsini kapat</button><button type="button" class="adm-btn" data-adm="games" data-id="' + e(u.id) + '">Kapat</button></div></div>';
 }
 function adminRender(){
   const body = document.getElementById("adminBody");
@@ -2237,7 +2311,7 @@ function adminRender(){
   const byName = (a, b)=>a.name.localeCompare(b.name, "tr");
   const list = (role)=>{
     const us = authData.users.filter(u=>u.role === role).sort(byName);
-    return us.length ? us.map(u=>admRow(u.id, AUTH_ROLE_ICON[role], u.name, u.pw, true, role === "ogretmen" ? !!u.filesOff : undefined)).join("") : '<div class="adm-empty">Henüz kullanıcı yok.</div>';
+    return us.length ? us.map(u=>admRow(u.id, AUTH_ROLE_ICON[role], u.name, u.pw, true, role === "ogretmen" ? !!u.filesOff : undefined, undefined, role === "ogrenci" ? admAllowed(u).length : undefined) + (role === "ogrenci" && admGamesOpen === u.id ? admGamesPanel(u) : "")).join("") : '<div class="adm-empty">Henüz kullanıcı yok.</div>';
   };
   body.innerHTML =
     '<div class="adm-card"><div class="adm-title">👑 Patron</div>'
@@ -2251,7 +2325,7 @@ function adminRender(){
     + '<div class="adm-card"><div class="adm-title">➕ Kullanıcı ekle</div>'
     + '<div class="adm-help">Kullanıcı eklenince şifre otomatik oluşur. İsterseniz sonradan değiştirebilirsiniz.</div>'
     + '<div class="adm-add"><input type="text" id="admNewName" placeholder="Kullanıcı adı" maxlength="30" autocomplete="off">'
-    + '<select id="admNewRole"><option value="ogretmen">🎓 Öğretmen (yalnızca kullanır)</option><option value="yonetici">🛡️ Yönetici (her şeyi düzenler)</option><option value="ogrenci">🧒 Öğrenci (yalnızca yarışmalara katılır)</option></select>'
+    + '<select id="admNewRole"><option value="ogretmen">🎓 Öğretmen (yalnızca kullanır)</option><option value="yonetici">🛡️ Yönetici (her şeyi düzenler)</option><option value="ogrenci">🧒 Öğrenci (yalnızca sizin açtığınız oyunları oynar)</option></select>'
     + '<button type="button" class="adm-btn" data-adm="add">Ekle</button></div></div>'
     + '<div class="adm-card"><div class="adm-title">🛡️ Yöneticiler</div>' + list("yonetici") + '</div>'
     + '<div class="adm-card"><div class="adm-title">🎓 Öğretmenler</div>' + list("ogretmen") + '</div>'
@@ -2276,6 +2350,14 @@ function admSavePw(id){
 (function admWire(){
   const body = document.getElementById("adminBody"); if(!body) return;
   body.addEventListener("change", (e)=>{
+    if(e.target && e.target.dataset && e.target.dataset.gm){
+      if(Auth.role() !== "patron") return;
+      const t = admFind(e.target.dataset.id); if(!t || t.role !== "ogrenci") return;
+      const set = new Set(admAllowed(t)); if(e.target.checked) set.add(e.target.dataset.gm); else set.delete(e.target.dataset.gm);
+      t.allowedGames = UNIT_GAMES.map(g=>g.id).filter(id=>set.has(id));
+      if(authSave()) adminRender();
+      return;
+    }
     if(e.target && e.target.classList && e.target.classList.contains("adm-pw")) admSavePw(e.target.dataset.id);
     else if(e.target && e.target.id === "admImportFile") admImport(e.target);
   });
@@ -2298,6 +2380,13 @@ function admSavePw(id){
     if(act === "toggle-user-files"){
       const t = admFind(id); if(!t || id === "patron") return;
       t.filesOff = !t.filesOff;
+      if(authSave()) adminRender();
+      return;
+    }
+    if(act === "games"){ admGamesOpen = (admGamesOpen === id ? null : id); adminRender(); return; }
+    if(act === "games-all" || act === "games-none"){
+      const t = admFind(id); if(!t || t.role !== "ogrenci") return;
+      t.allowedGames = act === "games-all" ? UNIT_GAMES.map(g=>g.id) : [];
       if(authSave()) adminRender();
       return;
     }
@@ -2587,6 +2676,7 @@ authApply();
 let qbSource = null, unitLaunch = false, sinifKeepNav = false;
 function showView(view){
   if(!authAllowView(view)) view = "home";
+  if(!gameAllowedView(view)){ unitLaunch = false; gameLockedMsg(); return; }
   if(!unitLaunch && qbSource) qbUseSource(null);
   unitLaunch = false;
   if(QB_VIEW_MAP[view]) qbEnsureSynced(QB_VIEW_MAP[view]);
@@ -6679,9 +6769,9 @@ function sinifAttachSync(){
     sinifData = sinifNormalizeTree(v);
     try{ localStorage.setItem(SINIF_KEY, JSON.stringify(sinifData)); }catch(e){}
     sinifRender();
-  }, e=>console.error("Sınıf ağacı senkronizasyon hatası:", e));
+  }, e=>{ console.error("Sınıf ağacı senkronizasyon hatası:", e); sinifSyncOn = false; setTimeout(sinifAttachSync, 5000); });
 }
-sinifAttachSync();
+fbAuthReady(sinifAttachSync);
 function sinifId(prefix){ return prefix + Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
 
 function unitPathLabel(unitId){
@@ -6726,6 +6816,7 @@ function qbUseEval(unitId, game, merged){
   unitCtxUpdate();
 }
 async function unitOpenEval(game){
+  if(!gameAllowed(game)){ gameLockedMsg(); return; }
   const unitId = sinifNav.unitId; if(!unitId) return;
   const g = UNIT_GAMES.find(x=>x.id===game); if(!g) return;
   let un = null;
@@ -6849,6 +6940,7 @@ function sorxAddRender(){
   });
 })();
 async function unitOpen(game, toBank){
+  if(!toBank && !gameAllowed(game)){ gameLockedMsg(); return; }
   const unitId = sinifNav.topicId || sinifNav.unitId; if(!unitId) return;
   const g = UNIT_GAMES.find(x=>x.id===game);
   await qbPrefetch("unitQ:"+unitId+":"+game);      // başka cihazdan eklenen soruları önce indir
@@ -7732,14 +7824,14 @@ function libAttachSync(sec){
     libData[sec] = libNormalizeTree(v);
     try{ localStorage.setItem(LIB[sec].key, JSON.stringify(libData[sec])); }catch(e){}
     libRender(sec);
-  }, e=>console.error("Senkronizasyon hatası:", e));
+  }, e=>{ console.error("Senkronizasyon hatası:", e); libSyncOn[sec] = false; setTimeout(()=>libAttachSync(sec), 5000); });
   fbDb.ref("dkabSorXLib/"+sec+"/res").on("value", snap=>{
     resCache[sec] = snap.val() || {};
     libRender(sec);
     libMigrateBlobs();
   }, e=>console.error("Kaynak senkronizasyon hatası:", e));
 }
-Object.keys(LIB).forEach(sec=>{ libData[sec] = libLoad(sec); libNav[sec] = {classId:null, courseId:null, unitId:null}; libAttachSync(sec); });
+Object.keys(LIB).forEach(sec=>{ libData[sec] = libLoad(sec); libNav[sec] = {classId:null, courseId:null, unitId:null}; fbAuthReady(()=>libAttachSync(sec)); });
 
 /* ---- Dosya içeriği ayrı düğümde: liste hafif kalır, içerik yalnızca "Aç"/"İndir"de inip cihazda önbelleğe alınır ---- */
 const blobMem = new Map();
@@ -7993,7 +8085,7 @@ function pdfjsLoad(){
 
 let pv = null;                       // açık PDF oturumu
 let libReaderUrl = null, libReaderName = "";
-const PDF_PAD = 12, PDF_MIN = 1, PDF_MAX = 10;   // 1 = ekrana sığdırılmış tek sayfa
+const PDF_PAD = 12, PDF_MIN = 1, PDF_MAX = 4;   // 1 = ekrana sığdırılmış tek sayfa
 
 function pdfInfo(v, n){ return v.pg[n] || (v.pg[n] = {n:n, w:v.w1, h:v.h1, el:null, ink:null, qrShown:false}); }
 function pdfScaleOf(v, p){
