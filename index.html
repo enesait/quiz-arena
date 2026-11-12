@@ -709,6 +709,8 @@
   .lr-stage{ flex:1; min-height:0; display:flex; align-items:center; justify-content:center; cursor:pointer; user-select:none; -webkit-user-select:none; -webkit-tap-highlight-color:transparent; touch-action:pan-y; }
   .lr-prog{ height:4px; background:#1F2B38; } .lr-prog i{ display:block; height:100%; width:0; background:var(--violet,#6C5CE7); transition:width .2s; }
   .lr-deckbar{ display:flex; align-items:center; justify-content:center; gap:12px; padding:6px 12px calc(6px + env(safe-area-inset-bottom,0px)); background:#16202B; }
+  .lr-deckbar{ padding-top:3px !important; padding-bottom:calc(3px + env(safe-area-inset-bottom,0px)) !important; }
+  .lr-deckbar .lr-tb, .lr-deckbar .lr-count{ height:42px; }
   .lr-deckbar .lr-tb{ width:64px; background:#1F2B38; } .lr-deckbar .lr-tb:disabled{ opacity:.3; cursor:default; }
   .lr-count{ min-width:110px; height:52px; padding:0 16px; border:0; border-radius:14px; background:#1F2B38; color:#fff; font:700 1.2rem 'Space Grotesk',sans-serif; cursor:pointer; }
   .lr-sbox{ position:relative; flex:none; overflow:hidden; background:#fff; box-shadow:0 2px 12px rgba(0,0,0,.5);  }
@@ -8107,7 +8109,7 @@ function pdfjsLoad(){
 
 let pv = null;                       // açık PDF oturumu
 let libReaderUrl = null, libReaderName = "";
-const PDF_PAD = 12, PDF_MIN = 1, PDF_MAX = 4;   // 1 = ekrana sığdırılmış tek sayfa
+const PDF_PAD = 2, PDF_MIN = 1, PDF_MAX = 8;   // 1 = ekrana sığdırılmış tek sayfa
 
 function pdfInfo(v, n){ return v.pg[n] || (v.pg[n] = {n:n, w:v.w1, h:v.h1, el:null, ink:null, qrShown:false}); }
 function pdfScaleOf(v, p){
@@ -8604,7 +8606,7 @@ async function pptxOpen(blob, key){
     ink.count = N;
     ink.titleOf = async (k)=>{ try{ await deck.ensure(k); const sd = deck.slides[k]; if(!sd) return ""; const d = document.createElement("div"); d.innerHTML = sd.html; return (d.textContent||"").replace(/\s+/g," ").trim().slice(0,60); }catch(e){ return ""; } };
     slideRefit = ()=>{
-      const k = Math.max(0.05, Math.min((stage.clientWidth-24)/deck.w, (stage.clientHeight-24)/deck.h)) * mult;
+      const k = Math.max(0.05, Math.min((stage.clientWidth-4)/deck.w, (stage.clientHeight-4)/deck.h)) * mult;
       box.style.width = deck.w*k+"px"; box.style.height = deck.h*k+"px"; sl.style.transform = "scale("+k+")";
       mountInk();
     };
