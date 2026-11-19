@@ -874,8 +874,11 @@
   .pen-dot.g{ background:var(--ok); }
   .pen-dot.m{ background:var(--bad); }
   .pen-stage{ position:relative; width:100%; aspect-ratio:16/9; border-radius:16px; overflow:hidden; margin:8px 0 12px; user-select:none;
-    background:linear-gradient(#8FD0F2 0%, #CFECFB 36%, #58B85F 36%, #2E9647 100%); }
-  .pen-stage::after{ content:""; position:absolute; left:0; right:0; top:36%; height:3px; background:rgba(255,255,255,.55); }
+    background:
+      radial-gradient(ellipse at 50% 34%, rgba(255,255,255,.22), transparent 36%),
+      linear-gradient(180deg,#75bfe8 0 31%,#d7f0fa 31% 36%,#4fb457 36% 64%,#2b9848 64% 100%); }
+  .pen-stage::before{ content:""; position:absolute; inset:36% 0 0; opacity:.28; background:repeating-linear-gradient(90deg,rgba(255,255,255,.15) 0 2px,transparent 2px 42px); pointer-events:none; }
+  .pen-stage::after{ content:""; position:absolute; left:0; right:0; top:36%; height:3px; background:rgba(255,255,255,.6); box-shadow:0 2px 5px rgba(0,0,0,.12); }
   .pen-goal{ position:absolute; left:5%; right:5%; top:6%; height:52%; z-index:1; border:5px solid #fff; border-bottom:none; border-radius:6px 6px 0 0;
     background:repeating-linear-gradient(0deg, rgba(255,255,255,.26) 0 2px, transparent 2px 14px), repeating-linear-gradient(90deg, rgba(255,255,255,.26) 0 2px, transparent 2px 14px), rgba(16,44,28,.22); }
   .pen-goal.net{ animation:penNet .5s ease-out; }
@@ -908,15 +911,37 @@
   .pen-keeper.dive .pk-g.r{ right:14%; transform:translateY(-50%) scale(1.3) rotate(var(--ang,0deg)); }
   .pen-keeper.dive .pk-arc{ animation:pkArc .5s ease-in-out forwards; }
   @keyframes pkArc{ 0%{ transform:translateY(0); } 45%{ transform:translateY(var(--hump,-14%)); } 100%{ transform:translateY(0); } }
-  .pen-ball{ font-size:clamp(1.4rem,4.6vw,2.4rem); transition:left .55s cubic-bezier(.2,.7,.3,1), top .55s cubic-bezier(.2,.7,.3,1), font-size .55s; }
-  .pen-ball{ z-index:5; }
+  .pen-ball{ z-index:5; width:clamp(14px,3.2vw,28px); height:clamp(14px,3.2vw,28px); border-radius:50%; background:radial-gradient(circle at 32% 28%,#fff 0 16%,#dfe8ef 17% 44%,#27323a 45% 53%,#fff 54% 70%,#b7c4cc 71%); box-shadow:0 3px 4px rgba(0,0,0,.28), inset -2px -3px 4px rgba(0,0,0,.22); transition:font-size .2s; }
+  .pen-ball::after{ content:""; position:absolute; inset:18%; border:2px solid rgba(37,47,57,.55); border-radius:45% 55% 48% 52%; transform:rotate(28deg); }
   .pen-ball.caught{ animation:penCatch .3s ease-out; }
-  @keyframes penCatch{ 0%{ transform:translate(-50%,-50%) scale(1); } 40%{ transform:translate(-50%,-50%) scale(1.35); } 100%{ transform:translate(-50%,-50%) scale(1); } }
-  .pen-ball.fly{ font-size:clamp(1rem,3.2vw,1.7rem); animation:penSpin .55s linear; }
-  @keyframes penSpin{ from{ transform:translate(-50%,-50%) rotate(0); } to{ transform:translate(-50%,-50%) rotate(540deg); } }
-  .pen-player{ left:38%; top:90%; font-size:clamp(1.6rem,5vw,2.6rem); }
-  .pen-player.kick{ animation:penKick .3s ease-out; }
-  @keyframes penKick{ 0%{ transform:translate(-50%,-50%); } 45%{ transform:translate(-25%,-50%) rotate(-14deg); } 100%{ transform:translate(-50%,-50%); } }
+  @keyframes penCatch{ 0%{ transform:translate(-50%,-50%) scale(1); } 40%{ transform:translate(-50%,-50%) scale(1.35) rotate(18deg); } 100%{ transform:translate(-50%,-50%) scale(1); } }
+  .pen-ball.fly{ animation:penBallPulse .72s ease-out; }
+  @keyframes penBallPulse{ 0%{ filter:drop-shadow(0 2px 1px rgba(0,0,0,.35)); } 40%{ filter:drop-shadow(0 8px 5px rgba(0,0,0,.2)); } 100%{ filter:drop-shadow(0 1px 1px rgba(0,0,0,.15)); } }
+  .pen-player{ left:38%; top:86%; width:clamp(46px,10vw,82px); height:clamp(68px,15vw,122px); transform-origin:50% 85%; filter:drop-shadow(0 4px 2px rgba(0,0,0,.28)); }
+  .pen-player .runner-shadow{ position:absolute; left:18%; bottom:-5%; width:72%; height:12%; border-radius:50%; background:rgba(16,61,25,.34); filter:blur(2px); }
+  .pen-player .runner-head{ position:absolute; left:39%; top:4%; width:24%; aspect-ratio:1; border-radius:50%; background:#9c5d35; border:2px solid #71391f; z-index:3; }
+  .pen-player .runner-head::before{ content:""; position:absolute; left:8%; top:-18%; width:86%; height:45%; border-radius:60% 45% 28% 25%; background:#23252d; transform:rotate(-12deg); }
+  .pen-player .runner-body{ position:absolute; left:25%; top:25%; width:48%; height:38%; border-radius:38% 38% 28% 28%; background:linear-gradient(90deg,#f39a27,#ffbd45 48%,#de701d); border:2px solid #a54b12; transform:rotate(-10deg); z-index:2; }
+  .pen-player .runner-body::after{ content:""; position:absolute; left:42%; top:10%; width:16%; height:82%; background:rgba(255,255,255,.28); border-radius:50%; }
+  .pen-player .runner-arm{ position:absolute; top:29%; width:13%; height:35%; border-radius:9px; background:#f2a064; border:2px solid #a95b33; z-index:1; transform-origin:top; }
+  .pen-player .runner-arm.a{ left:18%; transform:rotate(28deg); }
+  .pen-player .runner-arm.b{ right:14%; transform:rotate(-40deg); }
+  .pen-player .runner-leg{ position:absolute; top:57%; width:16%; height:42%; border-radius:9px; background:#263c76; border:2px solid #172650; transform-origin:top; z-index:1; }
+  .pen-player .runner-leg.a{ left:28%; transform:rotate(17deg); }
+  .pen-player .runner-leg.b{ left:54%; transform:rotate(-33deg); }
+  .pen-player .runner-boot{ position:absolute; bottom:-5%; width:29%; height:11%; border-radius:55% 35% 35% 50%; background:#f3f5f7; border:2px solid #303746; }
+  .pen-player .runner-boot.a{ left:21%; transform:rotate(-8deg); }
+  .pen-player .runner-boot.b{ left:52%; transform:rotate(15deg); }
+  .pen-player.kick{ animation:penKick .62s cubic-bezier(.2,.75,.3,1) both; }
+  .pen-player.kick .runner-leg.a{ animation:penPlant .62s ease-out both; }
+  .pen-player.kick .runner-leg.b{ animation:penSwing .62s cubic-bezier(.2,.8,.3,1) both; }
+  .pen-player.kick .runner-arm.a{ animation:penArmBack .62s ease-out both; }
+  .pen-player.kick .runner-arm.b{ animation:penArmForward .62s ease-out both; }
+  @keyframes penKick{ 0%{ transform:translate(-50%,-50%) translateX(0) translateY(5%); } 38%{ transform:translate(-50%,-50%) translateX(16%) translateY(-2%) rotate(-5deg); } 67%{ transform:translate(-50%,-50%) translateX(22%) translateY(0) rotate(4deg); } 100%{ transform:translate(-50%,-50%) translateX(8%) translateY(2%) rotate(0); } }
+  @keyframes penPlant{ 0%,55%{ transform:rotate(17deg); } 72%{ transform:rotate(3deg); } 100%{ transform:rotate(10deg); } }
+  @keyframes penSwing{ 0%{ transform:rotate(-33deg); } 48%{ transform:rotate(-52deg); } 68%{ transform:rotate(52deg) translateY(-4%); } 100%{ transform:rotate(20deg); } }
+  @keyframes penArmBack{ 0%,50%{ transform:rotate(28deg); } 72%{ transform:rotate(52deg); } 100%{ transform:rotate(30deg); } }
+  @keyframes penArmForward{ 0%,50%{ transform:rotate(-40deg); } 72%{ transform:rotate(-65deg); } 100%{ transform:rotate(-28deg); } }
   .pen-banner{ font-family:'Space Grotesk'; font-weight:800; font-size:1.5rem; text-align:center; padding:4px 4px 2px; }
   .pen-banner.ok{ color:var(--ok); }
   .pen-banner.bad{ color:var(--bad); }
@@ -4879,10 +4904,29 @@ function penRender(){
     + `<div class="question">${qbEscape(it.q)}</div>`
     + `<div class="pen-stage" id="penStage"><div class="pen-timer" id="penTimer">⏱️ <b id="penTimerN">15</b> sn</div><div class="pen-goal" id="penGoal"><div class="pen-zones${tf?" tf":""}" id="penZones">${zones}</div></div>`
     + `<div class="pen-spot"></div><div class="pen-keeper" id="penKeeper" style="left:50%;top:32%"><div class="pk-arc">${PEN_KEEPER_SVG}</div></div>`
-    + `<div class="pen-player" id="penPlayer">🏃</div><div class="pen-ball" id="penBall" style="left:50%;top:86%">⚽</div></div>`
+    + `<div class="pen-player" id="penPlayer"><span class="runner-shadow"></span><span class="runner-head"></span><span class="runner-body"></span><span class="runner-arm a"></span><span class="runner-arm b"></span><span class="runner-leg a"></span><span class="runner-leg b"></span><span class="runner-boot a"></span><span class="runner-boot b"></span></div><div class="pen-ball" id="penBall" style="left:43%;top:84%"></div></div>`
     + `<div class="ord-hint" id="penHint">${tf ? "İfade doğruysa sol, yanlışsa sağ köşeye vurun." : "Doğru cevabın olduğu köşeye vurun!"}</div><div id="penResult"></div>`;
   panel.querySelectorAll(".pen-zone").forEach(z=>z.addEventListener("click", ()=>penShoot(parseInt(z.dataset.i, 10))));
   penTimerStart();
+}
+function penAnimateBall(target){
+  const ball = document.getElementById("penBall"); if(!ball) return;
+  const sx = 43, sy = 84, ex = target.x, ey = target.y;
+  const start = performance.now(), dur = 720;
+  ball.classList.add("fly");
+  function frame(now){
+    const raw = Math.min(1, (now - start) / dur);
+    const e = 1 - Math.pow(1 - raw, 2.15);
+    const arc = (1 - raw) * Math.sin(Math.PI * raw) * 12;
+    const x = sx + (ex - sx) * e;
+    const y = sy + (ey - sy) * e - arc;
+    const spin = raw * 920;
+    const scale = 1 - raw * .28;
+    ball.style.left = x + "%"; ball.style.top = y + "%";
+    ball.style.transform = `translate(-50%,-50%) rotate(${spin}deg) scale(${scale})`;
+    if(raw < 1) requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
 }
 function penShoot(i){
   if(penState !== "aiming") return;
@@ -4897,7 +4941,7 @@ function penShoot(i){
   const hint = document.getElementById("penHint"); if(hint) hint.style.display = "none";
   const ball = document.getElementById("penBall"), keeper = document.getElementById("penKeeper"), player = document.getElementById("penPlayer");
   player.classList.add("kick");
-  penLater(()=>{ ball.style.left = pos[i].x + "%"; ball.style.top = pos[i].y + "%"; ball.classList.add("fly"); }, 120);
+  penLater(()=>penAnimateBall(pos[i]), 245);
   keeper.classList.add("crouch");
   penLater(()=>{
     const p = pos[kz], dir = p.x < 50 ? -1 : 1;
